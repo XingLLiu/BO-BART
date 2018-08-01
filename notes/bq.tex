@@ -42,6 +42,8 @@
 
 \begin{document}
 \maketitle 
+
+\section{BQ with BART}
 We assume we have access to any easy to evaluate distribution $p(x)$, a costly to evaluate function $f(x)$,
 and we wish to approximate the integral:
 \begin{equation}
@@ -75,10 +77,31 @@ After fitting BART, we calculate $I_f$ for each sum-of-trees drawn from the post
 If we draw $P$ samples, we obtain $I_f^{(1)}, \ldots, I_f^{(P)}$, allowing us to summarize
 the mean and variance as:
 \begin{equation}
-E[I_f] = \frac{1}{n} \sum_p I_f^{(p)}
+	\mbox{E}[I_f] = \frac{1}{n} \sum_p I_f^{(p)}
 \end{equation}
 \begin{equation}
-Var[I_f] = \frac{1}{n^2} \sum_p (I_f^{(p)} - E[I_f])^2
+	\mbox{Var}[I_f] = \frac{1}{n^2} \sum_p (I_f^{(p)} - \mbox{E}[I_f])^2
 \end{equation}
+
+\section{Choosing the next query location (Sequential BQ with BART)}
+Since it's not at all obvious how to take a Sequential Bayesian Quadrature with GPs approach to the BART setting,
+a simple alternative is to look where the posterior variance in $f(x)$ as weighted by $p(x)$ is largest.
+Thus, we choose as the next query location:
+\begin{equation}
+	x^* = \mbox{argmax}_{x} \mbox{Var}[f(x)p(x)]
+	\label{eq:maxvar}
+\end{equation}
+To implement this in practice, we follow the BO with BART approach. Choose a set of test locations $x_1, \ldots, x_n$
+using, e.g.~LHS and find the posterior predictve distribution of BART at each $x_i$:
+\begin{equation}
+	p(f(x_i) | \mathcal{D})
+\end{equation}
+Since we've used MCMC, what this means in practice is that we obtain a set of $p$ samples for each $x_i$: $f^{(1)}(x_i), \ldots, f^{(p)}(x_i)$ from the $p$ separate sum-of-trees. 
+Now we can calculate the variance using the empirical estimator for mean and variance:
+\begin{align}
+	\mbox{E}[f(x_i)p(x_i)] &= \frac{1}{p} \sum_j f^{(j)}(x_i)p(x_i) \\
+	\mbox{Var}[f(x_i)p(x_i)] &= \frac{1}{p} \sum_j \left[f^{(j)}(x_i)p(x_i) - \mbox{E}[f(x_i)p(x_i)]\right]^2
+\end{align}
+Finally, we find $x^*$ following Eq.~\eqref{eq:maxvar}.
 
 \end{document}
