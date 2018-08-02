@@ -104,4 +104,11 @@ Now we can calculate the variance using the empirical estimator for mean and var
 \end{align}
 Finally, we find $x^*$ following Eq.~\eqref{eq:maxvar}.
 
+\section{Calculating $p(x)$}
+If we assume a uniform prior $p(x)$ this will allow us to conveniently reuse the calculations that are already
+used for sampling. In section 3.2 of Chipman, George, and McCulloch [Bayesian CART Model Search] they describe 
+$p_{\mbox{RULE}}()\rho | \eta, T)$ and propose what they call the ``uniform specification'' where
+at each ndoe, all predictors are equally likely to be effective. This means that calculating $p(x)$ should
+be simple: just reuse the calculation that is built into BART for the uniform specification of $p_{\mbox{RULE}}$.
+
 \end{document}
