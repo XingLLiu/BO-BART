@@ -43,12 +43,20 @@
 \begin{document}
 \maketitle 
 
-\section{BQ with BART}
+\section{BQ with Bayesian CART (not BART, yet!)}
+{\bf This section has been updated as it covers CART, not BART.}
+
 We assume we have access to any easy to evaluate distribution $p(x)$, a costly to evaluate function $f(x)$,
 and we wish to approximate the integral:
 \begin{equation}
-I_f \int f(x) p(x) dx
+	I_f = \int_{x \in \mathcal{X}} f(x) p(x) dx
 \label{eq:integral}
+\end{equation}
+
+Using Bayesian CART, we will learn a function $f_{\mbox{BART}}$ and approximate:
+\begin{equation}
+	I_f \approx \int_{x \in \mathcal{X}} f_{\mbox{BART}}(x) p(x) dx
+	\label{eq:approx1}
 \end{equation}
 
 We augment our tree data structure with the following information: 
@@ -59,21 +67,32 @@ event $\rho_i$, by multiplying the probabilities along the edges of the path by 
 
 [INSERT FIGURE ILLUSTRATING THIS HERE]
 
-We denote the value of terminal node $\rho_i$ by $f(\rho_i)$.
+We denote the value of terminal node $\rho_i$ by $f_{\mbox{CART}}(\rho_i)$.
 We further augment our tree data structure by calculating Eq.~\eqref{eq:integral} for the set of events that reach
 each terminal node:
 \begin{align}
-& \int_{x \in \rho_i} f(x) p(x) dx \\
- &=  f(\rho_i) p(\rho_i)
+	& \int_{x \in \rho_i} f_{\mbox{CART}}(x) p(x) dx \\
+	&=  f_{\mbox{CART}}(\rho_i) p(\rho_i)
+	\label{eq:approx2}
+\end{align}
+Assuming we have $m$ terminal nodes, we use Eq.~\eqref{eq:approx2} to calculate Eq.~\eqref{eq:approx1}:
+\begin{align}
+%	& \int_{x \in \mathcal{X}} f(x) p(x) dx \\ 
+	& \int_{x \in \mathcal{X}} f_{\mbox{CART}}(x) p(x) dx \\ 
+	= & \sum_{i=1}^m \int_{x \in \rho_i} f_{\mbox{CART}}(x) p(x) dx \\ 
+	= &  \sum_{i=1}^m f_{\mbox{CART}}(\rho_i) p(\rho_i)
 \end{align}
 
-Now given a set of trees $t_1, \ldots, t_T$ drawn from the posterior, we can use these trees to approximate
+
+Now given a set of trees $t_1, \ldots, t_T$ drawn from the Bayesian CART posterior, we have
+functions $f_{\mbox{CART}}^{(1)}, \ldots, f_{\mbox{CART}}^{(T)}$, each with its own set of terminal
+nodes $\rho_i^{j}$, $i=1, \ldots, m_j$. We use these trees to approximate
 Eq.~\eqref{eq:integral}:
 \begin{align}
-I_f = \int f(x)p(x) dx \approx \frac{1}{T} \sum_{j=1}^T f(\rho_i^j) p(\rho_i^j)
+	I_f = \int f(x)p(x) dx \approx \frac{1}{T} \sum_{j=1}^T \sum_{i=1}^{m_j} f_{\mbox{CART}}^j(\rho_i^j) p(\rho_i^j)
 \end{align}
 
-After fitting BART, we calculate $I_f$ for each sum-of-trees drawn from the posterior.
+After fitting CART, we calculate $I_f$ for each tree drawn from the posterior.
 If we draw $P$ samples, we obtain $I_f^{(1)}, \ldots, I_f^{(P)}$, allowing us to summarize
 the mean and variance as:
 \begin{equation}
@@ -82,6 +101,9 @@ the mean and variance as:
 \begin{equation}
 	\mbox{Var}[I_f] = \frac{1}{n^2} \sum_p (I_f^{(p)} - \mbox{E}[I_f])^2
 \end{equation}
+
+\section{From Bayesian CART to BART}
+[TO BE FILLED IN]
 
 \section{Choosing the next query location (Sequential BQ with BART)}
 Since it's not at all obvious how to take a Sequential Bayesian Quadrature with GPs approach to the BART setting,
