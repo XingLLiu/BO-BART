@@ -1,4 +1,5 @@
 Put explanations of the code you're committing in here:
 
-1. file1.r -- does xyz
-2. file2.r -- etc.
+GP Analytical calculates the GP integration using analytical results from paper
+Normal script is the R script for BART & Monte Carlo.
+
