@@ -328,7 +328,6 @@ for(i in 1:N){
 meanValue3[p]<-t(z)%*%ginv(K)%*%Y
 sd3[p]<-sigma*det(2*solve(A)%*%B+diag(dim))^(-0.5)-t(z)%*%ginv(K)%*%z
 
-}
 
 
 #This is to find real value, only work in low dimensions (up to 3);
