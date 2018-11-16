@@ -1,12 +1,12 @@
-library(lhs)
-library(dbarts)
-library(data.tree)
-library(matrixStats)
-library(mvtnorm)
-library(cubature)
-library(truncnorm)
-library(mlegp)
-library(MASS)
+library("lhs")
+library("dbarts")
+library("data.tree")
+library("matrixStats")
+library("mvtnorm")
+library("cubature")
+library("truncnorm")
+library("mlegp")
+library("MASS")
 namedList<-treatSens:::namedList
 
 
@@ -16,9 +16,10 @@ dim=1
 
 
 #Build Tree from characters of tree
-buildTree <- function(treeChars)
-{
-  if (treeChars[1] == ".") return(list(remainder = treeChars[-1]))
+buildTree <- function(treeChars){
+  if(treeChars[1] == "."){
+    return(list(remainder = treeChars[-1]))
+    }
   
   splitVar <- as.integer(treeChars[1]) + 1L
   splitIndex <- as.integer(treeChars[2]) + 1L
@@ -37,13 +38,12 @@ buildTree <- function(treeChars)
 }
 
 #Assign probability to each terminal nodes and assign unique name to them
-namedTree<-function(Tree,base,power)
-{
+namedTree<-function(Tree,base,power){
   nodeList<-Traverse(Tree)
   
   terminalNodes=Traverse(Tree,filterFun = isLeaf)
   
-  for (i in 1:length(terminalNodes)){
+  for(i in 1:length(terminalNodes)){
     probability2<-prob2(terminalNodes[[i]])
     terminalNodes[[i]]$prob2<-probability2
     terminalNodes[[i]]$name<-paste("Terminal",toString(i),sep="")
@@ -56,7 +56,7 @@ namedTree<-function(Tree,base,power)
 prob2<-function(currentNode){
   prob<-currentNode$probability;
   
-  while (!isRoot(currentNode$parent)){
+  while(!isRoot(currentNode$parent)){
     currentNode<-currentNode$parent
     prob<-prob*currentNode$probability;
   }
@@ -68,7 +68,7 @@ prob2<-function(currentNode){
 #Drop data set into the tree and assign them to different nodes 
 passData <- function(oneTree, cutPoints,dataPoints, cut){
   
-  if (!is.null(oneTree$leftChild)){
+  if(!is.null(oneTree$leftChild)){
     
     decisionRule <- cutPoints[[oneTree$splitVar]][oneTree$splitIndex]
     
@@ -88,7 +88,7 @@ passData <- function(oneTree, cutPoints,dataPoints, cut){
     
     passData(oneTree$rightChild,  cutPoints, oneTree$rightChild$xData,cutRight)
     
-  }else if(is.null(oneTree$probability)){
+  } else if(is.null(oneTree$probability)){
     
     oneTree$probability <- 1
     oneTree$xData <- dataPoints
@@ -102,7 +102,7 @@ Yprediction<-function(tree,model,treeNum,drawNum,trainX){
   fits<-model$fit$state[[1]]@savedTreeFits
   terminal<-Traverse(tree,filterFun = isLeaf);
   
-  for (node in terminal){
+  for(node in terminal){
     xTrain<-node$xData;
     predictedY<-fits[as.integer(rownames(xTrain)),treeNum,drawNum]
     df<-data.frame(xTrain,predictedY);
@@ -132,7 +132,7 @@ SingleTreeSum<-function(treeNum,model,trainX,drawNum,base,power){
   
   #Calculate approximation of integreal in the single tree 
   integral<-0;
-  for (node in terminalNodeList){
+  for(node in terminalNodeList){
     
     #We use the mean of prediction value Y's in the terminal node as u
     integral<-integral+node$prob2*(mean(node$data$predictedY)) 
@@ -215,10 +215,10 @@ realValue<-numeric()
 #The function to be integrated, the case here is a discontinuous one
 f1<-function(x){
   y<-c();
-  for (i in 1:length(x)){
-    if (x[i]<0){
+  for(i in 1:length(x)){
+    if(x[i]<0){
       y[i]<-x[i]^2;
-    }else{
+    } else {
       y[i]<-cos(x[i])+x
     }
   }
@@ -298,36 +298,36 @@ for (p in 10:310){
   
   K<-matrix(0,nrow=N,ncol=N)
   
-  #The exp squared covariance function, hence calculating covariance matrix cov
-  covFunction<-function(x,y){
-    cov<-1
-    for (i in 1:dim){
-      cov<-cov*exp(-Beta[i]*sum((x[i]-y[i])^2))
-    }
-    return (cov)
+#The exp squared covariance function, hence calculating covariance matrix cov
+covFunction<-function(x,y){
+  cov<-1
+  for (i in 1:dim){
+    cov<-cov*exp(-Beta[i]*sum((x[i]-y[i])^2))
   }
-  
-  for (i in 1:N){
-    for (j in 1:N){
-      cov<-sigma*covFunction(X[i,],X[j,])
-      K[i,j]<-cov
-    }
+  return (cov)
+}
+
+for (i in 1:N){
+  for (j in 1:N){
+    cov<-sigma*covFunction(X[i,],X[j,])
+    K[i,j]<-cov
   }
+}
   
-  #calculate approximation and posterior variance analyticall using formula
-  #in the paper
-  b<-0;
-  B<-diag(dim);
-  a<-X;
-  A<-diag(1/(2*Beta),dim)
-  z<-c();
-  for(i in 1:N){
-    z[i]<-sigma*(det(solve(A)%*%B+diag(dim))^-0.5)*exp(-0.5*(a[i,]+b)%*%ginv(A+B)%*%(a[i,]-b))
-  }
-  
-  meanValue3[p]<-t(z)%*%ginv(K)%*%Y
-  sd3[p]<-sigma*det(2*solve(A)%*%B+diag(dim))^(-0.5)-t(z)%*%ginv(K)%*%z
-  
+#calculate approximation and posterior variance analyticall using formula
+#in the paper
+b<-0;
+B<-diag(dim);
+a<-X;
+A<-diag(1/(2*Beta),dim)
+z<-c();
+for(i in 1:N){
+  z[i]<-sigma*(det(solve(A)%*%B+diag(dim))^-0.5)*exp(-0.5*(a[i,]+b)%*%ginv(A+B)%*%(a[i,]-b))
+}
+
+meanValue3[p]<-t(z)%*%ginv(K)%*%Y
+sd3[p]<-sigma*det(2*solve(A)%*%B+diag(dim))^(-0.5)-t(z)%*%ginv(K)%*%z
+
 }
 
 
