@@ -1,13 +1,13 @@
-library(lhs)
-library(dbarts)
-library(data.tree)
-library(matrixStats)
-library(mvtnorm)
-library(cubature)
-library(truncnorm)
-library(mlegp)
-library(MASS)
-library(base)
+library("lhs")
+library("dbarts")
+library("data.tree")
+library("matrixStats")
+library("mvtnorm")
+library("cubature")
+library("truncnorm")
+library("mlegp")
+library("MASS")
+library("base")
 namedList<-treatSens:::namedList
 
 
@@ -59,7 +59,9 @@ f <- function(x){
 #build Tree from characters of tree
 buildTree <- function(treeChars){
   
-  if (treeChars[1] == ".") return(list(remainder = treeChars[-1]))
+  if (treeChars[1] == ".") {
+    return(list(remainder = treeChars[-1]))
+    }
   
   splitVar <- as.integer(treeChars[1]) + 1L
   splitIndex <- as.integer(treeChars[2]) + 1L
