@@ -1,0 +1,299 @@
+library(lhs)
+library(dbarts)
+library(data.tree)
+library(matrixStats)
+library(mvtnorm)
+library(cubature)
+library(truncnorm)
+library(mlegp)
+library(MASS)
+namedList<-treatSens:::namedList
+
+
+#Set paramters and dimensions 
+dim=3
+
+
+
+
+
+#Assign probability to each terminal nodes and assign unique name to them
+
+#Calculate terminal node probability by multiplying along the path
+prob2<-function(currentNode){
+  prob<-currentNode$probability;
+  
+  while (!isRoot(currentNode$parent)){
+    currentNode<-currentNode$parent
+    prob<-prob*currentNode$probability;
+  }
+  
+  return (prob)
+}
+
+
+#Drop data set into the tree and assign them to different nodes 
+fillProbabilityForNode <- function(oneTree,cutPoints, cut){
+  
+  if (!is.null(oneTree$leftChild)){
+    
+    decisionRule <- cutPoints[[oneTree$splitVar]][oneTree$splitIndex]
+    
+    oneTree$leftChild$probability  <-ptruncnorm(decisionRule,a=cut[1,oneTree$splitVar],b=cut[2,oneTree$splitVar],mean=0,sd=1)
+    
+    oneTree$rightChild$probability <-(1-ptruncnorm(decisionRule,a=cut[1,oneTree$splitVar],b=cut[2,oneTree$splitVar],mean=0,sd=1))
+    
+    
+    cutLeft<-cut
+    cutLeft[2,oneTree$splitVar]<-decisionRule
+    
+    fillProbabilityForNode(oneTree$leftChild, cutPoints, cutLeft)
+    
+    cutRight<-cut
+    cutRight[1,oneTree$splitVar]<-decisionRule
+    
+    fillProbabilityForNode(oneTree$rightChild,  cutPoints, cutRight)
+    
+  }else if(is.null(oneTree$probability)){
+    
+    oneTree$probability <- 1
+    
+  }
+  
+  return(oneTree)
+}
+
+terminalProbability<-function(Tree)
+{
+  terminalNodes=Traverse(Tree,filterFun = isLeaf)
+  
+  for (i in 1:length(terminalNodes)){
+    probability2<-prob2(terminalNodes[[i]])
+    terminalNodes[[i]]$terminal_probability<-probability2
+  }
+  
+  return (Tree)
+}
+
+
+
+getTree <- function(sampler, chainNum, sampleNum, treeNum)
+{
+  cutPoints <- dbarts:::createCutPoints(sampler)
+  
+  treeString <-
+    if (sampler$control@keepTrees)
+      sampler$state[[chainNum]]@savedTrees[treeNum, sampleNum]
+  else                           sampler$state[[chainNum]]@trees[treeNum]
+  treeFits <-
+    if (sampler$control@keepTrees)
+      sampler$state[[chainNum]]@savedTreeFits[,treeNum, sampleNum]
+  else                           sampler$state[[chainNum]]@treeFits[,treeNum]
+  
+  tree <- dbarts:::buildTree(strsplit(gsub("\\.", "\\. ", treeString),
+                                      " ", fixed = TRUE)[[1]])
+  tree$remainder <- NULL
+  
+  tree$indices <- seq_len(length(sampler$data@y))
+  tree <- dbarts:::fillObservationsForNode(tree, sampler, cutPoints)
+  
+  tree <- dbarts:::fillPlotInfoForNode(tree, sampler, treeFits)
+  maxDepth <- dbarts:::getMaxDepth(tree)
+  
+  tree <- dbarts:::fillPlotCoordinatesForNode(tree, maxDepth, 1L, 1L)
+  numEndNodes <- tree$index - 1L
+  tree$index <- NULL
+  
+  tree
+}
+#Sum over a single tree's terminal nodes
+SingleTreeSum<-function(treeNum,model,drawNum){
+  
+  cutPoints<-dbarts:::createCutPoints(model$fit)
+  cut<-array(c(-Inf,Inf),c(2,dim))
+  
+  treeList<-getTree(model$fit,1,drawNum,treeNum)
+  
+  selectedTree<-FromListSimple(treeList) 
+  
+  #Modify tree by the functions written above
+  selectedTree<-fillProbabilityForNode(selectedTree,cutPoints,cut)
+  selectedTree <- terminalProbability(selectedTree)
+
+  
+  terminalNodeList<-Traverse(selectedTree,filterFun = isLeaf)
+  
+  #Calculate approximation of integreal in the single tree 
+  integral<-0;
+  for (node in terminalNodeList){
+    
+    #We use the mean of prediction value Y's in the terminal node as u
+    integral<-integral+node$terminal_probability*(node$mu) 
+    
+  }
+  return (integral)
+}
+
+
+#Sum over all the trees in one posterior draws
+PosteriorSum<-function(drawNum,model){
+  
+  integral<-0;
+  nTree<-ncol(model$fit$state[[1]]@treeFits)
+  treeNum<-seq(1,nTree,length.out=nTree)
+  
+  #Extra variables
+  var<-list(model,drawNum)
+  
+  #Calculate integration over all trees in the draw by mappy
+  integral<-sum(unlist((mapply(SingleTreeSum,treeNum,MoreArgs=var,SIMPLIFY = TRUE))))
+  
+  return (integral)
+}
+
+
+#Sum over all posterior draws 
+sampleIntegrals<-function(model) {
+  
+  nDraw<- dim(model$fit$state[[1]]@savedTreeFits)[3]
+  drawNum<-seq(1,nDraw,length.out=nDraw)
+  
+  #Extra Variables
+  var<-list(model)
+  
+  integrals<-mapply(PosteriorSum,drawNum,MoreArgs=var,SIMPLIFY = TRUE)
+  
+  return (integrals)
+}
+
+
+
+rescale = function(x) (x-min(x))/(max(x)-min(x)) - .5
+
+#Find the next inqury point using maximum variance
+Findx<-function(df){
+  
+  trainX<-df[1:dim];
+  trainY<-df$trainY
+  model<-bart(trainX,trainY,keeptrees = TRUE,keepevery=20L,nskip=1000,ndpost=2000,ntree=50);
+  fits<-model$fit$state[[1]]@savedTreeFits
+  
+  #Choos a candidate set, find the point of maximum posterior variance
+  #Add that point to the dataframe
+  candidateSet<-rmvnorm(1000,mean=rep(0,dim))
+  fValues<-predict(model,candidateSet);
+  probability=dmvnorm(candidateSet,mean=rep(0,dim));
+  var<-colVars(fValues%*%diag(probability));
+  index<-sample(which(var==max(var)),1);
+  value<-realf1(candidateSet[index,])
+  df<-rbind(df,c(candidateSet[index,],value))
+  
+  return (df)
+  
+}
+
+#How many points we want to add in the dataframe, controlled by n
+
+Findmodel<-function(df,n){
+  iter=0;
+  while (iter<n){
+    df<-Findx(df)
+    iter<-iter+1
+    print (iter)
+  }
+  return (df)
+}
+
+error<-list()
+variance<-list()
+prediction<-list()
+realValue<-numeric()
+
+#The function to be integrated, the case here is a discontinuous one
+f1 <- function(xx, u = rep(0.5, 1, ncol(xx)), a = rep(5, 1, ncol(xx))){
+  y<-c();
+  for (i in 1:nrow(xx)){
+    sum<-0
+    for (j in 1:ncol(xx)){
+      sum<-sum+a[j]*abs(xx[i,j]-u[j])
+    }
+    y[i]<-exp(-sum)
+  }
+  return(y)
+}
+
+realf1 <- function(xx, u = rep(0.5, 1, length(xx)), a = rep(5, 1, length(xx))){
+  sum<-0
+  for (i in 1:length(xx)){
+    sum<-sum+a[i]*abs(xx[i]-u[i])
+  }
+  y<-exp(-sum)
+  return(y)
+}
+
+#Previous function weighted by probability distribution standard normal
+f<-function(x){
+  
+  return (f1(x)*dmvnorm(x));
+  
+}
+
+
+#Monte Carlo of 300 points
+meanValue2<-numeric();
+sd2<-numeric();
+
+for (i in 1:300){
+  CandidateSet<-rmvnorm(1*i,mean=rep(0,dim));
+  integration<-mean(f1(CandidateSet))
+  meanValue2<-append(meanValue2,integration);
+  sd2<-append(sd2,sqrt(var(meanValue2)))
+}
+
+
+
+
+#BART Quadrature
+
+#numerics to store standard deviation and mean value(approxiamtion)
+meanValue<-numeric();
+sd<-numeric()
+
+#Initialize dataset, size of dataset depends on dimensions
+trainX<-rmvnorm(10,mean=rep(0,dim))
+trainY<-f1(trainX)
+df<-data.frame(trainX,trainY)
+
+#Run BART, keep finding approximation as new data point added in df
+#store approxiamtion in mean value, posterior sd in standard deviation
+
+for (i in 1:50){
+  
+  df<-Findmodel(df,1);
+  model<-bart(df[1:dim],df$trainY,keeptrees =TRUE,keepevery=20L,nskip=1000,ndpost=2000,ntree=50,k=5)
+  integrals<-sampleIntegrals(model)
+  
+  #Scale back the approxiamtion and standard deviation
+  ymin<-min(df$trainY); ymax<-max(df$trainY)
+  sDeviation<-sqrt(var(integrals))*(ymax-ymin)
+  scaledMean<-(mean(integrals)+0.5)*(ymax-ymin)+ymin 
+  
+  meanValue<-append(meanValue,scaledMean)
+  sd<-append(sd,sDeviation)
+  
+}
+
+
+
+
+
+
+
+realf<-function(xx){
+  return (realf1(xx)*dmvnorm(xx))
+}
+
+#This is to find real value, only work in low dimensions (up to 3);
+
+real<-adaptIntegrate(realf,lowerLimit = rep(0,dim),upperLimit = rep(1,dim))
+percentageError<-abs((meanValue-real[[1]])/real[[1]])*100
