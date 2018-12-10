@@ -14,10 +14,42 @@ namedList<-treatSens:::namedList
 dim=3
 
 
-
-
+#Build Tree from characters of tree
+buildTree <- function(treeChars)
+{
+  if (treeChars[1] == ".") return(list(remainder = treeChars[-1]))
+  
+  splitVar <- as.integer(treeChars[1]) + 1L
+  splitIndex <- as.integer(treeChars[2]) + 1L
+  
+  leftChild <- buildTree(treeChars[-c(1, 2)])
+  rightChild <- buildTree(leftChild$remainder)
+  leftChild$remainder <- NULL
+  remainder <- rightChild$remainder
+  rightChild$remainder <- NULL
+  
+  result <- namedList(splitVar, splitIndex, leftChild, rightChild, remainder)
+  leftChild$parent <- result
+  rightChild$parent <- result
+  
+  result
+}
 
 #Assign probability to each terminal nodes and assign unique name to them
+namedTree<-function(Tree,base,power)
+{
+  nodeList<-Traverse(Tree)
+  
+  terminalNodes=Traverse(Tree,filterFun = isLeaf)
+  
+  for (i in 1:length(terminalNodes)){
+    probability2<-prob2(terminalNodes[[i]])
+    terminalNodes[[i]]$prob2<-probability2
+    terminalNodes[[i]]$name<-paste("Terminal",toString(i),sep="")
+  }
+  
+  return (Tree)
+}
 
 #Calculate terminal node probability by multiplying along the path
 prob2<-function(currentNode){
@@ -33,93 +65,67 @@ prob2<-function(currentNode){
 
 
 #Drop data set into the tree and assign them to different nodes 
-fillProbabilityForNode <- function(oneTree,cutPoints, cut){
+passData <- function(oneTree, cutPoints,dataPoints, cut){
   
   if (!is.null(oneTree$leftChild)){
     
     decisionRule <- cutPoints[[oneTree$splitVar]][oneTree$splitIndex]
     
     oneTree$leftChild$probability  <-ptruncnorm(decisionRule,a=cut[1,oneTree$splitVar],b=cut[2,oneTree$splitVar],mean=0,sd=1)
+    oneTree$leftChild$xData <-subset(dataPoints,dataPoints[oneTree$splitVar]<=decisionRule)
     
     oneTree$rightChild$probability <-(1-ptruncnorm(decisionRule,a=cut[1,oneTree$splitVar],b=cut[2,oneTree$splitVar],mean=0,sd=1))
-    
+    oneTree$rightChild$xData <- subset(dataPoints,dataPoints[oneTree$splitVar]>decisionRule)
     
     cutLeft<-cut
     cutLeft[2,oneTree$splitVar]<-decisionRule
     
-    fillProbabilityForNode(oneTree$leftChild, cutPoints, cutLeft)
+    passData(oneTree$leftChild, cutPoints, oneTree$leftChild$xData,cutLeft)
     
     cutRight<-cut
     cutRight[1,oneTree$splitVar]<-decisionRule
     
-    fillProbabilityForNode(oneTree$rightChild,  cutPoints, cutRight)
+    passData(oneTree$rightChild,  cutPoints, oneTree$rightChild$xData,cutRight)
     
   }else if(is.null(oneTree$probability)){
     
     oneTree$probability <- 1
+    oneTree$xData <- dataPoints
     
   }
-  
-  return(oneTree)
 }
 
-terminalProbability<-function(Tree)
-{
-  terminalNodes=Traverse(Tree,filterFun = isLeaf)
+#Predicted Y's for the data X's dropped in each terminal nodes
+Yprediction<-function(tree,model,treeNum,drawNum,trainX){
   
-  for (i in 1:length(terminalNodes)){
-    probability2<-prob2(terminalNodes[[i]])
-    terminalNodes[[i]]$terminal_probability<-probability2
+  fits<-model$fit$state[[1]]@savedTreeFits
+  terminal<-Traverse(tree,filterFun = isLeaf);
+  
+  for (node in terminal){
+    xTrain<-node$xData;
+    predictedY<-fits[as.integer(rownames(xTrain)),treeNum,drawNum]
+    df<-data.frame(xTrain,predictedY);
+    node$data<-df;
   }
-  
-  return (Tree)
 }
 
 
-
-getTree <- function(sampler, chainNum, sampleNum, treeNum)
-{
-  cutPoints <- dbarts:::createCutPoints(sampler)
-  
-  treeString <-
-    if (sampler$control@keepTrees)
-      sampler$state[[chainNum]]@savedTrees[treeNum, sampleNum]
-  else                           sampler$state[[chainNum]]@trees[treeNum]
-  treeFits <-
-    if (sampler$control@keepTrees)
-      sampler$state[[chainNum]]@savedTreeFits[,treeNum, sampleNum]
-  else                           sampler$state[[chainNum]]@treeFits[,treeNum]
-  
-  tree <- dbarts:::buildTree(strsplit(gsub("\\.", "\\. ", treeString),
-                                      " ", fixed = TRUE)[[1]])
-  tree$remainder <- NULL
-  
-  tree$indices <- seq_len(length(sampler$data@y))
-  tree <- dbarts:::fillObservationsForNode(tree, sampler, cutPoints)
-  
-  tree <- dbarts:::fillPlotInfoForNode(tree, sampler, treeFits)
-  maxDepth <- dbarts:::getMaxDepth(tree)
-  
-  tree <- dbarts:::fillPlotCoordinatesForNode(tree, maxDepth, 1L, 1L)
-  numEndNodes <- tree$index - 1L
-  tree$index <- NULL
-  
-  tree
-}
 #Sum over a single tree's terminal nodes
-SingleTreeSum<-function(treeNum,model,drawNum){
+SingleTreeSum<-function(treeNum,model,trainX,drawNum,base,power){
+  
+  trees<-model$fit$state[[1]]@savedTrees
+  fits<-model$fit$state[[1]]@savedTreeFits
   
   cutPoints<-dbarts:::createCutPoints(model$fit)
   cut<-array(c(-Inf,Inf),c(2,dim))
   
-  treeList<-getTree(model$fit,1,drawNum,treeNum)
-  
+  treeList<-buildTree(strsplit(gsub("\\.", "\\. ", trees[treeNum,drawNum]), " ", fixed = TRUE)[[1]])
   selectedTree<-FromListSimple(treeList) 
   
   #Modify tree by the functions written above
-  selectedTree<-fillProbabilityForNode(selectedTree,cutPoints,cut)
-  selectedTree <- terminalProbability(selectedTree)
-
+  passData(selectedTree,cutPoints,trainX,cut)
+  Yprediction(selectedTree,model,treeNum,drawNum,trainX)
+  namedTree(selectedTree,base,power)
   
   terminalNodeList<-Traverse(selectedTree,filterFun = isLeaf)
   
@@ -128,7 +134,7 @@ SingleTreeSum<-function(treeNum,model,drawNum){
   for (node in terminalNodeList){
     
     #We use the mean of prediction value Y's in the terminal node as u
-    integral<-integral+node$terminal_probability*(node$mu) 
+    integral<-integral+node$prob2*(mean(node$data$predictedY)) 
     
   }
   return (integral)
@@ -136,14 +142,14 @@ SingleTreeSum<-function(treeNum,model,drawNum){
 
 
 #Sum over all the trees in one posterior draws
-PosteriorSum<-function(drawNum,model){
+PosteriorSum<-function(drawNum,model,trainX,base,power){
   
   integral<-0;
   nTree<-ncol(model$fit$state[[1]]@treeFits)
   treeNum<-seq(1,nTree,length.out=nTree)
   
   #Extra variables
-  var<-list(model,drawNum)
+  var<-list(model,trainX,drawNum,base,power)
   
   #Calculate integration over all trees in the draw by mappy
   integral<-sum(unlist((mapply(SingleTreeSum,treeNum,MoreArgs=var,SIMPLIFY = TRUE))))
@@ -153,13 +159,13 @@ PosteriorSum<-function(drawNum,model){
 
 
 #Sum over all posterior draws 
-sampleIntegrals<-function(model) {
+sampleIntegrals<-function(model,trainX,base,power) {
   
   nDraw<- dim(model$fit$state[[1]]@savedTreeFits)[3]
   drawNum<-seq(1,nDraw,length.out=nDraw)
   
   #Extra Variables
-  var<-list(model)
+  var<-list(model,trainX,base,power)
   
   integrals<-mapply(PosteriorSum,drawNum,MoreArgs=var,SIMPLIFY = TRUE)
   
@@ -215,9 +221,9 @@ f1 <- function(xx, u = rep(0.5, 1, ncol(xx)), a = rep(5, 1, ncol(xx))){
   for (i in 1:nrow(xx)){
     sum<-0
     for (j in 1:ncol(xx)){
-      sum<-sum+a[j]*abs(xx[i,j]-u[j])
+      sum<-sum+a[j]*xx[j]
     }
-    y[i]<-exp(-sum)
+    y[i]<-(1+sum)^(-(ncol(xx)+1))
   }
   return(y)
 }
@@ -225,9 +231,9 @@ f1 <- function(xx, u = rep(0.5, 1, ncol(xx)), a = rep(5, 1, ncol(xx))){
 realf1 <- function(xx, u = rep(0.5, 1, length(xx)), a = rep(5, 1, length(xx))){
   sum<-0
   for (i in 1:length(xx)){
-    sum<-sum+a[i]*abs(xx[i]-u[i])
+    sum<-sum+a[i]*xx[i]
   }
-  y<-exp(-sum)
+  y<-(1+sum)^(-(length(xx)+1))
   return(y)
 }
 
@@ -260,18 +266,19 @@ meanValue<-numeric();
 sd<-numeric()
 
 #Initialize dataset, size of dataset depends on dimensions
-trainX<-rmvnorm(10,mean=rep(0,dim))
+set.seed(1)
+trainX<-rmvnorm(999,mean=rep(0,dim))
 trainY<-f1(trainX)
 df<-data.frame(trainX,trainY)
 
 #Run BART, keep finding approximation as new data point added in df
 #store approxiamtion in mean value, posterior sd in standard deviation
 
-for (i in 1:50){
+for (i in 1:10){
   
   df<-Findmodel(df,1);
-  model<-bart(df[1:dim],df$trainY,keeptrees =TRUE,keepevery=20L,nskip=1000,ndpost=2000,ntree=50,k=5)
-  integrals<-sampleIntegrals(model)
+  model<-bart(df[1:dim],df$trainY,keeptrees =TRUE,keepevery=20L,nskip=1000,ndpost=2000,ntree=50,k=4)
+  integrals<-sampleIntegrals(model,df[1:dim],0.95,2)
   
   #Scale back the approxiamtion and standard deviation
   ymin<-min(df$trainY); ymax<-max(df$trainY)
@@ -285,15 +292,9 @@ for (i in 1:50){
 
 
 
-
-
-
+real<-adaptIntegrate(f,lowerLimit = rep(-5,dim),upperLimit = rep(5,dim))
+percentageError<-abs((meanValue-real[[1]])/real[[1]])*100
 
 realf<-function(xx){
   return (realf1(xx)*dmvnorm(xx))
 }
-
-#This is to find real value, only work in low dimensions (up to 3);
-
-real<-adaptIntegrate(realf,lowerLimit = rep(0,dim),upperLimit = rep(1,dim))
-percentageError<-abs((meanValue-real[[1]])/real[[1]])*100
