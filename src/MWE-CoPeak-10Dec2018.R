@@ -37,6 +37,7 @@ for (i in 1:4){
   ymin<-min(df$trainY); ymax<-max(df$trainY)
   print(sprintf("************* %d variance: %.04f", i, var(integrals)))
   sDeviation<-sqrt(var(integrals))*(ymax-ymin)
+  print(sprintf("************* %d SD: %.04f", i, sDeviation)) 
   scaledMean<-(mean(integrals)+0.5)*(ymax-ymin)+ymin 
   
   meanValue<-append(meanValue,scaledMean)
