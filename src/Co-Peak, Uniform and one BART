@@ -1,0 +1,243 @@
+library(lhs)
+library(dbarts)
+library(data.tree)
+library(matrixStats)
+library(mvtnorm)
+library(cubature
+library(truncnorm)
+library(mlegp)
+library(MASS)
+namedList<-treatSens:::namedList
+
+dim = 3
+
+
+f1 <- function(xx, u = rep(0.5, 1, ncol(xx)), a = rep(5, 1, ncol(xx))){
+  y<-c();
+  for (i in 1:nrow(xx)){
+    sum<-0
+    for (j in 1:ncol(xx)){
+      sum<-sum+a[j]*xx[i, j]
+    }
+    y[i]<-(1+sum)^(-(ncol(xx)+1))
+  }
+  return(y)
+}
+
+realf1 <- function(xx, u = rep(0.5, 1, length(xx)), a = rep(5, 1, length(xx))){
+  sum<-0
+  for (i in 1:length(xx)){
+    sum<-sum+a[i]*xx[i]
+  }
+  y<-(1+sum)^(-(length(xx)+1))
+  return(y)
+}
+
+
+
+buildTree <- function(treeChars)
+{
+  if (treeChars[1] == ".") return(list(remainder = treeChars[-1]))
+  
+  splitVar <- as.integer(treeChars[1]) + 1L
+  splitIndex <- as.integer(treeChars[2]) + 1L
+  
+  leftChild <- buildTree(treeChars[-c(1, 2)])
+  rightChild <- buildTree(leftChild$remainder)
+  leftChild$remainder <- NULL
+  remainder <- rightChild$remainder
+  rightChild$remainder <- NULL
+  
+  result <- namedList(splitVar, splitIndex, leftChild, rightChild, remainder)
+  leftChild$parent <- result
+  rightChild$parent <- result
+  
+  result
+}
+
+
+namedTree<-function(Tree,base,power)
+{
+  nodeList<-Traverse(Tree)
+  terminalNodes=Traverse(Tree,filterFun = isLeaf)
+  for (i in 1:length(terminalNodes)){
+    probability2<-prob2(terminalNodes[[i]])
+    terminalNodes[[i]]$prob2<-probability2
+    terminalNodes[[i]]$name<-paste("Terminal",toString(i),sep="")
+  }
+  return (Tree)
+}
+
+
+prob2<-function(currentNode){
+  prob<-currentNode$probability;
+  while (!isRoot(currentNode$parent)){
+    currentNode<-currentNode$parent
+    prob<-prob*currentNode$probability;
+  }
+  return (prob)
+}
+
+
+
+passData <- function(oneTree, cutPoints,dataPoints, cut){
+  
+  if (!is.null(oneTree$leftChild)){
+    
+    decisionRule <- cutPoints[[oneTree$splitVar]][oneTree$splitIndex]
+    
+    oneTree$leftChild$probability  <-(decisionRule - cut[oneTree$splitVar,1]) / (cut[oneTree$splitVar,2] - cut[oneTree$splitVar,1])
+    oneTree$leftChild$xData <-subset(dataPoints,dataPoints[oneTree$splitVar]<=decisionRule)
+    
+    oneTree$rightChild$probability <- (cut[oneTree$splitVar,2] - decisionRule) / (cut[oneTree$splitVar,2] - cut[oneTree$splitVar,1])
+    oneTree$rightChild$xData <- subset(dataPoints,dataPoints[oneTree$splitVar]>decisionRule)
+    
+    cut[oneTree$splitVar,]=c(0,decisionRule)
+  
+    passData(oneTree$leftChild, cutPoints, oneTree$leftChild$xData,cut)
+    
+    cut[oneTree$splitVar,]=c(decisionRule,1)
+    
+    passData(oneTree$rightChild,  cutPoints, oneTree$rightChild$xData,cut)
+    
+  }else if(is.null(oneTree$probability)){
+    
+    oneTree$probability <- 1
+    oneTree$xData <- dataPoints
+    
+  }
+}
+
+Yprediction<-function(tree,model,treeNum,drawNum,trainX){
+  fits<-model$fit$state[[1]]@savedTreeFits
+  terminal<-Traverse(tree,filterFun = isLeaf);
+  for (node in terminal){
+    xTrain<-node$xData;
+    predictedY<-fits[as.integer(rownames(xTrain)),treeNum,drawNum]
+    df<-data.frame(xTrain,predictedY);
+    node$data<-df;
+  }
+}
+
+
+SingleTreeSum<-function(treeNum,model,trainX,drawNum,base,power){
+  trees<-model$fit$state[[1]]@savedTrees
+  fits<-model$fit$state[[1]]@savedTreeFits
+  cutPoints<-dbarts:::createCutPoints(model$fit)
+  df<-data.frame();
+  for (i in 1:ncol(trainX)){
+    df<-rbind(df,c(0,1));
+  }
+  treeList<-buildTree(strsplit(gsub("\\.", "\\. ", trees[treeNum,drawNum]), " ", fixed = TRUE)[[1]])
+  #treeList$indices <- seq_len(nrow(model$fit$data@x))
+  #node <- dbarts:::fillObservationsForNode(treeList, model$fit, cutPoints)
+  #newNode <- dbarts:::fillPlotInfoForNode(node, model$fit, fits)
+  #selectedTree<-FromListSimple(newNode) 
+  selectedTree<-FromListSimple(treeList) 
+  passData(selectedTree,cutPoints,trainX,df)
+  Yprediction(selectedTree,model,treeNum,drawNum,trainX)
+  namedTree(selectedTree,base,power)
+  
+  terminalNodeList<-Traverse(selectedTree,filterFun = isLeaf)
+  integral<-0;
+  for (node in terminalNodeList){
+    integral<-integral+(node$prob2)*(mean(node$data$predictedY))
+    #integral<-integral+(node$prob2)*node$mu
+  }
+  return (integral)
+}
+
+
+PosteriorSum<-function(drawNum,model,trainX,base,power){
+  integral<-0;
+  nTree<-ncol(model$fit$state[[1]]@treeFits)
+  treeNum<-seq(1,nTree,length.out=nTree)
+  var<-list(model,trainX,drawNum,base,power)
+  integral<-sum(unlist((mapply(SingleTreeSum,treeNum,MoreArgs=var,SIMPLIFY = TRUE))))
+  return (integral)
+}
+
+
+
+sampleIntegrals<-function(model,trainX,base,power){
+  nDraw<- dim(model$fit$state[[1]]@savedTreeFits)[3]
+  drawNum<-seq(1,nDraw,length.out=nDraw)
+  var<-list(model,trainX,base,power)
+  integrals<-mapply(PosteriorSum,drawNum,MoreArgs=var,SIMPLIFY = TRUE)
+  
+  return (integrals)
+}
+
+#help function to split the treechars 
+split<-function(treechar){
+  treeList<-strsplit(gsub("\\.", "\\. ", treechar), " ", fixed = TRUE)[[1]]
+}
+
+
+#iterate
+Findmodel<-function(df,n){
+  iter=0;
+  while (iter<=n){
+    df<-Findx(df)
+    iter<-iter+1
+    print (iter)
+  }
+  return (df)
+}
+
+meanValue<-numeric();
+sd<-numeric()
+trainX<-randomLHS(10,dim)
+trainY<-f1(trainX)
+df<-data.frame(trainX,trainY)
+
+
+for (i in 1:400){
+  
+  trainY <- df$trainY
+
+  model<-bart(df[1:dim],trainY,keeptrees = TRUE,keepevery=20L,nskip=1000,ndpost=1000,ntree=50, k = 5)
+  
+  integrals<-sampleIntegrals(model,df[1:dim],0.95,2)
+  
+  ymin<-min(trainY); ymax<-max(trainY)
+  
+  scaledMean<-(mean(integrals)+0.5)*(ymax-ymin)+ymin 
+  
+  sDeviation<-sqrt(var(integrals))*(ymax-ymin)
+  
+  meanValue<-append(meanValue,scaledMean)
+  
+  sd<-append(sd,sDeviation)
+  
+  fits<-model$fit$state[[1]]@savedTreeFits
+  candidateSet<-randomLHS(1000,dim)
+  fValues<-predict(model,candidateSet);
+  #probability=as.vector(dnorm(candidateSet,mean=0,sd=1));
+  probability=1
+  #expectedValue<-colMeans(fValues%*%diag(probability));
+  expectedValue<-colMeans(fValues*probability)
+  #var<-colMeans((fValues*probability-expectedValue)^2);
+  var<-colVars(fValues);
+  index<-sample(which(var==max(var)),1);
+  value<-realf1(candidateSet[index,])
+  df<-rbind(df,c(candidateSet[index,],value))
+  
+}
+
+#Monte Carlo of 300 points
+meanValue2<-numeric();
+sd2<-numeric();
+
+for (i in 1:600){
+  
+  CandidateSet<- randomLHS(i, dim)
+  integration<-mean(f1(CandidateSet))
+  meanValue2<-append(meanValue2,integration);
+  sd2<-append(sd2,sqrt(var(meanValue2)))
+}
+
+real<-adaptIntegrate(realf1,lowerLimit = rep(0,dim),upperLimit = rep(1,dim))
+percentageError<-abs((meanValue-real[[1]])/real[[1]])*100
+percentageError2<-abs((meanValue2-real[[1]])/real[[1]])*100
+
