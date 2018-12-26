@@ -105,8 +105,8 @@ Yprediction<-function(tree,model,treeNum,drawNum,trainX){
   for(node in terminal){
     xTrain<-node$xData;
     predictedY<-fits[as.integer(rownames(xTrain)),treeNum,drawNum]
-    df<-data.frame(xTrain,predictedY);
-    node$data<-df;
+    data<-data.frame(xTrain,predictedY);
+    node$data<-data;
   }
 }
 
@@ -174,74 +174,77 @@ sampleIntegrals<-function(model,trainX,base,power) {
 }
 
 #Find the next inqury point using maximum variance
-Findx<-function(df){
-  
-  trainX<-df[1:dim];
-  trainY<-df$trainY
+Findx<-function(data)
+{
+  trainX<-data[1:dim];
+  trainY<-data$trainY
   model<-bart(trainX,trainY,keeptrees = TRUE,keepevery=20L,nskip=1000,ndpost=2000,ntree=50);
   fits<-model$fit$state[[1]]@savedTreeFits
   
-  #Choos a candidate set, find the point of maximum posterior variance
+  #Choose a candidate set, find the point of maximum posterior variance
   #Add that point to the dataframe
-  candidateSet<-rmvnorm(1000,mean=rep(0,dim))
-  fValues<-predict(model,candidateSet);
-  probability=dmvnorm(candidateSet,mean=rep(0,dim));
-  var<-colVars(fValues%*%diag(probability));
-  index<-sample(which(var==max(var)),1);
-  value<-f1(candidateSet[index,])
-  df<-rbind(df,c(candidateSet[index,],value))
+  candidateSet<-rmvnorm(1000, mean = rep(0, dim))
+  fValues <- predict(model, candidateSet)
+  probability <- dmvnorm(candidateSet, mean = rep(0,dim))
+  var <- colVars(fValues %*% diag(probability))
+  index <- sample( which(var == max(var)), 1 )
+  value <- f1(candidateSet[index,])
+  data <- rbind(data, c(candidateSet[index,], value))
   
-  return (df)
-  
+  return (data)
 }
 
 #How many points we want to add in the dataframe, controlled by n
 
-Findmodel<-function(df,n){
+Findmodel <- function(data,n)
+{
   iter=0;
-  while (iter<n){
-    df<-Findx(df)
-    iter<-iter+1
+  while (iter < n)
+  {
+    data <- Findx(data)
+    iter <- iter + 1
     print (iter)
   }
-  return (df)
+  return (data)
 }
 
-error<-list()
-variance<-list()
-prediction<-list()
-realValue<-numeric()
+error <- list()
+variance <- list()
+prediction <- list()
+realValue <- numeric()
 
 #The function to be integrated, the case here is a discontinuous one
-f1<-function(x){
-  y<-c();
-  for(i in 1:length(x)){
-    if(x[i]<0){
-      y[i]<-x[i]^2;
+f1<-function(x)
+{
+  y <- c();
+  for( i in 1:length(x) )
+  {
+    if(x[i] < 0) {
+      y[i] <- x[i]^2;
     } else {
-      y[i]<-cos(x[i])+x
+      y[i] <- cos(x[i]) + x
     }
   }
   return (y)
 }
 
 #Previous function weighted by probability distribution standard normal
-f<-function(x){
-  
-  return (f1(x)*dmvnorm(x));
-  
+f <- function(x)
+{
+  return ( f1(x) * dmvnorm(x) )
 }
 
 
 #Monte Carlo of 300 points
-meanValue2<-numeric();
-sd2<-numeric();
+meanValue2 <- numeric()
+sd2 <- numeric()
 
-for (i in 1:300){
-  CandidateSet<-rmvnorm(1*i,mean=rep(0,dim));
-  integration<-mean(f1(CandidateSet))
-  meanValue2<-append(meanValue2,integration);
-  sd2<-append(sd2,sqrt(var(meanValue2)))
+for (i in 1:300)
+{
+  CandidateSet <- rmvnorm(1*i, mean=rep(0,dim))
+  integration <- mean(f1(CandidateSet))
+  meanValue2 <- append(meanValue2, integration)
+  sd2 <- append(sd2, sqrt(var(meanValue2)))
 }
 
 
@@ -250,30 +253,30 @@ for (i in 1:300){
 #BART Quadrature
 
 #numerics to store standard deviation and mean value(approxiamtion)
-meanValue<-numeric();
-sd<-numeric()
+meanValue <- numeric();
+sd <- numeric()
 
 #Initialize dataset, size of dataset depends on dimensions
-trainX<-rmvnorm(5,mean=rep(0,dim))
-trainY<-f1(trainX)
-df<-data.frame(trainX,trainY)
+trainX <- rmvnorm(5, mean=rep(0,dim))
+trainY <- f1(trainX)
+data <- data.frame(trainX, trainY)
 
-#Run BART, keep finding approximation as new data point added in df
+#Run BART, keep finding approximation as new data point added in data
 #store approxiamtion in mean value, posterior sd in standard deviation
 
 for (i in 1:400){
   
-  df<-Findmodel(df,1);
-  model<-bart(df[1:dim],df$trainY,keeptrees =TRUE,keepevery=20L,nskip=1000,ndpost=2000,ntree=50,k=5)
-  integrals<-sampleIntegrals(model,df[1:dim],0.95,2)
+  data <- Findmodel(data, 1);
+  model <- bart( data[1:dim], data$trainY,keeptrees =TRUE,keepevery=20L,nskip=1000,ndpost=2000,ntree=50,k=5 )
+  integrals <- sampleIntegrals(model, data[1:dim], 0.95, 2)
   
   #Scale back the approxiamtion and standard deviation
-  ymin<-min(df$trainY); ymax<-max(df$trainY)
-  sDeviation<-sqrt(var(integrals))*(ymax-ymin)
-  scaledMean<-(mean(integrals)+0.5)*(ymax-ymin)+ymin 
+  ymin <- min(data$trainY); ymax<-max(data$trainY)
+  sDeviation <- sqrt(var(integrals)) * (ymax - ymin)
+  scaledMean <- (mean(integrals) + 0.5) * (ymax - ymin) + ymin 
   
-  meanValue<-append(meanValue,scaledMean)
-  sd<-append(sd,sDeviation)
+  meanValue <- append(meanValue, scaledMean)
+  sd <- append(sd, sDeviation)
   
 }
 
