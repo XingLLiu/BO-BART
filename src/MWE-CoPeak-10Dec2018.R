@@ -19,7 +19,7 @@ sd<-numeric()
 
 #Initialize dataset, size of dataset depends on dimensions
 set.seed(1)
-trainX<-rmvnorm(99,mean=rep(0,dim))
+trainX<-rmvnorm(99, mean = rep(0, dim))
 trainY<-f1(trainX)
 df<-data.frame(trainX,trainY)
 
