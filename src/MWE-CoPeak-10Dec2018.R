@@ -19,16 +19,16 @@ sd<-numeric()
 
 #Initialize dataset, size of dataset depends on dimensions
 set.seed(1)
-trainX<-rmvnorm(99,mean=rep(0,dim))
+trainX<-rmvnorm(99, mean=rep(0,dim))
 trainY<-f1(trainX)
-df<-data.frame(trainX,trainY)
+df<-data.frame(trainX, trainY)
 
 #Run BART, keep finding approximation as new data point added in df
 #store approxiamtion in mean value, posterior sd in standard deviation
 
 for (i in 1:4){
   
-  df<-Findmodel(df,1);
+  df<-Findmodel(df, 1);
   print(sprintf("************: %d MAX trainY: %.04f", i, max(df$trainY)))
   model<-bart(df[1:dim],df$trainY,keeptrees =TRUE,keepevery=20L,nskip=1000,ndpost=2000,ntree=50,k=4,verbose=F)
   integrals<-sampleIntegrals(model,df[1:dim],0.95,2)
