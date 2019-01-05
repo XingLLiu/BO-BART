@@ -4,53 +4,17 @@ library(treatSens)
 library(mvtnorm)
 library(MASS)
 library(cubature)
+
 # main method
+
+# Use BART to generate training set CandidateSet
 # training parameters
 namedList<-treatSens:::namedList
 dim <- 3
-epochs <- 10
+epochs <- 100
 
-# prepare training data
-meanValue <- numeric() 
-standardDeviation <- numeric() # standard deviation
-trainX <- randomLHS(10, dim) # pick X values from a hypercube (uniform) [a,b]^10
-trainY <- copeak(trainX) # test values of y obtained by genz functino
-trainData <- data.frame(trainX, trainY)
 
-# train
-for (i in 1:epochs) {
-  
-  trainY <- trainData$trainY
-  print(c("Epoch=", i))
-  
-  model<-bart(trainData[1:dim],trainY,keeptrees = TRUE,keepevery=20L,nskip=1000,ndpost=1000,ntree=50, k = 5)
-  integrals<-sampleIntegrals(model)
-  
-  ymin<-min(trainY); ymax<-max(trainY)
-  
-  scaledMean <- (mean(integrals)+0.5)*(ymax-ymin)+ymin 
-  sDeviation <- sqrt(var(integrals))*(ymax-ymin)
-  meanValue<-append(meanValue,scaledMean)
-  standardDeviation<-append(standardDeviation,sDeviation)
-  
-  fits<-model$fit$state[[1]]@savedTreeFits
-  candidateSet<-randomLHS(1000,dim)
-  fValues<-predict(model,candidateSet)
-  
-  #probability=as.vector(dnorm(candidateSet,mean=0,standardDeviation=1));
-  probability = 1
-  
-  #expectedValue<-colMeans(fValues%*%diag(probability));
-  expectedValue<-colMeans(fValues*probability)
-  
-  #var<-colMeans((fValues*probability-expectedValue)^2)
-  var<-colVars(fValues)
-  index<-sample(which(var==max(var)),1)
-  value<-copeak(candidateSet[index,])
-  trainData<-rbind(trainData,c(candidateSet[index,],value))
-  
-}
-
+source("src/generateNewDataWithScheme.R")
 
 
 # Monte Carlo sampling of 300 points
@@ -67,7 +31,7 @@ for (i in 1:epochs){
 }
 
 
-# GP
+# BO-GP
 meanValue3 <- c()
 standardDeviation3 <- c()
 
