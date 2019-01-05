@@ -269,6 +269,8 @@ K<-matrix(0,nrow=N,ncol=N)
 covFunction<-function(x,y){
   cov<-c()
   for (i in 1:nrow(y)){
+    # Can use pairwise difference function to avoid loops
+    # Same for the calculation of K below
     cov[i] <- sum((x-y[i,])^2)
   }
   return (cov)
