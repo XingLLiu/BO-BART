@@ -151,7 +151,7 @@ PosteriorSum<-function(drawNum,model,trainX,base,power){
 sampleIntegrals<-function(model,trainX,base,power) {
   
   nDraw<- dim(model$fit$state[[1]]@savedTreeFits)[3]
-  drawNum<-seq(1,nDraw,length.out=nDraw)
+  drawNum<-seq(1, ,length.out=nDraw)
   
   #Extra Variables
   var<-list(model,trainX,base,power)
