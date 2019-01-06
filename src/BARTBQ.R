@@ -169,10 +169,12 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining=1)
   print(c("Epoch=", i))
   
   # first build BART and scale mean and standard deviation
+  sink("/dev/null")
   model <- bart(trainData[1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
+  sink()
   
   # obtain posterior samples
-  integrals <- sampleIntegrals(model)
+  invisible(integrals <- sampleIntegrals(model))
   
   # find the min and max range of y
   ymin <- min(trainY); ymax <- max(trainY)
