@@ -20,7 +20,9 @@ standardDeviationMonteCarlo <- predictionMonteCarlo[2]
 
 # Bayesian Quadrature with Gaussian Process
 source("src/GPBQ.R")
-
+predictionGPBQ <- computeGPBQ(dim, epochs = 400, N=10, FUN = copeak)
+meanValueGP <- predictionGPBQ[1]
+standardDeviationGP <- predictionGPBQ[2]
 
 
 # Root-MSE, MSE ?
@@ -34,6 +36,6 @@ percentageErrorGP <- meanValueGP - real[[1]]
 
 
 #[5, 4, 3, 2, 1.5, 1.3, 1.2, 1.1]
-#mean vs n
+# mean vs n
 #log sd vs log n
 

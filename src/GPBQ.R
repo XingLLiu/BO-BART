@@ -3,7 +3,7 @@
 ############
 library(mvtnorm)
 
-gaussianKernel <- function(X, xPrime) 
+gaussianKernel <- function(xPrime, X) 
   # The exp squared covariance function, hence calculating covariance matrix cov
   # input:
   #     X: Initial design matrix
@@ -21,56 +21,50 @@ gaussianKernel <- function(X, xPrime)
 }
 
 
-computeGPBQ <- function(epochs, N=10) 
+computeGPBQ <- function(dim, epochs, N=10, FUN) 
 # method for computation of the integration
 # includes query sequential design
 # input:
+#     dim:
 #     epochs: number of training instances
+#     N:
 {
+  #define genz function
+  genz <- copeak
   meanValueGP <- c()
   standardDeviationGP <- c()
 
   X <- randomLHS(N, dim)
-  Y <- copeak(X)
+  Y <- genz(X)
 
   K <- matrix(0,nrow=N,ncol=N)
 
-
-
+  # compute kernel matrix for starting dataset
   for (i in 1:N) {
-    K[i,]<-covFunction(X[i,], X)
+    K[i,] <- gaussianKernel(X[i,], X)
   }
 
   
+  z<-c();
+  for(i in 1:N) {
+    z[i] <- pmvnorm(rep(0,dim), rep(1,dim) , mean = X[i,], sigma = diag(dim))[[1]] * (2*pi)^(dim/2) # add in extra term obtained by integration
+  }
+  meanValueGP[1] <- t(z) %*% ginv(K) %*% Y
 
-}
-
-
-
-# we use bayesian quadrature
-# take samples from Gaussian process integral z[i]
-# see pdf on Bayesian quadrature
-#!!can be vectorised using mapply
-z<-c();
-for(i in 1:N) {
-  z[i] <- pmvnorm(rep(0,dim), rep(1,dim) , mean = X[i,], sigma = diag(dim))[[1]] * (2*pi)^(dim/2) # add in extra term obtained by integration
-}
-meanValueGP[1] <- t(z) %*% ginv(K) %*% Y
-
-standardDeviationGP[1] <- t(z)%*%ginv(K)%*%z #not quite right, missed out first term
+  standardDeviationGP[1] <- t(z)%*%ginv(K)%*%z #not quite right, missed out first term
 
 
-# train
-for (p in 1:epochs) {
-  
-  candidateSet<-randomLHS(100,dim)
+  # train
+  for (p in 1:epochs) {
+  print(c("Epochs no.:", p))
+  candidateSet <- randomLHS(100,dim)
   
   candidate_Var <- c()
   
   candidate_p <- c()
   
   for(i in 1:100) {
-    candidate_p[i]<-pmvnorm(rep(0, dim), rep(1, dim) , mean = candidateSet[i,], sigma = diag(dim))[[1]] * (2*pi)^(dim/2) 
+    candidate_p[i] <- pmvnorm(rep(0, dim), rep(1, dim) , mean = candidateSet[i,], sigma = diag(dim))[[1]] * (2*pi)^(dim/2) 
     # add in extra term obtained by integration
   }
   
@@ -80,9 +74,10 @@ for (p in 1:epochs) {
   
   for (i in 1:100) {
     
-    K_prime[1:(N+p-1),(N+p)] <- covFunction(candidateSet[i,], X)
     
-    K_prime[(N+p),1:(N+p-1)] <- covFunction(candidateSet[i,], X)
+    K_prime[1:(N+p-1),(N+p)] <- gaussianKernel(candidateSet[i,], X)
+    
+    K_prime[(N+p),1:(N+p-1)] <- gaussianKernel(candidateSet[i,], X)
     
     z[N+p] <- candidate_p[i]
     
@@ -92,23 +87,27 @@ for (p in 1:epochs) {
   
   index <- which(candidate_Var == max(candidate_Var))[1]
   
-  K_prime[N+p,1:(N+p-1)] <- covFunction(candidateSet[index,], X)
+  K_prime[N+p,1:(N+p-1)] <- gaussianKernel(candidateSet[index,], X)
   
-  K_prime[1:(N+p-1),N+p] <- covFunction(candidateSet[index,], X)
+  K_prime[1:(N+p-1),N+p] <- gaussianKernel(candidateSet[index,], X)
   
   X <- rbind(X,candidateSet[index,])
   
-  Y <- c(Y, copeak(candidateSet[index,]))
+  Y <- c(Y, genz( matrix( candidateSet[index,], ncol = length(candidateSet[index,])) ) )
   
   K <- K_prime
   
   # add in extra term obtained by integration
   z[N+p] <- pmvnorm(rep(0,dim), rep(1,dim), mean = X[N+p,], sigma = diag(dim))[[1]] * (2*pi)^(dim/2)
   
-  meanValueGP[p+1] <- t(z) %*% ginv(K) %*% Y
+  meanValueGP[p+1] <- t(z) %*% ginv(K) %*% as.matrix(Y)
   
   standardDeviationGP[p+1] <- t(z)%*%ginv(K)%*%z #not quite right, missed out first term
   
+  }
+
+  return (list("meanValueGP" = meanValueGP, "standardDeviationGP" = standardDeviationGP))
+
 }
 
 
