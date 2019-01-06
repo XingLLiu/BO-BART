@@ -1,37 +1,42 @@
-source("src/bartBOGaussianProcess.R")
-source("src/references/cornerPeakFamily.R")
-library(treatSens)
+############
+#Bayesian Quadrature with Gaussian Process
+############
 library(mvtnorm)
-library(MASS)
-library(cubature)
 
-# main method
-
-# Use BART to generate training set CandidateSet
-# training parameters
-namedList<-treatSens:::namedList
-dim <- 3
-epochs <- 100
-
-
-source("src/generateNewDataWithScheme.R")
-
-
-# Monte Carlo sampling of 300 points
-# @August
-meanValue2<-numeric();
-standardDeviation2<-numeric();
-
-for (i in 1:epochs){
+gaussianKernel <- function(X, xPrime) 
+  # The exp squared covariance function, hence calculating covariance matrix cov
+  # input:
+  #     X: Initial design matrix
+  #     xPrime: a covariate. 
+  # output:
+  #     K: covariance matrix i.e. cov(X, xPrime)
+{
+  K <- c()
   
-  CandidateSet<- randomLHS(i, dim)
-  integration<-mean(copeak(CandidateSet))
-  meanValue2<-append(meanValue2,integration);
-  standardDeviation2<-append(standardDeviation2,sqrt(var(meanValue2)))
+  for (i in 1:nrow(X)) {
+    K[i] <- exp( -0.5 * norm(xPrime - X[i,], type = "2") ^ 2 )
+  }
+
+  return (K)
+}
+
+#covariance matrix with exponential Gaussian kernel
+Gaussian_kernel <- function(x){
+  
+  K <- matrix(0, nrow = nrow(x), ncol = nrow(x))
+  
+  for (i in 1:nrow(x)){
+    
+    K[i, ] <- kernel(x[i, ], x)
+    
+  }
+  
+  return(K)
+  
 }
 
 
-# BO-GP
+
 meanValue3 <- c()
 standardDeviation3 <- c()
 
@@ -60,9 +65,9 @@ meanValue3[1]<-t(z) %*% ginv(K) %*% Y
 
 standardDeviation3[1]<-t(z)%*%ginv(K)%*%z #not quite right, missed out first term
 
+
 # train
-for (p in 1:epochs){
-  
+for (p in 1:epochs) {
   
   candidateSet<-randomLHS(100,dim)
   
@@ -104,7 +109,7 @@ for (p in 1:epochs){
   K<-K_prime
   
   # add in extra term obtained by integration
-  z[N+p] <- pmvnorm(rep(0,dim), rep(1,dim) , mean = X[N+p,],sigma = diag(dim))[[1]]* (2*pi)^(dim/2)
+  z[N+p] <- pmvnorm(rep(0,dim), rep(1,dim), mean = X[N+p,], sigma = diag(dim))[[1]] * (2*pi)^(dim/2)
   
   meanValue3[p+1]<-t(z) %*% ginv(K) %*% Y
   
@@ -112,8 +117,4 @@ for (p in 1:epochs){
   
 }
 
-# cubature contains adaptIntegrate function
-real <- adaptIntegrate(copeak,lowerLimit = rep(0,dim),upperLimit = rep(1,dim))
-percentageError<-abs((meanValue-real[[1]])/real[[1]])*100
-percentageError2<-abs((meanValue2-real[[1]])/real[[1]])*100
-percentageError3<-abs((meanValue3-real[[1]])/real[[1]])*100
+
