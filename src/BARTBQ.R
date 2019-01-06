@@ -215,9 +215,9 @@ mainBARTBQ <- function()
   genz <- copeak #select genz function
   trainX <- randomLHS(10, dim) # pick X values from a hypercube (uniform) [a,b]^10
   trainY <- genz(trainX) # test values of y obtained by genz functino
-  numNewTraining <- 400
+  numNewTraining <- 400 
   dim <- 3
-  prediction <- BARTBQSequential(dim, trainX, trainY, numNewTraining) 
+  prediction <- Sequential(dim, trainX, trainY, numNewTraining) 
 
   return (prediction)
 
