@@ -1,17 +1,10 @@
-Revised normal.R script, contains Monte Carlo, GP and BART methods. 
-Work for high dimensions
-
-
 ## Code directory ##
 
-
-
     .
-    ├── BART-BQ.R: 
-    ├── CoPeak-functions.R: 
-    ├── genz.R: 
-    ├── mu_attempt.R: 
-    ├── MWE-CoPeak-10Dec2018.R: 
-    ├── Normal.R: 
-    ├── mu_attempt.R: 
+    ├── BARTBQ.R: Implementation of Bayesian Quadrature with BART
+    ├── GPBQ.R: Implementation of Bayesian Quadrature with Gaussian processes
+    ├── monteCarloIntegration.R: Implementation of crude Monte Carlo integration
+    ├── integrationMain.R: Analysis code. Tweak your genz functions, parameters here
     └── README.md
+
+
