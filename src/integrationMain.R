@@ -25,7 +25,6 @@ meanValueGP <- predictionGPBQ[1]
 standardDeviationGP <- predictionGPBQ[2]
 
 
-# Root-MSE, MSE ?
 # Exact integral of genz function in hypercube [0,1]^dim
 real <- adaptIntegrate(copeak,lowerLimit = rep(0,dim), upperLimit = rep(1,dim))
 
