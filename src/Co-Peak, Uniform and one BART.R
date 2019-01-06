@@ -269,8 +269,11 @@ K<-matrix(0,nrow=N,ncol=N)
 covFunction<-function(x,y){
   cov<-c()
   for (i in 1:nrow(y)){
+<<<<<<< HEAD
     # Can use pairwise difference function to avoid loops
     # Same for the calculation of K below
+=======
+>>>>>>> parent of e50fa22... [Harrison Zhu 05/01/2019] 1st phase corrections and edits to BO-BART + BO-GP
     cov[i] <- sum((x-y[i,])^2)
   }
   return (cov)
