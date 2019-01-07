@@ -38,6 +38,8 @@ points(ytest, col = 'red')
 sum(as.numeric(ytest) == trainData[101:120,1])/20
 
 
+
+
 # Existing dataset
 data(iris)
 test <- gausspr(Species~.,data=iris[1:120, ],var=2)
@@ -45,7 +47,7 @@ alpha(test)
 
 # predict on the training set
 plotPred <- hist(as.numeric(predict(test,iris[121:150, -5])))
-plltTrue <- hist(as.numeric(iris[121:150, 5]))
+plltTrue <- hist(as.numeric(iris[121:150, 5])-1)
 
 sum(as.numeric(predict(test,iris[121:150, -5])) == as.numeric(iris[121:150, 5]))/30
 
