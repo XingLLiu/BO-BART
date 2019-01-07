@@ -11,19 +11,19 @@ library(cubature)
 
 # global parameters: dimension
 args <- commandArgs(TRUE)
-dim <- as.double(args[1])
-num_iterations <- as.double(args[2])
-whichGenz <- as.double(args[3])
-
+dim <- 1
+num_iterations <- 2
+whichGenz <- 2
+print(c(dim, num_iterations, whichGenz))
 source("./references/genz.R") # genz function to test
 if (whichGenz < 1 | whichGenz > 6) stop("undefined genz function. Change 3rd argument to 1-6") 
 
-if (whichGenz == 1) genz <- cont; genzFunctionName <-  deparse(substitute(cont))
-if (whichGenz == 2) genz <- copeak; genzFunctionName <-  deparse(substitute(cont))
-if (whichGenz == 3) genz <- prpeak; genzFunctionName <-  deparse(substitute(prpeak))
-if (whichGenz == 4) genz <- gaussian; genzFunctionName <-  deparse(substitute(gaussian))
-if (whichGenz == 5) genz <- oscil; genzFunctionName <-  deparse(substitute(oscil))
-if (whichGenz == 6) genz <- disc; genzFunctionName <-  deparse(substitute(disc))
+if (whichGenz == 1) { genz <- cont; genzFunctionName <-  deparse(substitute(cont)) }
+if (whichGenz == 2) { genz <- copeak; genzFunctionName <-  deparse(substitute(copeak)) }
+if (whichGenz == 3) { genz <- prpeak; genzFunctionName <-  deparse(substitute(prpeak)) }
+if (whichGenz == 4) { genz <- gaussian; genzFunctionName <-  deparse(substitute(gaussian)) }
+if (whichGenz == 5) { genz <- oscil; genzFunctionName <-  deparse(substitute(oscil)) }
+if (whichGenz == 6) { genz <- disc; genzFunctionName <-  deparse(substitute(disc)) }
 
 print("Testing with: %s" %--% genzFunctionName)
 
@@ -33,13 +33,14 @@ source("./BARTBQ.R")
 predictionBART <- mainBARTBQ(dim, num_iterations, FUN = genz)
 
 # Bayesian Quadrature with Monte Carlo integration method
+print("Begin Monte Carlo Integration")
 source("./monteCarloIntegration.R")
 predictionMonteCarlo <- monteCarloIntegrationUniform(FUN = genz, numSamples=num_iterations, dim)
 
 # Bayesian Quadrature with Gaussian Process
+print("Begin Gaussian Process Integration")
 source("./GPBQ.R")
 predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = genz)
-
 
 # Exact integral of genz function in hypercube [0,1]^dim
 if (whichGenz == 2){
@@ -57,10 +58,16 @@ percentageErrorBART <- predictionBART$meanValueBART - real[[1]]
 percentageErrorMonteCarlo <- predictionMonteCarlo$meanValueMonteCarlo - real[[1]]
 percentageErrorGP <- predictionGPBQ$meanValueGP - real[[1]]
 
+print("Final Results:")
+print(c("Actual integral:", real[[1]]))
+print(c("BART integral:", predictionBART$meanValueBART[num_iterations]))
+print(c("MI integral:", predictionMonteCarlo$meanValueMonteCarlo[num_iterations]))
+print(c("GP integral:", predictionGPBQ$meanValueGP[num_iterations]))
+
 print("Begin Plots")
 
 # 1. Open jpeg file
-jpeg("../report/Figures/convergence%sStandardDeviation%sDimensions.jpg" %--% c(genzFunctionName, dim), width = 700, height = 583)
+jpeg("../report/Figures/%s/convergence%sStandardDeviation%sDimensions.jpg" %--% c(whichGenz, genzFunctionName, dim), width = 700, height = 583)
 # 2. Create the plot
 plot(x = log(c(1:num_iterations)), y = log(predictionMonteCarlo$standardDeviationMonteCarlo),
      pch = 16, frame = FALSE, type = "l",
@@ -75,7 +82,7 @@ legend("topleft", legend=c("MC Integration", "BART BQ", "GP BQ"),
 dev.off()
 
 # 1. Open jpeg file
-jpeg("../report/Figures/convergenceMean%s%sDimensions.jpg" %--% c(genzFunctionName, dim), width = 700, height = 583)
+jpeg("../report/Figures/%s/convergenceMean%s%sDimensions.jpg" %--% c(whichGenz, genzFunctionName, dim), width = 700, height = 583)
 # 2. Create the plot
 plot(x = c(1:num_iterations), y = predictionMonteCarlo$meanValueMonteCarlo,
      pch = 16, frame = FALSE, type = "l",
@@ -84,7 +91,7 @@ plot(x = c(1:num_iterations), y = predictionMonteCarlo$meanValueMonteCarlo,
      ylim = c(0, real[[1]] + real[[1]]), 
      lty =1
      )
-lines(x = c(1:num_iterations), predictionBART$meanValue, type = 'l', col = "red", lty = 1)
+lines(x = c(1:num_iterations), predictionBART$meanValueBART, type = 'l', col = "red", lty = 1)
 lines(x = c(1:num_iterations), predictionGPBQ$meanValueGP, type = 'l', col = "green", lty = 1)
 abline(a = real[[1]], b = 0, lty = 4)
 legend("topleft", legend=c("MC Integration", "BART BQ", "GP BQ", "Actual"),
