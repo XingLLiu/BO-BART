@@ -3,7 +3,7 @@ library(cubature)
 
 # global parameters: dimension
 dim <- 3
-source("src/references/cornerPeakFamily.R") # genz function to test
+source("src/references/genz.R") # genz function to test
 
 # Bayesian Quadrature method
 # set number of new query points using sequential design
