@@ -19,7 +19,6 @@ terminalProbability <- function(currentNode)
   return (prob)
 }
 
-
 fillProbabilityForNode <- function(oneTree, cutPoints, cut) 
 # Drop data set into the tree and assign them to different nodes 
 {
