@@ -30,7 +30,7 @@ computeGPBQ <- function(dim, epochs, N=10, FUN)
 #     N:
 {
   #define genz function
-  genz <- copeak
+  genz <- FUN
   meanValueGP <- c()
   standardDeviationGP <- c()
 
