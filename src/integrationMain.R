@@ -11,10 +11,10 @@ library(cubature)
 
 # global parameters: dimension
 args <- commandArgs(TRUE)
-dim <- as.double(args[1])
-num_iterations <- as.double(args[2])
-whichGenz <- as.double(args[3])
-
+dim <- 1
+num_iterations <- 2
+whichGenz <- 2
+print(c(dim, num_iterations, whichGenz))
 source("./references/genz.R") # genz function to test
 if (whichGenz < 1 | whichGenz > 6) stop("undefined genz function. Change 3rd argument to 1-6") 
 
