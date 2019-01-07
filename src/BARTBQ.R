@@ -151,7 +151,7 @@ sampleIntegrals <- function(model)
   return (integrals)
 }
 
-BARTBQSequential <- function(dim, trainX, trainY, numNewTraining=1) 
+BARTBQSequential <- function(dim, trainX, trainY, numNewTraining) 
 # compute integral for BART-BQ with
 # implementation of query sequential design to add
 # more training data to the original dataset
@@ -169,12 +169,10 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining=1)
   print(c("Epoch=", i))
   
   # first build BART and scale mean and standard deviation
-  sink("/dev/null")
   model <- bart(trainData[1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
-  sink()
   
   # obtain posterior samples
-  invisible(integrals <- sampleIntegrals(model))
+  integrals <- sampleIntegrals(model)
   
   # find the min and max range of y
   ymin <- min(trainY); ymax <- max(trainY)
@@ -197,7 +195,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining=1)
   
   var <- colVars(fValues)
   index <- sample(which(var==max(var)), 1)
-  value <- copeak(candidateSet[index,])
+  value <- copeak(as.matrix(candidateSet[index,], ncol = dim))
   trainData <- rbind(trainData, c(candidateSet[index,], value))
   
 }
@@ -207,7 +205,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining=1)
 
 }
 
-mainBARTBQ <- function() 
+mainBARTBQ <- function(dim) 
 # main method
 # returns prediction as a list
 {
@@ -215,8 +213,7 @@ mainBARTBQ <- function()
   genz <- copeak #select genz function
   trainX <- randomLHS(10, dim) # pick X values from a hypercube (uniform) [a,b]^10
   trainY <- genz(trainX) # test values of y obtained by genz functino
-  numNewTraining <- 400
-  dim <- 3
+  numNewTraining <- 5
   prediction <- BARTBQSequential(dim, trainX, trainY, numNewTraining) 
 
   return (prediction)
