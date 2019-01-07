@@ -43,7 +43,15 @@ source("./GPBQ.R")
 predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = genz)
 
 # Exact integral of genz function in hypercube [0,1]^dim
-real <- adaptIntegrate(genz, lowerLimit = rep(0,dim), upperLimit = rep(1,dim))
+if (whichGenz == 2){
+    source("./copeakIntegral.R")
+    real <- copeakIntegral(dim)
+} else if (whichGenz == 6){
+    source("./oscillatoryIntegral.R")
+    real <- oscillatoryIntegral(dim)
+} else {
+    real <- adaptIntegrate(genz,lowerLimit = rep(0,dim), upperLimit = rep(1,dim))
+}   
 
 # Bayesian Quadrature methods: with BART, Monte Carlo Integration and Gaussian Process respectively
 percentageErrorBART <- predictionBART$meanValueBART - real[[1]]
