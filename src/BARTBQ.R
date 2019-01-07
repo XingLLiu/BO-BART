@@ -194,11 +194,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining)
   
   var <- colVars(fValues)
   index <- sample(which(var==max(var)), 1)
-<<<<<<< HEAD
-  value <- copeak(as.matrix(candidateSet[index,], ncol = dim))
-=======
   value <- copeak(t(candidateSet[index,]))
->>>>>>> 518bcb62012b5f58be540597005e0bc5ba6509a4
   trainData <- rbind(trainData, c(candidateSet[index,], value))
   
 }
@@ -208,7 +204,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining)
 
 }
 
-mainBARTBQ <- function(dim) 
+mainBARTBQ <- function(dim, num_iterations) 
 # main method
 # returns prediction as a list
 {
@@ -216,7 +212,7 @@ mainBARTBQ <- function(dim)
   genz <- copeak #select genz function
   trainX <- randomLHS(10, dim) # pick X values from a hypercube (uniform) [a,b]^10
   trainY <- genz(trainX) # test values of y obtained by genz functino
-  numNewTraining <- 5
+  numNewTraining <- num_iterations
   prediction <- BARTBQSequential(dim, trainX, trainY, numNewTraining) 
 
   return (prediction)

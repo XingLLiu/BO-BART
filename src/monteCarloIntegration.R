@@ -1,4 +1,4 @@
-monteCarloIntegrationUniform <- function(FUN, numSamples=400, dim)
+monteCarloIntegrationUniform <- function(FUN, numSamples, dim)
 # Monte Carlo Integration
 # input:
 # 		FUN: function f in the integral

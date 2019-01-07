@@ -2,21 +2,24 @@ library(MASS)
 library(cubature)
 
 # global parameters: dimension
-dim <- 3
-source("src/references/genz.R") # genz function to test
+args <- commandArgs(TRUE)
+dim <- as.double(args[1])
+num_iterations <- as.double(args[2])
+
+source("./references/genz.R") # genz function to test
 
 # Bayesian Quadrature method
 # set number of new query points using sequential design
-source("src/BARTBQ.R")
-predictionBART <- mainBARTBQ(dim)
+source("./BARTBQ.R")
+predictionBART <- mainBARTBQ(dim, num_iterations)
 
 # Bayesian Quadrature with Monte Carlo integration method
-source("src/monteCarloIntegration.R")
-predictionMonteCarlo <- monteCarloIntegrationUniform(copeak, numSamples=400, dim)
+source("./monteCarloIntegration.R")
+predictionMonteCarlo <- monteCarloIntegrationUniform(copeak, numSamples=num_iterations, dim)
 
 # Bayesian Quadrature with Gaussian Process
-source("src/GPBQ.R")
-predictionGPBQ <- computeGPBQ(dim, epochs = 399, N=10, FUN = copeak)
+source("./GPBQ.R")
+predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = copeak)
 
 
 # Exact integral of genz function in hypercube [0,1]^dim
@@ -28,7 +31,7 @@ percentageErrorMonteCarlo <- meanValueMonteCarlo - real[[1]]
 percentageErrorGP <- meanValueGP - real[[1]]
 
 # 1. Open jpeg file
-jpeg("report/Figures/convergenceCopeakStandardDeviation.jpg", width = 700, height = 583)
+jpeg("../report/Figures/convergenceCopeakStandardDeviation.jpg", width = 700, height = 583)
 # 2. Create the plot
 plot(x = log(c(1:400)), y = log(predictionMonteCarlo$standardDeviation2),
      pch = 16, frame = FALSE, type = "l",
@@ -43,7 +46,7 @@ legend("topleft", legend=c("MC Integration", "BART BQ", "GP BQ"),
 dev.off()
 
 # 1. Open jpeg file
-jpeg("report/Figures/convergenceCopeak.jpg", width = 700, height = 583)
+jpeg("../report/Figures/convergenceCopeak.jpg", width = 700, height = 583)
 # 2. Create the plot
 plot(x = c(1:400), y = predictionMonteCarlo$meanValue2,
      pch = 16, frame = FALSE, type = "l",
