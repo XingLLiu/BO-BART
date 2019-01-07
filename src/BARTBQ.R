@@ -194,7 +194,11 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining)
   
   var <- colVars(fValues)
   index <- sample(which(var==max(var)), 1)
+<<<<<<< HEAD
+  value <- copeak(as.matrix(candidateSet[index,], ncol = dim))
+=======
   value <- copeak(t(candidateSet[index,]))
+>>>>>>> 518bcb62012b5f58be540597005e0bc5ba6509a4
   trainData <- rbind(trainData, c(candidateSet[index,], value))
   
 }
