@@ -199,7 +199,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining)
   
 }
 
-  return (list("meanValue"=meanValue, "standardDeviation"=standardDeviation, 
+  return (list("meanValueBART"=meanValue, "standardDeviationBART"=standardDeviation, 
                "trainData" = trainData))
 
 }

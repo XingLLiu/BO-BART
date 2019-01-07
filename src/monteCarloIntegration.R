@@ -17,6 +17,6 @@ monteCarloIntegrationUniform <- function(FUN, numSamples, dim)
 	  standardDeviation2[i] <- sqrt(var(meanValue2))
 	}
 
-	return(list("meanValue2" = meanValue2, "standardDeviation2" = standardDeviation2))
+	return(list("meanValueMonteCarlo" = meanValue2, "standardDeviationMonteCarlo" = standardDeviation2))
 }
 
