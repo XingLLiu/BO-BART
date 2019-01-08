@@ -92,7 +92,7 @@ getTree <- function(sampler, chainNum, sampleNum, treeNum)
   return (tree)
 }
 
-singleTreeSum <- function(treeNum, model, drawNum) 
+singleTreeSum <- function(treeNum, model, drawNum, dim) 
 # Sum over a single tree's terminal nodes
 {
   cutPoints<-dbarts:::createCutPoints(model$fit)
@@ -119,7 +119,7 @@ singleTreeSum <- function(treeNum, model, drawNum)
   return (integral)
 }
 
-posteriorSum <- function(drawNum, model)
+posteriorSum <- function(drawNum, model, dim)
 # Sum over all the trees in one posterior draws
 # input:
 #   drawNum: which draw of p trees
@@ -129,7 +129,7 @@ posteriorSum <- function(drawNum, model)
   treeNum <- seq(1, nTree, length.out=nTree)
   
   #Extra variables
-  var <- list(model, drawNum)
+  var <- list(model, drawNum, dim)
   
   #Calculate integration over all trees in the draw by mapply
   integral <- sum( unlist( mapply(singleTreeSum, treeNum, MoreArgs=var) ) )
@@ -138,7 +138,7 @@ posteriorSum <- function(drawNum, model)
 }
 
 
-sampleIntegrals <- function(model) 
+sampleIntegrals <- function(model, dim) 
 # sum over all posterior draws 
 # input: 
 #     model: BART model
@@ -151,7 +151,7 @@ sampleIntegrals <- function(model)
   drawNum <- seq(1, nDraw, length.out=nDraw)
   
   #Extra Variables
-  var <- list(model)
+  var <- list(model, dim)
   integrals <- mapply(posteriorSum, drawNum, MoreArgs=var) / dim(drawNum)
   return (integrals)
 }
@@ -192,7 +192,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN)
   model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
 >>>>>>> 3fe7ca13abd14bbe4085702a9cd223d1e712b363
   # obtain posterior samples
-  integrals <- sampleIntegrals(model)
+  integrals <- sampleIntegrals(model, dim)
   
   meanValue[i] <- mean((integrals + 0.5) * (ymax - ymin) + 0.5)
   standardDeviation[i] <- sqrt(var(integrals) / length(integrals))
