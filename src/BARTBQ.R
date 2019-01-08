@@ -5,7 +5,6 @@ library(lhs)
 library(dbarts)
 library(data.tree)
 library(matrixStats)
-
 terminalProbability <- function(currentNode) 
 # probabiltity ending up in terminal node
 {
@@ -114,15 +113,18 @@ singleTreeSum <- function(treeNum, model, drawNum)
   integral <- 0
   for (node in terminalNodeList) {
     #We use the mean of prediction value Y's in the terminal node as u
-    integral <- integral + node$terminal_probability*(node$mu) 
+    #rescale this step
+    integral <- integral + node$terminal_probability * node$mu
   }
   return (integral)
 }
 
 posteriorSum <- function(drawNum, model)
 # Sum over all the trees in one posterior draws
+# input:
+#   drawNum: which draw of p trees
+#   model:  set of tree
 {
-  integral <- 0
   nTree <- ncol(model$fit$state[[1]]@treeFits)
   treeNum <- seq(1, nTree, length.out=nTree)
   
@@ -130,23 +132,27 @@ posteriorSum <- function(drawNum, model)
   var <- list(model, drawNum)
   
   #Calculate integration over all trees in the draw by mapply
-  integral <- sum( unlist( mapply(singleTreeSum, treeNum, MoreArgs=var, SIMPLIFY = TRUE) ) )
-  
+  integral <- sum( unlist( mapply(singleTreeSum, treeNum, MoreArgs=var) ) )
+
   return (integral)
 }
 
 
 sampleIntegrals <- function(model) 
 # sum over all posterior draws 
+# input: 
+#     model: BART model
+#
+# output:
+#     integrals: mean integral values for each tree as a vector
+
 {
   nDraw <- dim(model$fit$state[[1]]@savedTreeFits)[3]
   drawNum <- seq(1, nDraw, length.out=nDraw)
   
   #Extra Variables
   var <- list(model)
-  
-  integrals <- mapply(posteriorSum, drawNum, MoreArgs=var, SIMPLIFY = TRUE)
-  
+  integrals <- mapply(posteriorSum, drawNum, MoreArgs=var) / dim(drawNum)
   return (integrals)
 }
 
@@ -154,6 +160,15 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN)
 # compute integral for BART-BQ with
 # implementation of query sequential design to add
 # more training data to the original dataset
+# input:
+#   dim: dimension
+#   trainX: covariates of training data
+#   trainY: response of training data
+#   numNewTraining: number of new training points to be added
+#   FUN: function that we are integrating over
+#
+# output:
+#   list of mean integral value, standard deviation of integral value and new traiing set
 {
   
   print( c("Adding number of new training data:", numNewTraining ) )
@@ -166,23 +181,23 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN)
   for (i in 1:numNewTraining) {
   
   print(c("Epoch=", i))
-  
+  # find the min and max range of y
+  ymin <- min(trainY); ymax <- max(trainY)
   # first build BART and scale mean and standard deviation
+<<<<<<< HEAD
+  sink("/dev/null")
   model <- bart(trainData[1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
-  
+  sink()
+=======
+  model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
+>>>>>>> 3fe7ca13abd14bbe4085702a9cd223d1e712b363
   # obtain posterior samples
   integrals <- sampleIntegrals(model)
   
-  # find the min and max range of y
-  ymin <- min(trainY); ymax <- max(trainY)
-  
-  scaledMean <- (mean(integrals) + 0.5)*(ymax-ymin) + ymin 
-  scaledStandardDeviation <- sqrt(var(integrals))*(ymax-ymin)
-  meanValue[i] <- scaledMean
-  standardDeviation[i] <- scaledStandardDeviation
+  meanValue[i] <- mean((integrals + 0.5) * (ymax - ymin) + 0.5)
+  standardDeviation[i] <- sqrt(var(integrals) / length(integrals))
 
   # sequential design section, where we build the new training data
-  fits <- model$fit$state[[1]]@savedTreeFits
   candidateSet <- randomLHS(1000, dim)
 
   # predict the values
@@ -210,7 +225,7 @@ mainBARTBQ <- function(dim, num_iterations, FUN)
 {
   # prepare training data and parameters
   genz <- FUN #select genz function
-  trainX <- randomLHS(10, dim) # pick X values from a hypercube (uniform) [a,b]^10
+  trainX <- randomLHS(100, dim) # pick X values from a hypercube (uniform) [a,b]^10
   trainY <- genz(trainX) # test values of y obtained by genz functino
   numNewTraining <- num_iterations
   prediction <- BARTBQSequential(dim, trainX, trainY, numNewTraining, FUN = genz) 
@@ -218,18 +233,4 @@ mainBARTBQ <- function(dim, num_iterations, FUN)
   return (prediction)
 
 }
-
-
-
-#findModel <- function(df, n)
-## iterate over nodes
-#{
-#  iter = 0
-#  while (iter <= n) {
-#    df <- Findx(df)
-#    iter <- iter + 1
-#    print (iter)
-#  }
-#  return (df)
-#}
 

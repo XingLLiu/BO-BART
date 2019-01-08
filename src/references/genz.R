@@ -316,6 +316,9 @@ disc <- function(xx, u=rep(0.5, 1, length(xx)), a=rep(5, 1, length(xx)))
     
   }
   
+  # Function only defined for dimension >= 2
+  if (ncol(xx) < 2) stop("incorrect dimension. Discrete Genz function only defined for dimension >= 2") 
+
   x1 <- xx[ ,1]
   x2 <- xx[ ,2]
   u1 <- u[1]
