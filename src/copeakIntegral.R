@@ -4,13 +4,12 @@ copeakIntegral <- function(dim = NA)
 # Input:
 #   dim: dimension of the integral
 # Output:
+#   Value of integral over [0, 1]^d
 {
-    integral <- 0
-    for (n in dim:1){
-      integral <- (n + 1)^(-1) * choose((dim - 1), (n - 1)) * (-1)^(n - 1) - 
-                n^(-1) * choose((dim - 1), (n - 1)) * (-1)^(n - 1) + 
-                integral
-    }
-    return(integral * (-1)^(dim - 1) / factorial(dim))
+  integral <- 0
+  for (n in 1:dim){
+    integral <- ( n * (n + 1) )^(-1) * choose((dim - 1), (n - 1)) * (-1)^(n + dim + 1) + integral
+  }
+  return(integral / factorial(dim))
 }
 
