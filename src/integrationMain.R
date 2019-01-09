@@ -1,5 +1,11 @@
+#!/usr/bin/env Rscript
+# if you want to run the script, simply enter /usr/local/bin/R --vanilla < integrationMain.R X X X
+# the deployment of the code is slightly tricky. Check with hbz15@ic.ac.uk
 library(MASS)
 library(cubature)
+library(lhs)
+library(data.tree)
+library(dbarts)
 
 #define string formatting
 `%--%` <- function(x, y) 
@@ -69,6 +75,15 @@ print(c("Actual integral:", real[[1]]))
 print(c("BART integral:", predictionBART$meanValueBART[num_iterations]))
 print(c("MI integral:", predictionMonteCarlo$meanValueMonteCarlo[num_iterations]))
 print(c("GP integral:", predictionGPBQ$meanValueGP[num_iterations]))
+
+print("Writing full results to ../results/genz%s" %--% c(whichGenz))
+results <- data.frame(
+        "BARTMean" = predictionBART$meanValueBART, "BARTsd" = predictionBART$standardDeviationBART,
+        "MIMean" = predictionMonteCarlo$meanValueMonteCarlo, "MIsd" = predictionMonteCarlo$standardDeviationMonteCarlo,
+        "GPMean" = predictionGPBQ$meanValueGP, "GPsd" = predictionGPBQ$standardDeviationGP,
+        "actual" = rep(real, num_iterations)
+)
+write.csv(results, file = "../results/genz/%s/results%sdim%s.csv" %--% c(whichGenz, whichGenz, dim),row.names=FALSE)
 
 print("Begin Plots")
 
