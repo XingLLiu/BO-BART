@@ -1,6 +1,4 @@
 #!/usr/bin/env Rscript
-# if you want to run the script, simply enter /usr/local/bin/R --vanilla < integrationMain.R X X X
-# the deployment of the code is slightly tricky. Check with hbz15@ic.ac.uk
 library(MASS)
 library(cubature)
 library(lhs)
@@ -17,6 +15,7 @@ library(dbarts)
 
 # global parameters: dimension
 args <- commandArgs(TRUE)
+print(args)
 dim <- as.double(args[1])
 num_iterations <- as.double(args[2])
 whichGenz <- as.double(args[3])
