@@ -10,7 +10,7 @@ library(cubature)
 }
 
 # global parameters: dimension
-args <- commandArgs(TRUE)
+args <- as.numeric(commandArgs(TRUE))
 dim <- args[1]
 num_iterations <- args[2]
 whichGenz <- args[3]
@@ -46,7 +46,7 @@ predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = genz)
 if (whichGenz == 2){
     source("./copeakIntegral.R")
     real <- copeakIntegral(dim)
-} else if (whichGenz == 6){
+} else if (whichGenz == 5){
     source("./oscillatoryIntegral.R")
     real <- oscillatoryIntegral(dim)
 } else {
