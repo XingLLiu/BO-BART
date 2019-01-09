@@ -1,5 +1,9 @@
+#!/usr/bin/env Rscript
 library(MASS)
 library(cubature)
+library(lhs)
+library(data.tree)
+library(dbarts)
 
 #define string formatting
 `%--%` <- function(x, y) 
@@ -11,15 +15,9 @@ library(cubature)
 
 # global parameters: dimension
 args <- commandArgs(TRUE)
-<<<<<<< HEAD
 dim <- as.double(args[1])
 num_iterations <- as.double(args[2])
 whichGenz <- as.double(args[3])
-=======
-dim <- 2
-num_iterations <- 4
-whichGenz <- 6
->>>>>>> 3fe7ca13abd14bbe4085702a9cd223d1e712b363
 print(c(dim, num_iterations, whichGenz))
 source("./references/genz.R") # genz function to test
 if (whichGenz < 1 | whichGenz > 6) stop("undefined genz function. Change 3rd argument to 1-6") 
@@ -33,10 +31,15 @@ if (whichGenz == 6) { genz <- disc; genzFunctionName <-  deparse(substitute(disc
 
 print("Testing with: %s" %--% genzFunctionName)
 
+# prepare training dataset
+trainX <- randomLHS(100, dim)
+trainY <- genz(trainX)
+
+
 # Bayesian Quadrature method
 # set number of new query points using sequential design
 source("./BARTBQ.R")
-predictionBART <- mainBARTBQ(dim, num_iterations, FUN = genz)
+predictionBART <- mainBARTBQ(dim, num_iterations, FUN = genz, trainX, trainY)
 
 # Bayesian Quadrature with Monte Carlo integration method
 print("Begin Monte Carlo Integration")
@@ -46,6 +49,7 @@ predictionMonteCarlo <- monteCarloIntegrationUniform(FUN = genz, numSamples=num_
 # Bayesian Quadrature with Gaussian Process
 print("Begin Gaussian Process Integration")
 source("./GPBQ.R")
+
 predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = genz)
 
 # Exact integral of genz function in hypercube [0,1]^dim
@@ -69,6 +73,15 @@ print(c("Actual integral:", real[[1]]))
 print(c("BART integral:", predictionBART$meanValueBART[num_iterations]))
 print(c("MI integral:", predictionMonteCarlo$meanValueMonteCarlo[num_iterations]))
 print(c("GP integral:", predictionGPBQ$meanValueGP[num_iterations]))
+
+print("Writing full results to ../results/genz%s" %--% c(whichGenz))
+results <- data.frame(
+        "BARTMean" = predictionBART$meanValueBART, "BARTsd" = predictionBART$standardDeviationBART,
+        "MIMean" = predictionMonteCarlo$meanValueMonteCarlo, "MIsd" = predictionMonteCarlo$standardDeviationMonteCarlo,
+        "GPMean" = predictionGPBQ$meanValueGP, "GPsd" = predictionGPBQ$standardDeviationGP,
+        "actual" = rep(real, num_iterations)
+)
+write.csv(results, file = "../results/genz/%s/results%sdim%s.csv" %--% c(whichGenz, whichGenz, dim),row.names=FALSE)
 
 print("Begin Plots")
 
