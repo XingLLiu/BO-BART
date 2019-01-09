@@ -1,3 +1,5 @@
+library(matrixStats)  
+
 cont <- function(xx, u=rep(0.5, 1, length(xx)), a=rep(5, 1, length(xx)))
 {
   ##########################################################################
@@ -144,8 +146,6 @@ prpeak <- function(xx, u=rep(0.5, 1, length(xx)), a=rep(5, 1, length(xx)))
   # a  = c(a1, a2, ..., ad) (optional), with default value c(5, 5, ..., 5)
   #
   ##########################################################################
-  # Load required package
-  library('matrixStats')
 
   if (is.matrix(xx) == FALSE) { 
     
