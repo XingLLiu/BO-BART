@@ -14,10 +14,10 @@ library(dbarts)
 }
 
 # global parameters: dimension
-args <- commandArgs(TRUE)
-dim <- as.double(args[1])
-num_iterations <- as.double(args[2])
-whichGenz <- as.double(args[3])
+args <- as.double(commandArgs(TRUE))
+dim <- args[1]
+num_iterations <- args[2]
+whichGenz <- args[3]
 print(c(dim, num_iterations, whichGenz))
 source("./references/genz.R") # genz function to test
 if (whichGenz < 1 | whichGenz > 6) stop("undefined genz function. Change 3rd argument to 1-6") 
@@ -56,7 +56,7 @@ predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = genz)
 if (whichGenz == 2){
     source("./copeakIntegral.R")
     real <- copeakIntegral(dim)
-} else if (whichGenz == 6){
+} else if (whichGenz == 5){
     source("./oscillatoryIntegral.R")
     real <- oscillatoryIntegral(dim)
 } else {
