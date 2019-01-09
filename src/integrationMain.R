@@ -1,10 +1,14 @@
 #!/usr/bin/env R
+
 setwd("/scratchcomp01/hbz15/BO-BART/src/")
+
 library(MASS)
 library(cubature)
 library(lhs)
 library(data.tree)
 library(dbarts)
+library(matrixStats)
+library(mvtnorm)
 
 #define string formatting
 `%--%` <- function(x, y) 
