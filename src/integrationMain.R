@@ -74,7 +74,8 @@ print("Writing full results to ../results/genz%s" %--% c(whichGenz))
 results <- data.frame(
         "BARTMean" = predictionBART$meanValueBART, "BARTsd" = predictionBART$standardDeviationBART,
         "MIMean" = predictionMonteCarlo$meanValueMonteCarlo, "MIsd" = predictionMonteCarlo$standardDeviationMonteCarlo,
-        "GPMean" = predictionGPBQ$meanValueGP, "GPsd" = predictionGPBQ$standardDeviationGP
+        "GPMean" = predictionGPBQ$meanValueGP, "GPsd" = predictionGPBQ$standardDeviationGP,
+        "actual" = rep(real, num_iterations)
 )
 write.csv(results, file = "../results/genz/%s/results%sdim%s.csv" %--% c(whichGenz, whichGenz, dim),row.names=FALSE)
 
