@@ -28,10 +28,10 @@ oscillatoryIntegral <- function(dim=NA, u=0.5, a=5)
 {
     # Set auxiliary function
     phi <- auxiliaryFunction
-
+    
     # Compute integral
     integral <- 0
-    for (n in dim:0){
+    for (n in 0:dim){
       integral <- choose(dim, n) * phi((2*pi*u + n * a), dim) * (-1)^(dim - n) + integral
     }
     return(integral / a^dim)
