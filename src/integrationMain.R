@@ -14,17 +14,10 @@ library(dbarts)
 }
 
 # global parameters: dimension
-<<<<<<< HEAD
 args <- as.double(commandArgs(TRUE))
 dim <- args[1]
 num_iterations <- args[2]
 whichGenz <- args[3]
-=======
-args <- commandArgs(TRUE)
-dim <- as.double(args[1])
-num_iterations <- as.double(args[2])
-whichGenz <- as.double(args[3])
->>>>>>> 67d8cfd8ddc8d49add14d06f54fea5b6be5d5ca5
 print(c(dim, num_iterations, whichGenz))
 source("./references/genz.R") # genz function to test
 if (whichGenz < 1 | whichGenz > 6) stop("undefined genz function. Change 3rd argument to 1-6") 
