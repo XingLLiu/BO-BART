@@ -6,4 +6,7 @@ cubature
 mvtnorm
 data.tree
 matrixStats
+<<<<<<< HEAD
 kernlab
+=======
+>>>>>>> 67d8cfd8ddc8d49add14d06f54fea5b6be5d5ca5
