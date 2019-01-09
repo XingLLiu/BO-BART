@@ -15,7 +15,6 @@ library(dbarts)
 
 # global parameters: dimension
 args <- commandArgs(TRUE)
-print(args)
 dim <- as.double(args[1])
 num_iterations <- as.double(args[2])
 whichGenz <- as.double(args[3])
