@@ -33,10 +33,15 @@ if (whichGenz == 6) { genz <- disc; genzFunctionName <-  deparse(substitute(disc
 
 print("Testing with: %s" %--% genzFunctionName)
 
+# prepare training dataset
+trainX <- randomLHS(100, dim)
+trainY <- genz(trainX)
+
+
 # Bayesian Quadrature method
 # set number of new query points using sequential design
 source("./BARTBQ.R")
-predictionBART <- mainBARTBQ(dim, num_iterations, FUN = genz)
+predictionBART <- mainBARTBQ(dim, num_iterations, FUN = genz, trainX, trainY)
 
 # Bayesian Quadrature with Monte Carlo integration method
 print("Begin Monte Carlo Integration")
@@ -46,6 +51,7 @@ predictionMonteCarlo <- monteCarloIntegrationUniform(FUN = genz, numSamples=num_
 # Bayesian Quadrature with Gaussian Process
 print("Begin Gaussian Process Integration")
 source("./GPBQ.R")
+
 predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = genz)
 
 # Exact integral of genz function in hypercube [0,1]^dim

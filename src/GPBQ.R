@@ -27,7 +27,7 @@ computeGPBQ <- function(dim, epochs, N=10, FUN)
 # input:
 #     dim:
 #     epochs: number of training instances
-#     N:
+#     N: 
 {
   #define genz function
   genz <- FUN

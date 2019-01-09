@@ -215,14 +215,19 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN)
 
 }
 
-mainBARTBQ <- function(dim, num_iterations, FUN) 
+mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY) 
 # main method
+# input:
+#   dim
+#   num_iterations:
+#   FUN:
+#   trainX: covariates of training set
+#   trainY: regressors of training set
+#
 # returns prediction as a list
 {
   # prepare training data and parameters
   genz <- FUN #select genz function
-  trainX <- randomLHS(100, dim) # pick X values from a hypercube (uniform) [a,b]^10
-  trainY <- genz(trainX) # test values of y obtained by genz functino
   numNewTraining <- num_iterations
   prediction <- BARTBQSequential(dim, trainX, trainY, numNewTraining, FUN = genz) 
 
