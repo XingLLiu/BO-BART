@@ -1,4 +1,5 @@
-#!/usr/bin/env Rscript
+#!/usr/bin/env R
+setwd("/scratchcomp01/hbz15/BO-BART/src/")
 library(MASS)
 library(cubature)
 library(lhs)

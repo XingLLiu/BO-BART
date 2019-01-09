@@ -189,6 +189,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN)
   sink()
   # obtain posterior samples
   integrals <- sampleIntegrals(model, dim)
+  print(integrals)
   
   meanValue[i] <- mean((integrals + 0.5) * (ymax - ymin) + ymin)
   standardDeviation[i] <- sqrt(var(integrals) / length(integrals))
