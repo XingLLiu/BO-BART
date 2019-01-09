@@ -92,7 +92,7 @@ getTree <- function(sampler, chainNum, sampleNum, treeNum)
   return (tree)
 }
 
-singleTreeSum <- function(treeNum, model, drawNum, ymin, ymax) 
+singleTreeSum <- function(treeNum, model, drawNum, dim) 
 # Sum over a single tree's terminal nodes
 {
   cutPoints<-dbarts:::createCutPoints(model$fit)
@@ -114,13 +114,12 @@ singleTreeSum <- function(treeNum, model, drawNum, ymin, ymax)
   for (node in terminalNodeList) {
     #We use the mean of prediction value Y's in the terminal node as u
     #rescale this step
-    rescaledMu <- (node$mu + 0.5) * (ymax - ymin) + ymin
-    integral <- integral + node$terminal_probability * rescaledMu
+    integral <- integral + node$terminal_probability * node$mu
   }
   return (integral)
 }
 
-posteriorSum <- function(drawNum, model, ymin, ymax)
+posteriorSum <- function(drawNum, model, dim)
 # Sum over all the trees in one posterior draws
 # input:
 #   drawNum: which draw of p trees
@@ -130,7 +129,7 @@ posteriorSum <- function(drawNum, model, ymin, ymax)
   treeNum <- seq(1, nTree, length.out=nTree)
   
   #Extra variables
-  var <- list(model, drawNum, ymin, ymax)
+  var <- list(model, drawNum, dim)
   
   #Calculate integration over all trees in the draw by mapply
   integral <- sum( unlist( mapply(singleTreeSum, treeNum, MoreArgs=var) ) )
@@ -139,7 +138,7 @@ posteriorSum <- function(drawNum, model, ymin, ymax)
 }
 
 
-sampleIntegrals <- function(model, ymin, ymax) 
+sampleIntegrals <- function(model, dim) 
 # sum over all posterior draws 
 # input: 
 #     model: BART model
@@ -152,7 +151,7 @@ sampleIntegrals <- function(model, ymin, ymax)
   drawNum <- seq(1, nDraw, length.out=nDraw)
   
   #Extra Variables
-  var <- list(model, ymin, ymax)
+  var <- list(model, dim)
   integrals <- mapply(posteriorSum, drawNum, MoreArgs=var) / dim(drawNum)
   return (integrals)
 }
@@ -185,15 +184,16 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN)
   # find the min and max range of y
   ymin <- min(trainY); ymax <- max(trainY)
   # first build BART and scale mean and standard deviation
-  model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
+  sink("/dev/null")
+  model <- bart(trainData[1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
+  sink()
   # obtain posterior samples
-  integrals <- sampleIntegrals(model, ymin, ymax)
+  integrals <- sampleIntegrals(model, dim)
   
-  meanValue[i] <- mean(integrals)
-  standardDeviation[i] <- sqrt(var(integrals)) / length(integrals)
+  meanValue[i] <- mean((integrals + 0.5) * (ymax - ymin) + 0.5)
+  standardDeviation[i] <- sqrt(var(integrals) / length(integrals))
 
   # sequential design section, where we build the new training data
-  fits <- model$fit$state[[1]]@savedTreeFits
   candidateSet <- randomLHS(1000, dim)
 
   # predict the values
@@ -229,18 +229,4 @@ mainBARTBQ <- function(dim, num_iterations, FUN)
   return (prediction)
 
 }
-
-
-
-#findModel <- function(df, n)
-## iterate over nodes
-#{
-#  iter = 0
-#  while (iter <= n) {
-#    df <- Findx(df)
-#    iter <- iter + 1
-#    print (iter)
-#  }
-#  return (df)
-#}
 
