@@ -179,7 +179,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN)
   # generate extra training data using the scheme (see pdf)
   for (i in 1:numNewTraining) {
   
-  print(c("Epoch=", i))
+  print(c("BART: Epoch=", i))
   # find the min and max range of y
   ymin <- min(trainY); ymax <- max(trainY)
   # first build BART and scale mean and standard deviation
@@ -188,7 +188,6 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN)
   sink()
   # obtain posterior samples
   integrals <- sampleIntegrals(model, dim)
-  print(integrals)
   
   meanValue[i] <- mean((integrals + 0.5) * (ymax - ymin) + ymin)
   standardDeviation[i] <- sqrt(var(integrals) / length(integrals))

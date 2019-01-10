@@ -56,7 +56,7 @@ computeGPBQ <- function(dim, epochs, N=10, FUN)
 
   # train
   for (p in 1:epochs) {
-    print(c("Epochs no.:", p))
+    print(c("GP: Epochs no.:", p))
     candidateSet <- randomLHS(100,dim)
     
     candidate_Var <- c()

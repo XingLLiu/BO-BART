@@ -1,6 +1,6 @@
 #!/usr/bin/env R
-
-setwd("/scratchcomp01/hbz15/BO-BART/src/")
+# uncomment below and fix it according when in department cluster.
+#setwd("/scratchcomp01/hbz15/BO-BART/src/")
 
 library(MASS)
 library(cubature)
