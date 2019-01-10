@@ -74,7 +74,6 @@ computeGPBQ <- function(dim, epochs, N=10, FUN)
     
     for (i in 1:100) {
       
-      
       K_prime[1:(N+p-1),(N+p)] <- gaussianKernel(candidateSet[i,], X)
       
       K_prime[(N+p),1:(N+p-1)] <- gaussianKernel(candidateSet[i,], X)
@@ -92,8 +91,10 @@ computeGPBQ <- function(dim, epochs, N=10, FUN)
     K_prime[1:(N+p-1),N+p] <- gaussianKernel(candidateSet[index,], X)
     
     X <- rbind(X,candidateSet[index,])
-    
-    Y <- c(Y, genz( matrix( candidateSet[index,], ncol = length(candidateSet[index,])) ) )
+
+    additionalResponse <- as.matrix( t(candidateSet[index,]), ncol = length(candidateSet[index,]) )
+    print(genz(additionalResponse))
+    Y <- c(Y, genz(additionalResponse))
     
     K <- K_prime
     
