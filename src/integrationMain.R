@@ -29,10 +29,10 @@ if (whichGenz < 1 | whichGenz > 6) stop("undefined genz function. Change 3rd arg
 
 if (whichGenz == 1) { genz <- cont; genzFunctionName <-  deparse(substitute(cont)) }
 if (whichGenz == 2) { genz <- copeak; genzFunctionName <-  deparse(substitute(copeak)) }
-if (whichGenz == 3) { genz <- prpeak; genzFunctionName <-  deparse(substitute(prpeak)) }
+if (whichGenz == 3) { genz <- disc; genzFunctionName <-  deparse(substitute(disc)) }
 if (whichGenz == 4) { genz <- gaussian; genzFunctionName <-  deparse(substitute(gaussian)) }
 if (whichGenz == 5) { genz <- oscil; genzFunctionName <-  deparse(substitute(oscil)) }
-if (whichGenz == 6) { genz <- disc; genzFunctionName <-  deparse(substitute(disc)) }
+if (whichGenz == 6) { genz <- prpeak; genzFunctionName <-  deparse(substitute(prpeak)) }
 
 print("Testing with: %s" %--% genzFunctionName)
 
@@ -65,7 +65,7 @@ if (whichGenz == 2){
     source("./oscillatoryIntegral.R")
     real <- oscillatoryIntegral(dim)
 } else {
-    real <- adaptIntegrate(genz,lowerLimit = rep(0,dim), upperLimit = rep(1,dim))
+    real <- adaptIntegrate(genz, lowerLimit = rep(0,dim), upperLimit = rep(1, dim))
 }   
 
 # Bayesian Quadrature methods: with BART, Monte Carlo Integration and Gaussian Process respectively
