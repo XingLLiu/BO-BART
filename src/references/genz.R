@@ -1,5 +1,5 @@
 library(matrixStats)  
-
+library(MASS)
 cont <- function(xx, u=rep(0.5, 1, length(xx)), a=rep(5, 1, length(xx)))
 {
   ##########################################################################
