@@ -4,6 +4,7 @@ analytical_sol <- function (FUN, dim){
   if (FUN == "disc"){
     
     if (dim == 1){
+      
       print ("disc undefined for dimension = 1")
       
       break
