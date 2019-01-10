@@ -1,29 +1,115 @@
-analytical_sol <- function (FUN, dim){
+cont_integral <- function(dim, a, u)
   
-  #Analytical Solution of Genz, for cont, gaussian, prpeak and disc only 
-  if (FUN == "disc"){
+  # Description:
+  # Input:
+  #        dim: dimension of integrand
+  #        a: parameter a in continuous integrand
+  #        u: parameter u in continuous integrand, in the domain [0,1]
+  # 
+  #Output:
+  #        integral: integral of the continuous integrand in the domain [0,1]^dim 
+  
+{
+  if ( u < 0 || u >1)
+  {
+    print ("u must be in [0,1]")
     
-    if (dim == 1){
-      
-      print ("disc undefined for dimension = 1")
-      
-      break
-      
-    }
-    
-    f <- function (x) exp(5 * x)
-    
-    result <- (( adaptIntegrate(f,lowerLimit = rep(0, dim),upperLimit = rep(0.5, dim))[[1]] ) ^ (2)) *
-                ( adaptIntegrate(f,lowerLimit = rep(0, dim),upperLimit = rep(1, dim))[[1]] ) ^ (dim - 2)
-    
-    
-  }else{
-    
-    result <- (adaptIntegrate(FUN,lowerLimit = rep(0,3),upperLimit = rep(1,3))[[1]]) ^ (dim)
-    
+    break
   }
+  
+  one_dimension_result <- ( 1/a ) * ( 2 - exp( -a * u ) - exp( a * ( u - 1 ) ) )
+  
+  result <- (one_dimension_result) ^ (dim)
   
   return (result)
   
+}
+
+disc_integral <- function(dim, a, u)
   
+  # Description:
+  # Input:
+  #        dim: integer, dimension of integrand, must be greater than 1
+  #        a: parameter a in continuous integrand
+  #        u: parameter u in continuous integrand, in the domain [0,1]
+  # 
+  #Output:
+  #        integral: integral of the Discontinuous integrand in the domain [0,1]^dim
+  
+{
+  if ( u < 0 || u >1)
+  {
+    print ("u must be in [0,1]")
+    
+    break
+  }
+  
+  if (dim < 2){
+    
+    print ("dimension must be greater than 2")
+    
+    break
+    
+  }
+  
+  result <- ( ( ( 1/a ) * ( exp( a * u ) - 1 ) )  ^ 2 ) * ( ( (1/a) * ( exp(a) - 1 ) ) ^ ( dim - 2 ) )
+  
+  return (result)
+  
+}
+
+gaussain_integral <- function(dim, a, u)
+  
+  # Description:
+  # Input:
+  #        dim: dimension of integrand
+  #        a: parameter a in continuous integrand
+  #        u: parameter u in continuous integrand, in the domain [0,1]
+  # 
+  #Output:
+  #        integral: integral of the Gaussian Peak integrand in the domain [0,1]^dim 
+  
+{
+  if ( u < 0 || u >1)
+  {
+    print ("u must be in [0,1]")
+    
+    break
+  }
+  
+  error_function <- function (x) pnorm( x, mean = 0, sd = sqrt(0.5) ) - 
+                                         pnorm( -x, mean = 0, sd = sqrt(0.5) )
+  
+  one_dimension_result <- ( sqrt(pi) / (2 * a) ) * ( error_function( a * u ) + error_function( a - a* u ) )
+  
+  result <- one_dimension_result ^ (dim)
+  
+  return (result)
+  
+}
+
+product_peak_integral <- function(dim, a, u)
+  
+  # Description:
+  # Input:
+  #        dim: dimension of integrand
+  #        a: parameter a in continuous integrand
+  #        u: parameter u in continuous integrand, in the domain [0,1]
+  # 
+  #Output:
+  #        integral: integral of the Product Peak integrand in the domain [0,1]^dim 
+  
+{
+  if ( u < 0 || u >1)
+  {
+    print ("u must be in [0,1]")
+    
+    break
+  }
+  
+  one_dimension_result <- ( -a ) * ( atan( a * ( u - 1 ) ) - atan( a * u ) )
+  
+  result <- one_dimension_result ^ (dim)
+  
+  return (result)
 }
