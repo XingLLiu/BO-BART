@@ -2,7 +2,7 @@
 #Bayesian Quadrature with Gaussian Process
 ############
 library(mvtnorm)
-
+library(MASS)
 gaussianKernel <- function(xPrime, X) 
   # The exp squared covariance function, hence calculating covariance matrix cov
   # input:
