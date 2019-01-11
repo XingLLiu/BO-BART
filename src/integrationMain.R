@@ -49,8 +49,8 @@ trainY <- genz(trainX)
 # Bayesian Quadrature method
 # set number of new query points using sequential design
 source("./BARTBQ.R")
-#ymin <- min(trainY); ymax <- max(trainY)
-#trainY_BART <- (trainY - ymin) / (ymax - ymin) - 0.5
+ymin <- min(trainY); ymax <- max(trainY)
+trainY_BART <- (trainY - ymin) / (ymax - ymin) - 0.5
 predictionBART <- mainBARTBQ(dim, num_iterations, FUN = genz, trainX, trainY)
 
 # Bayesian Quadrature with Monte Carlo integration method
