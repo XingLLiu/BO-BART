@@ -179,36 +179,35 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN)
   # generate extra training data using the scheme (see pdf)
   for (i in 1:numNewTraining) {
   
-  print(c("Epoch=", i))
-  # find the min and max range of y
-  ymin <- min(trainY); ymax <- max(trainY)
-  # first build BART and scale mean and standard deviation
-  sink("/dev/null")
-  model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
-  sink()
-  # obtain posterior samples
-  integrals <- sampleIntegrals(model, dim)
-  
-  meanValue[i] <- mean((integrals + 0.5) * (ymax - ymin) + ymin)
-  standardDeviation[i] <- sqrt(var(integrals) / length(integrals))
+    print(c("Epoch=", i))
+    # find the min and max range of y
+    ymin <- min(trainY); ymax <- max(trainY)
+    # first build BART and scale mean and standard deviation
+    sink("/dev/null")
+    model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
+    sink()
+    # obtain posterior samples
+    integrals <- sampleIntegrals(model, dim)
+    
+    meanValue[i] <- mean((integrals + 0.5) * (ymax - ymin) + ymin)
+    standardDeviation[i] <- sqrt(var(integrals) / length(integrals))
 
-  # sequential design section, where we build the new training data
-  candidateSet <- randomLHS(1000, dim)
-  
-  # predict the values
-  fValues <- predict(model, candidateSet)
-  
-  probability = 1 #uniform probability
-  
-  expectedValue <- colMeans(fValues*probability)
-  
-  var <- colVars(fValues)
-  index <- sample(which(var==max(var)), 1)
-  value <- FUN(t(candidateSet[index,]))
-  trainData <- rbind(trainData, c(candidateSet[index,], value))
-  
-}
-
+    # sequential design section, where we build the new training data
+    candidateSet <- randomLHS(1000, dim)
+    
+    # predict the values
+    fValues <- predict(model, candidateSet)
+    
+    probability = 1 #uniform probability
+    
+    expectedValue <- colMeans(fValues*probability)
+    
+    var <- colVars(fValues)
+    index <- sample(which(var==max(var)), 1)
+    value <- FUN(t(candidateSet[index,]))
+    trainData <- rbind(trainData, c(candidateSet[index,], value))
+  }
+  cat('HelloWorld',meanValue, '\n')
   return (list("meanValueBART"=meanValue, "standardDeviationBART"=standardDeviation, 
                "trainData" = trainData))
 
