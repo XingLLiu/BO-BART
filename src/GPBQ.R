@@ -2,7 +2,7 @@
 #Bayesian Quadrature with Gaussian Process
 ############
 library(mvtnorm)
-
+library(MASS)
 gaussianKernel <- function(xPrime, X) 
   # The exp squared covariance function, hence calculating covariance matrix cov
   # input:
@@ -56,7 +56,7 @@ computeGPBQ <- function(dim, epochs, N=10, FUN)
 
   # train
   for (p in 1:epochs) {
-    print(c("Epochs no.:", p))
+    print(c("GP: Epochs no.:", p))
     candidateSet <- randomLHS(100,dim)
     
     candidate_Var <- c()
@@ -73,7 +73,6 @@ computeGPBQ <- function(dim, epochs, N=10, FUN)
     K_prime[1:(N+p-1), 1:(N+p-1)] <- K
     
     for (i in 1:100) {
-      
       
       K_prime[1:(N+p-1),(N+p)] <- gaussianKernel(candidateSet[i,], X)
       
@@ -92,8 +91,10 @@ computeGPBQ <- function(dim, epochs, N=10, FUN)
     K_prime[1:(N+p-1),N+p] <- gaussianKernel(candidateSet[index,], X)
     
     X <- rbind(X,candidateSet[index,])
-    
-    Y <- c(Y, genz( matrix( candidateSet[index,], ncol = length(candidateSet[index,])) ) )
+
+    additionalResponse <- as.matrix( t(candidateSet[index,]), ncol = length(candidateSet[index,]) )
+    print(genz(additionalResponse))
+    Y <- c(Y, genz(additionalResponse))
     
     K <- K_prime
     

@@ -64,14 +64,10 @@ getTree <- function(sampler, chainNum, sampleNum, treeNum)
   
   if (sampler$control@keepTrees) {
     treeString <- sampler$state[[chainNum]]@savedTrees[treeNum, sampleNum]
-  }
-  else {
-    treeString <- sampler$state[[chainNum]]@trees[treeNum]
-  }                           
-  if (sampler$control@keepTrees) {
     treeFits <- sampler$state[[chainNum]]@savedTreeFits[, treeNum, sampleNum]
   }
   else {
+    treeString <- sampler$state[[chainNum]]@trees[treeNum]
     treeFits <- sampler$state[[chainNum]]@treeFits[,treeNum]
   }                           
   
@@ -151,7 +147,7 @@ sampleIntegrals <- function(model, dim)
   
   #Extra Variables
   var <- list(model, dim)
-  integrals <- mapply(posteriorSum, drawNum, MoreArgs=var) / nDraw
+  integrals <- mapply(posteriorSum, drawNum, MoreArgs=var)
   return (integrals)
 }
 
@@ -178,40 +174,37 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN)
   
   # generate extra training data using the scheme (see pdf)
   for (i in 1:numNewTraining) {
-  
-  print(c("Epoch=", i))
-  # find the min and max range of y
-  ymin <- min(trainY); ymax <- max(trainY)
-  # first build BART and scale mean and standard deviation
-  sink("/dev/null")
-  model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
-  sink()
-  # obtain posterior samples
-  integrals <- sampleIntegrals(model, dim)
-  
-  meanValue[i] <- mean((integrals + 0.5) * (ymax - ymin) + ymin)
-  standardDeviation[i] <- sqrt(var(integrals) / length(integrals))
+    
+    print(c("BART: Epoch=", i))
+    # find the min and max range of y
+    ymin <- min(trainY); ymax <- max(trainY)
+    # first build BART and scale mean and standard deviation
+    sink("/dev/null")
+    model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
+    sink()
+    # obtain posterior samples
+    integrals <- sampleIntegrals(model, dim)
+    integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
+    meanValue[i] <- mean(integrals)
+    standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
 
-  # sequential design section, where we build the new training data
-  candidateSet <- randomLHS(1000, dim)
-  
-  # predict the values
-  fValues <- predict(model, candidateSet)
-  
-  probability = 1 #uniform probability
-  
-  expectedValue <- colMeans(fValues*probability)
-  
-  var <- colVars(fValues)
-  index <- sample(which(var==max(var)), 1)
-  value <- FUN(t(candidateSet[index,]))
-  trainData <- rbind(trainData, c(candidateSet[index,], value))
-  
+    # sequential design section, where we build the new training data
+    candidateSet <- randomLHS(1000, dim)
+    
+    # predict the values
+    fValues <- predict(model, candidateSet)
+    
+    probability = 1 #uniform probability
+    #expectedValue <- colMeans(fValues*probability)
+    
+    var <- colVars(fValues)
+    index <- sample(which(var==max(var)), 1)
+    value <- FUN(t(candidateSet[index,]))
+    trainData <- rbind(trainData, c(candidateSet[index,], value))
 }
 
   return (list("meanValueBART"=meanValue, "standardDeviationBART"=standardDeviation, 
                "trainData" = trainData))
-
 }
 
 mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY) 
@@ -231,6 +224,5 @@ mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY)
   prediction <- BARTBQSequential(dim, trainX, trainY, numNewTraining, FUN = genz) 
 
   return (prediction)
-
 }
 
