@@ -1,3 +1,5 @@
+library(matrixStats)  
+library(MASS)
 cont <- function(xx, u=rep(0.5, 1, length(xx)), a=rep(5, 1, length(xx)))
 {
   ##########################################################################
@@ -108,11 +110,12 @@ copeak <- function(xx, u=rep(0.5, 1, ncol(xx)), a=rep(5, ncol(xx)) )
   return(y)
 }
 
-prpeak <- function(xx, u=rep(0.5, 1, length(xx)), a=rep(5, 1, length(xx)))
+
+disc <- function(xx, u=rep(0.5, 1, length(xx)), a=rep(5, 1, length(xx)))
 {
   ##########################################################################
   #
-  # PRODUC PEAK INTEGRAND FAMILY
+  # DISCONTINUOUS INTEGRAND FAMILY
   #
   # Authors: Sonja Surjanovic, Simon Fraser University
   #          Derek Bingham, Simon Fraser University
@@ -139,30 +142,43 @@ prpeak <- function(xx, u=rep(0.5, 1, length(xx)), a=rep(5, 1, length(xx)))
   # INPUTS:
   #
   # xx = c(x1, x2, ..., xd)
-  # u  = c(u1, u2, ..., ud) (optional), with default value
-  #      c(0.5, 0.5, ..., 0.5)
-  # a  = c(a1, a2, ..., ad) (optional), with default value c(5, 5, ..., 5)
+  # u = c(u1, u2, ..., ud) (optional), with default value
+  #     c(0.5, 0.5, ..., 0.5)
+  # a = c(a1, a2, ..., ad) (optional), with default value c(5, 5, ..., 5)
   #
-  ##########################################################################
-  # Load required package
-  library('matrixStats')
-
+  #########################################################################
+  
   if (is.matrix(xx) == FALSE) { 
     
     xx <- matrix(xx) 
     
   }
   
+  # Function only defined for dimension >= 2
+  if (ncol(xx) < 2) stop("incorrect dimension. Discrete Genz function only defined for dimension >= 2") 
+
+  x1 <- xx[ ,1]
+  x2 <- xx[ ,2]
+  u1 <- u[1]
+  u2 <- u[2]
+  
   u=rep( 0.5, 1, ncol(xx) )
   
-  a=rep(5, ncol(xx)) 
+  a=rep(5, ncol(xx))
   
-  sum <- a^( -2 ) + ( xx - u ) ^ 2
+  xx [which ( x1 > u1 | x2 > u2), ] <- 0
+
+  sum <- xx %*% a
   
-  y <- rowProds(1/sum)
+  y <- exp(sum)
+  
+  y[which (y == 1)] <- 0
+
   
   return(y)
+  
 }
+
 
 gaussian <- function(xx, u=rep(0.5, 1, length(xx)), a=rep(5, 1, length(xx)))
 {
@@ -275,11 +291,12 @@ oscil <- function(xx, u=rep(0.5, 1, length(xx)), a=rep(5, 1, length(xx)))
 }
 
 
-disc <- function(xx, u=rep(0.5, 1, length(xx)), a=rep(5, 1, length(xx)))
+
+prpeak <- function(xx, u=rep(0.5, 1, length(xx)), a=rep(5, 1, length(xx)))
 {
   ##########################################################################
   #
-  # DISCONTINUOUS INTEGRAND FAMILY
+  # PRODUC PEAK INTEGRAND FAMILY
   #
   # Authors: Sonja Surjanovic, Simon Fraser University
   #          Derek Bingham, Simon Fraser University
@@ -306,43 +323,28 @@ disc <- function(xx, u=rep(0.5, 1, length(xx)), a=rep(5, 1, length(xx)))
   # INPUTS:
   #
   # xx = c(x1, x2, ..., xd)
-  # u = c(u1, u2, ..., ud) (optional), with default value
-  #     c(0.5, 0.5, ..., 0.5)
-  # a = c(a1, a2, ..., ad) (optional), with default value c(5, 5, ..., 5)
+  # u  = c(u1, u2, ..., ud) (optional), with default value
+  #      c(0.5, 0.5, ..., 0.5)
+  # a  = c(a1, a2, ..., ad) (optional), with default value c(5, 5, ..., 5)
   #
-  #########################################################################
-  
+  ##########################################################################
+
   if (is.matrix(xx) == FALSE) { 
     
     xx <- matrix(xx) 
     
   }
   
-  # Function only defined for dimension >= 2
-  if (ncol(xx) < 2) stop("incorrect dimension. Discrete Genz function only defined for dimension >= 2") 
-
-  x1 <- xx[ ,1]
-  x2 <- xx[ ,2]
-  u1 <- u[1]
-  u2 <- u[2]
-  
   u=rep( 0.5, 1, ncol(xx) )
   
-  a=rep(5, ncol(xx))
+  a=rep(5, ncol(xx)) 
   
-  xx [which ( x1 > u1 | x2 > u2), ] <- 0
-
-  sum <- xx %*% a
+  sum <- a^( -2 ) + ( xx - u ) ^ 2
   
-  y <- exp(sum)
-  
-  y[which (y == 1)] <- 0
-
+  y <- rowProds(1/sum)
   
   return(y)
-  
 }
-
 
 
 
