@@ -151,7 +151,7 @@ sampleIntegrals <- function(model, dim)
   
   #Extra Variables
   var <- list(model, dim)
-  integrals <- mapply(posteriorSum, drawNum, MoreArgs=var) / nDraw
+  integrals <- mapply(posteriorSum, drawNum, MoreArgs=var)
   return (integrals)
 }
 
