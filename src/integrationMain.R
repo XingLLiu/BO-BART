@@ -1,6 +1,6 @@
 #!/usr/bin/env R
 # uncomment below and fix it according when in department cluster.
-setwd("/scratchcomp01/hbz15/BO-BART/src/")
+#setwd("/scratchcomp01/hbz15/BO-BART/src/")
 
 library(MASS)
 library(cubature)
@@ -23,8 +23,12 @@ args <- as.double(commandArgs(TRUE))
 dim <- args[1]
 num_iterations <- args[2]
 whichGenz <- args[3]
+
+if (num_iterations == 1) return ("NEED MORE THAN 1 ITERATION")
+
 print(c(dim, num_iterations, whichGenz))
 source("./references/genz.R") # genz function to test
+
 if (whichGenz < 1 | whichGenz > 6) stop("undefined genz function. Change 3rd argument to 1-6") 
 
 if (whichGenz == 1) { genz <- cont; genzFunctionName <-  deparse(substitute(cont)) }
@@ -37,13 +41,16 @@ if (whichGenz == 6) { genz <- prpeak; genzFunctionName <-  deparse(substitute(pr
 print("Testing with: %s" %--% genzFunctionName)
 
 # prepare training dataset
+set.seed(0)
 trainX <- randomLHS(100, dim)
+print(dim(trainX))
 trainY <- genz(trainX)
-
 
 # Bayesian Quadrature method
 # set number of new query points using sequential design
 source("./BARTBQ.R")
+#ymin <- min(trainY); ymax <- max(trainY)
+#trainY_BART <- (trainY - ymin) / (ymax - ymin) - 0.5
 predictionBART <- mainBARTBQ(dim, num_iterations, FUN = genz, trainX, trainY)
 
 # Bayesian Quadrature with Monte Carlo integration method
@@ -58,29 +65,34 @@ source("./GPBQ.R")
 predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = genz)
 
 # Exact integral of genz function in hypercube [0,1]^dim
-if (whichGenz == 2){
-    source("./copeakIntegral.R")
-    real <- copeakIntegral(dim)
-} else if (whichGenz == 5){
-    source("./oscillatoryIntegral.R")
-    real <- oscillatoryIntegral(dim)
-} else {
-    real <- adaptIntegrate(genz, lowerLimit = rep(0,dim), upperLimit = rep(1, dim))
-}   
+#if (whichGenz == 2){
+#    source("./copeakIntegral.R")
+#    real <- copeakIntegral(dim)
+#} else if (whichGenz == 5){
+#    source("./oscillatoryIntegral.R")
+#    real <- oscillatoryIntegral(dim)
+#} else {
+#    real <- adaptIntegrate(genz, lowerLimit = rep(0,dim), upperLimit = rep(1, dim))
+#}   
+
+# read in analytical integrals calculated by MATLAB code
+
+analyticalIntegrals <- read.csv("./references/integrals.csv", header = FALSE)
+dimensionsList <- c(1,2,3,5,10,20)
+whichDimension <- which(dim == dimensionsList)
+print(whichDimension)
+real <- analyticalIntegrals[whichGenz, whichDimension]
 
 # Bayesian Quadrature methods: with BART, Monte Carlo Integration and Gaussian Process respectively
-percentageErrorBART <- predictionBART$meanValueBART - real[[1]]
-percentageErrorMonteCarlo <- predictionMonteCarlo$meanValueMonteCarlo - real[[1]]
-percentageErrorGP <- predictionGPBQ$meanValueGP - real[[1]]
-
 print("Final Results:")
-print(c("Actual integral:", real[[1]]))
+print(c("Actual integral:", real))
 print(c("BART integral:", predictionBART$meanValueBART[num_iterations]))
 print(c("MI integral:", predictionMonteCarlo$meanValueMonteCarlo[num_iterations]))
 print(c("GP integral:", predictionGPBQ$meanValueGP[num_iterations]))
 
 print("Writing full results to ../results/genz%s" %--% c(whichGenz))
 results <- data.frame(
+        "epochs" = c(1:num_iterations),
         "BARTMean" = predictionBART$meanValueBART, "BARTsd" = predictionBART$standardDeviationBART,
         "MIMean" = predictionMonteCarlo$meanValueMonteCarlo, "MIsd" = predictionMonteCarlo$standardDeviationMonteCarlo,
         "GPMean" = predictionGPBQ$meanValueGP, "GPsd" = predictionGPBQ$standardDeviationGP,
@@ -91,36 +103,39 @@ write.csv(results, file = "../results/genz/%s/results%sdim%s.csv" %--% c(whichGe
 print("Begin Plots")
 
 # 1. Open jpeg file
-jpeg("../report/Figures/%s/convergence%sStandardDeviation%sDimensions.jpg" %--% c(whichGenz, genzFunctionName, dim), width = 700, height = 583)
-# 2. Create the plot
-plot(x = log(c(1:num_iterations)), y = log(predictionMonteCarlo$standardDeviationMonteCarlo),
-     pch = 16, frame = FALSE, type = "l",
-     xlab = "Number of epochs N", ylab = "Log standard deviation", col = "blue",
-     main = "Convergence of methods: log(sd) vs log(N) \nusing %s with %s epochs in %s dim" %--% c(genzFunctionName, num_iterations, dim),
-     lty = 1)
-lines(x = log(c(1:num_iterations)), log(predictionBART$standardDeviationBART), type = 'l', col = "red", lty = 1)
-lines(x = log(c(1:num_iterations)), log(predictionGPBQ$standardDeviationGP), type = 'l', col = "green", lty = 1)
-legend("topleft", legend=c("MC Integration", "BART BQ", "GP BQ"),
-       col=c("blue", "red", "green"), cex=0.8, lty = c(1,1,1,1))
-# 3. Close the file
-dev.off()
-
-# 1. Open jpeg file
 jpeg("../report/Figures/%s/convergenceMean%s%sDimensions.jpg" %--% c(whichGenz, genzFunctionName, dim), width = 700, height = 583)
 # 2. Create the plot
 plot(x = c(1:num_iterations), y = predictionMonteCarlo$meanValueMonteCarlo,
      pch = 16, frame = FALSE, type = "l",
      xlab = "Number of epochs N", ylab = "Integral approximation", col = "blue",
      main = "Convergence of methods: mean vs N \nusing %s with %s epochs" %--% c(genzFunctionName, num_iterations, dim),
-     ylim = c(0, real[[1]] + real[[1]]), 
+     ylim = c(0, real + real), 
      lty =1
      )
 lines(x = c(1:num_iterations), predictionBART$meanValueBART, type = 'l', col = "red", lty = 1)
 lines(x = c(1:num_iterations), predictionGPBQ$meanValueGP, type = 'l', col = "green", lty = 1)
-abline(a = real[[1]], b = 0, lty = 4)
+abline(a = real, b = 0, lty = 4)
 legend("topleft", legend=c("MC Integration", "BART BQ", "GP BQ", "Actual"),
        col=c("blue", "red", "green", "black"), cex=0.8, lty = c(1,1,1,1))
 # 3. Close the file
 dev.off()
+
+
+print(predictionMonteCarlo$standardDeviationMonteCarlo)
+# 1. Open jpeg file
+jpeg("../report/Figures/%s/convergence%sStandardDeviation%sDimensions.jpg" %--% c(whichGenz, genzFunctionName, dim), width = 700, height = 583)
+# 2. Create the plot
+plot(x = log(c(2:num_iterations)), y = log(predictionMonteCarlo$standardDeviationMonteCarlo[-1]),
+     pch = 16, frame = FALSE, type = "l",
+     xlab = "Number of epochs N", ylab = "Log standard deviation", col = "blue",
+     main = "Convergence of methods: log(sd) vs log(N) \nusing %s with %s epochs in %s dim" %--% c(genzFunctionName, num_iterations, dim),
+     lty = 1)
+lines(x = log(c(2:num_iterations)), log(predictionBART$standardDeviationBART[-1]), type = 'l', col = "red", lty = 1)
+lines(x = log(c(2:num_iterations)), log(predictionGPBQ$standardDeviationGP[-1]), type = 'l', col = "green", lty = 1)
+legend("topleft", legend=c("MC Integration", "BART BQ", "GP BQ"),
+       col=c("blue", "red", "green"), cex=0.8, lty = c(1,1,1,1))
+# 3. Close the file
+dev.off()
+
 
 print("Please check {ROOT}/report/Figures for plots")
