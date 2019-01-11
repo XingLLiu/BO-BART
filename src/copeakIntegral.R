@@ -10,6 +10,6 @@ copeakIntegral <- function(dim = NA, a=5)
   for (n in 1:dim){
     integral <- ( (5 * n + 1) * (5 * n - 4) )^(-1) * choose((dim - 1), (n - 1)) * (-1)^(n -1) + integral
   }
-  return( integral / (a^(dim - 1) * factorial(dim)) )
+  return ( integral / (a^(dim - 1) * factorial(dim)) )
 }
 
