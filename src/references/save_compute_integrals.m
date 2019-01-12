@@ -13,7 +13,7 @@ integrals = zeros(length(dimensions), num_genz);
 
 for indx=1:num_genz
     
-    for k=1:length(dimensions); dim=dimension(k);
+    for k=1:length(dimensions); dim=dimensions(k);
         
         % set the integration parameters     
         alpha = ones(dim, 1)*5;

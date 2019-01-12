@@ -151,7 +151,7 @@ sampleIntegrals <- function(model, dim)
   return (integrals)
 }
 
-BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN) 
+BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, ifRegression=FALSE) 
 # compute integral for BART-BQ with
 # implementation of query sequential design to add
 # more training data to the original dataset
@@ -161,6 +161,8 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN)
 #   trainY: response of training data
 #   numNewTraining: number of new training points to be added
 #   FUN: function that we are integrating over
+#   ifRegression: if TRUE then sample from normal; if FALSE then sample from Uniform(0, 1);
+#                 FALSE by default to perform integral Genz tests
 #
 # output:
 #   list of mean integral value, standard deviation of integral value and new traiing set
@@ -174,13 +176,8 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN)
   
   # generate extra training data using the scheme (see pdf)
   for (i in 1:numNewTraining) {
-<<<<<<< HEAD
-  
-    print(c("Epoch=", i))
-=======
     
     print(c("BART: Epoch=", i))
->>>>>>> 70a1b2c0a2fe7df275cec425c7782fcfe2e09757
     # find the min and max range of y
     ymin <- min(trainY); ymax <- max(trainY)
     # first build BART and scale mean and standard deviation
@@ -189,17 +186,17 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN)
     sink()
     # obtain posterior samples
     integrals <- sampleIntegrals(model, dim)
-<<<<<<< HEAD
-    
-    meanValue[i] <- mean((integrals + 0.5) * (ymax - ymin) + ymin)
-    standardDeviation[i] <- sqrt(var(integrals) / length(integrals))
-=======
     integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
     meanValue[i] <- mean(integrals)
     standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
 
     # sequential design section, where we build the new training data
-    candidateSet <- randomLHS(1000, dim)
+    if (ifRegression == TRUE){
+      candidateSet <- 
+    } else{
+      candidateSet <- randomLHS(1000, dim)
+    }
+
     
     # predict the values
     fValues <- predict(model, candidateSet)
@@ -211,23 +208,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN)
     index <- sample(which(var==max(var)), 1)
     value <- FUN(t(candidateSet[index,]))
     trainData <- rbind(trainData, c(candidateSet[index,], value))
-}
->>>>>>> 70a1b2c0a2fe7df275cec425c7782fcfe2e09757
-
-    # sequential design section, where we build the new training data
-    candidateSet <- randomLHS(1000, dim)
-    
-    # predict the values
-    fValues <- predict(model, candidateSet)
-    
-    probability = 1 #uniform probability
-    
-    expectedValue <- colMeans(fValues*probability)
-    
-    var <- colVars(fValues)
-    index <- sample(which(var==max(var)), 1)
-    value <- FUN(t(candidateSet[index,]))
-    trainData <- rbind(trainData, c(candidateSet[index,], value))
+  
   }
   cat('HelloWorld',meanValue, '\n')
   return (list("meanValueBART"=meanValue, "standardDeviationBART"=standardDeviation, 
