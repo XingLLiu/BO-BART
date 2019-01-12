@@ -48,22 +48,29 @@ trainY <- genz(trainX)
 
 # Bayesian Quadrature method
 # set number of new query points using sequential design
-source("./BARTBQ.R")
-ymin <- min(trainY); ymax <- max(trainY)
-trainY_BART <- (trainY - ymin) / (ymax - ymin) - 0.5
-predictionBART <- mainBARTBQ(dim, num_iterations, FUN = genz, trainX, trainY)
 
+source("./BARTBQ.R")
+t0 <- proc.time()
+predictionBART <- mainBARTBQ(dim, num_iterations, FUN = genz, trainX, trainY)
+t1 <- proc.time()
+bartTime <- (t1 - t0)[[1]]
 # Bayesian Quadrature with Monte Carlo integration method
 print("Begin Monte Carlo Integration")
 source("./monteCarloIntegration.R")
+t0 <- proc.time()
 predictionMonteCarlo <- monteCarloIntegrationUniform(FUN = genz, numSamples=num_iterations, dim)
+t1 <- proc.time()
+
+MITime <- (t1 - t0)[[1]]
 
 # Bayesian Quadrature with Gaussian Process
 print("Begin Gaussian Process Integration")
+t0 <- proc.time()
 source("./GPBQ.R")
+t1 <- proc.time()
+GPTime <- (t1 - t0)[[1]]
 
 predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = genz)
-
 # Exact integral of genz function in hypercube [0,1]^dim
 #if (whichGenz == 2){
 #    source("./copeakIntegral.R")
@@ -77,10 +84,9 @@ predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = genz)
 
 # read in analytical integrals calculated by MATLAB code
 
-analyticalIntegrals <- read.csv("./references/integrals.csv", header = FALSE)
 dimensionsList <- c(1,2,3,5,10,20)
 whichDimension <- which(dim == dimensionsList)
-print(whichDimension)
+analyticalIntegrals <- read.csv("./references/integrals.csv", header = FALSE)
 real <- analyticalIntegrals[whichGenz, whichDimension]
 
 # Bayesian Quadrature methods: with BART, Monte Carlo Integration and Gaussian Process respectively
@@ -96,7 +102,10 @@ results <- data.frame(
         "BARTMean" = predictionBART$meanValueBART, "BARTsd" = predictionBART$standardDeviationBART,
         "MIMean" = predictionMonteCarlo$meanValueMonteCarlo, "MIsd" = predictionMonteCarlo$standardDeviationMonteCarlo,
         "GPMean" = predictionGPBQ$meanValueGP, "GPsd" = predictionGPBQ$standardDeviationGP,
-        "actual" = rep(real, num_iterations)
+        "actual" = rep(real, num_iterations),
+        "runtimeBART" = rep(bartTime, num_iterations),
+        "runtimeMI" = rep(MITime, num_iterations),
+        "runtimeGP" = rep(GPTime, num_iterations)
 )
 write.csv(results, file = "../results/genz/%s/results%sdim%s.csv" %--% c(whichGenz, whichGenz, dim),row.names=FALSE)
 
