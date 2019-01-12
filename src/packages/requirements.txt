@@ -6,4 +6,4 @@ cubature
 mvtnorm
 data.tree
 matrixStats
-kernlab
+kernlab # for GP classification

@@ -191,11 +191,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, ifRegress
     standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
 
     # sequential design section, where we build the new training data
-    if (ifRegression == TRUE){
-      candidateSet <- 
-    } else{
-      candidateSet <- randomLHS(1000, dim)
-    }
+    candidateSet <- randomLHS(1000, dim)
 
     
     # predict the values
@@ -210,7 +206,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, ifRegress
     trainData <- rbind(trainData, c(candidateSet[index,], value))
   
   }
-  cat('HelloWorld',meanValue, '\n')
+
   return (list("meanValueBART"=meanValue, "standardDeviationBART"=standardDeviation, 
                "trainData" = trainData))
 }
