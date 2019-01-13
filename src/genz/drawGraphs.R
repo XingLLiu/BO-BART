@@ -48,7 +48,7 @@ for (i in 1:6){
 
         # 1. Open jpeg file
         plotPath <- gsub(paste("../report/Figures/", toString(whichGenz), "/", fileName, sep=""), pattern = "csv", replacement="jpg")
-        jpeg(plotPath, width = 1400, height = 1166)
+        jpeg(plotPath, width = 2100, height = 1794, res=200)
         # 2. Create the plot
         par(mfrow = c(1,2), pty = "s")
         plot(x = c(1:num_iterations), y = predictionMonteCarlo$meanValueMonteCarlo,
