@@ -41,9 +41,7 @@ if (whichGenz == 6) { genz <- prpeak; genzFunctionName <-  deparse(substitute(pr
 print("Testing with: %s" %--% genzFunctionName)
 
 # prepare training dataset
-set.seed(0)
 trainX <- randomLHS(100, dim)
-print(dim(trainX))
 trainY <- genz(trainX)
 
 # Bayesian Quadrature method
@@ -134,3 +132,20 @@ dev.off()
 
 
 print("Please check {ROOT}/report/Figures for plots")
+
+
+fac <- function(x, index){
+  if (index == 1){
+    print('return')
+    print(x)
+    return(x)
+  }
+  else {
+    print('here')
+    index <- index - 1
+    print(x)
+    x <- x * fac((x-1), index)
+  }
+}
+
+
