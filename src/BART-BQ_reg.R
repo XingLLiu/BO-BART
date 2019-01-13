@@ -1,12 +1,6 @@
 library(dbarts)
 library(data.tree)
-library(hydroGOF)
 source("/Users/christine798/Documents/GitHub/BO-BART/src/BARTBQ.R")
-
-netTrain <- read.csv("~/Documents/2017-2018/UROP/report/network/net_train.csv")
-netTrain <- net_train[-which(net_train$V27 == 0), ]
-netTest <- read.csv("~/Documents/2017-2018/UROP/report/network/net_test.csv")
-netTest <- net_test[-which(net_test$V27 == 0), ]
 
 rescale <- function(myData) {
 # rescale variables in train set to apply pdf of uniform distribution
@@ -17,27 +11,29 @@ rescale <- function(myData) {
         
     }
 
-    return(my_data)
+    return(myData)
 
 }
 
 singleTreePrediction <- function(tree, x, cutPoints) {
 # compute a prediction given by one tree in one posterior draw
 
+    cut <- cutPoints
+
     # return prediction when reach terminal node
     if (is.null(tree$leftChild) == FALSE) {
         
         # decision rule on specific element
-        decisionRule <- cutPoints[[tree$splitVar]][tree$splitIndex]
+        decisionRule <- cut[[tree$splitVar]][tree$splitIndex]
 
         # locate datapoint to next child
         if (x[tree$splitVar] <= decisionRule) {
 
-            singleTreePrediction(tree$leftChild, x)
+            singleTreePrediction(tree$leftChild, x, cut)
 
         } else {
             
-            singleTreePrediction(tree$rightChild, x)
+            singleTreePrediction(tree$rightChild, x, cut)
        
         }
 
@@ -51,16 +47,15 @@ singleTreePrediction <- function(tree, x, cutPoints) {
 }  
 
 
-posteriorPrediction <- function(model, drawNum, nTree, test, testNum) {
+singlePosteriorPrediction <- function(drawNum, model, x, nTree) {
 # compute prediction given by a posterior draw (first quadrature)
 
-    x <- test[testNum, ]
-
-    cutPoints<-dbarts:::createCutPoints(model$fit)
+    cutPoints <- dbarts:::createCutPoints(model$fit)
+    cut <- array(c(0, 1), c(2, dim))
 
     posteriorPrediction <- NULL
 
-    for (i in 1:ntree) {
+    for (i in 1:nTree) {
   
         treeList <- getTree(model$fit, 1, drawNum, i)
   
@@ -70,32 +65,50 @@ posteriorPrediction <- function(model, drawNum, nTree, test, testNum) {
         tree <- fillProbabilityForNode(tree, cutPoints, cut)
         tree <- terminalProbabilityStore(tree)
 
-        posteriorPrediction <- c(posteriorPrediction, singleTreePrediction(tree, x, cutPoints))
+        singlePosteriorPrediction <- c(posteriorPrediction, singleTreePrediction(tree, x, cutPoints))
 
     }
     
+    return(mean(singlePosteriorPrediction))
+
+}
+
+posteriorPrediction <- function(testNum, model, test, nTree) {
+
+    x <- test[testNum, ]
+    
+    nDraw <- dim(model$fit$state[[1]]@savedTreeFits)[3]
+    drawNum <- seq(1, nDraw, length.out=nDraw)
+
+    #Extra variables
+    var <- list(model, x, nTree)
+  
+    #Calculate integration over all trees in the draw by mapply
+    posteriorPrediction <- sum(unlist(mapply(singlePosteriorPrediction, drawNum, MoreArgs=var)))
+
     return(mean(posteriorPrediction))
 
 }
 
-predict <- function(model, test) {
+
+
+bartBQPredict <- function(model, test) {
 # predict response to a new datapoint with BART-BQ
 
     nTree <- dim(model$fit$state[[1]]@savedTreeFits)[2]
-    drawNum <- dim(model$fit$state[[1]]@savedTreeFits)[3]
-    dim <- ncol(test)
-
+    
     nTest <- nrow(test)
-
-    testNum <- seq(1, nTest, length.out=nTest)
+    testNum <- seq(1, nTest, length.out=nTest) 
   
     #Extra variables
-    var <- list(model, drawNum, nTree, test)
+    var <- list(model, test, nTree)
   
     #Calculate integration over all trees in the draw by mapply
-    posteriorPrediction <- sum(unlist(mapply(singleTreePrediction, testNum, MoreArgs=var) ) )
+    prediction <- mapply(posteriorPrediction, testNum, MoreArgs=var)
+
+    return(prediction)
 
 }
 
-pred <- colMeans(predict(bart_model, test))
+
 
