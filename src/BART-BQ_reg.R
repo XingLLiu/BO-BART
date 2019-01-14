@@ -8,6 +8,8 @@ rescale <- function(myData) {
     for (i in 1:ncol(myData)) {
 
         myData[, i] <- (myData[, i] - min(myData[, i])) / (max(myData[, i]) - min(myData[, i]))
+        #myData[, i] <- (myData[, i] - min(myData[, i])) / (max(myData[, i]) - min(myData[, i])) - 0.5
+        #myData[, i] <- pnorm(myData[, i])
         
     }
 
@@ -18,22 +20,20 @@ rescale <- function(myData) {
 singleTreePrediction <- function(tree, x, cutPoints) {
 # compute a prediction given by one tree in one posterior draw
 
-    cut <- cutPoints
-
     # return prediction when reach terminal node
     if (is.null(tree$leftChild) == FALSE) {
         
         # decision rule on specific element
-        decisionRule <- cut[[tree$splitVar]][tree$splitIndex]
+        decisionRule <- cutPoints[[tree$splitVar]][tree$splitIndex]
 
         # locate datapoint to next child
         if (x[tree$splitVar] <= decisionRule) {
 
-            singleTreePrediction(tree$leftChild, x, cut)
+            singleTreePrediction(tree$leftChild, x, cutPoints)
 
         } else {
             
-            singleTreePrediction(tree$rightChild, x, cut)
+            singleTreePrediction(tree$rightChild, x, cutPoints)
        
         }
 
@@ -84,9 +84,9 @@ posteriorPrediction <- function(testNum, model, test, nTree) {
     var <- list(model, x, nTree)
   
     #Calculate integration over all trees in the draw by mapply
-    posteriorPrediction <- sum(unlist(mapply(singlePosteriorPrediction, drawNum, MoreArgs=var)))
+    posteriorPrediction <- mapply(singlePosteriorPrediction, drawNum, MoreArgs=var)
 
-    return(mean(posteriorPrediction))
+    return(sum(posteriorPrediction))
 
 }
 
