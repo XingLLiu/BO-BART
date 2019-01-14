@@ -37,7 +37,7 @@ for (i in 1:6){
 
         # Retrieve integral values
         integrals <- read.csv(filePath, header=TRUE, sep=",", stringsAsFactors = FALSE)
-        predictionBART <- data.frame("BARTMean" = integrals[, 2], "standardDeviationBART" = integrals[, 3])
+        predictionBART <- data.frame("meanValueBART" = integrals[, 2], "standardDeviationBART" = integrals[, 3])
         predictionMonteCarlo <- data.frame("meanValueMonteCarlo" = integrals[, 4], "standardDeviationMonteCarlo" = integrals[, 5])
         predictionGPBQ <-  data.frame("meanValueGP" = integrals[, 6], "standardDeviationGP" = integrals[, 7])
 
@@ -66,14 +66,25 @@ for (i in 1:6){
             col=c("blue", "red", "green", "black"), cex=0.8, lty = c(1,1,1,1))
 
         # 2. Create the plot
+        # Set y limits
+        yLims <- cbind(quantile(log(predictionBART$standardDeviationBART), probs=c(0.1, 0.8), na.rm=TRUE),
+                       quantile(log(predictionMonteCarlo$standardDeviationMonteCarlo), probs=c(0.1, 0.8), na.rm=TRUE))
+        yHighLimSd <- max(yLims[, 2]) * 1.5
+        yLowLimSd <- min(yLims[, 1])
+        if (yLowLimSd < 0) {scalingFactor <- 1.5}
+        else {scalingFactor <- 0.5}
+        yLowLimSd <-  yLowLimSd * scalingFactor
+
         plot(x = log(c(2:num_iterations)), y = log(predictionMonteCarlo$standardDeviationMonteCarlo[-1]),
             pch = 16, type = "l",
-            xlab = "Number of epochs N", ylab = "Log standard deviation", col = "blue",
+            xlab = "Log number of epochs N", ylab = "Log standard deviation", col = "blue",
             main = paste("Convergence of methods: log(sd) vs log(N) \nusing", genzFunctionName, "with", num_iterations, "epochs in", dim, "dim"),
             lty = 1,
+            ylim = c(yLowLimSd, yHighLimSd),
             xaxs="i", yaxs="i")
         lines(x = log(c(2:num_iterations)), log(predictionBART$standardDeviationBART[-1]), type = 'l', col = "red", lty = 1)
         lines(x = log(c(2:num_iterations)), log(predictionGPBQ$standardDeviationGP[-1]), type = 'l', col = "green", lty = 1)
+
         legend("topleft", legend=c("MC Integration", "BART BQ", "GP BQ"),
             col=c("blue", "red", "green"), cex=0.8, lty = c(1,1,1,1))
         # 3. Close the file

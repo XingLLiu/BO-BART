@@ -2,7 +2,7 @@
 # uncomment below and fix it according when in department cluster.
 # setwd("/scratchcomp01/hbz15/BO-BART/src/")
 # 
-# un-comment the following when running the code for the first time
+# uncomment the following when running the code for the first time to load real integral values
 # source("./genz/saveComputeIntegrals.R")
 
 # Load required packages
