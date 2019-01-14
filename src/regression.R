@@ -20,7 +20,7 @@ for (dim in c(2, 3, 5, 10, 20)) {
    test <- netTest[sample(nrow(netTest), n/2, replace = FALSE), col]
 
    bartBench <- bart(train[, 1:dim], train[, dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
-   bart <- bart(rescale(train[, 1:dim]), rescale(train[, dim+1]), keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
+   bart <- bart(rescale(train[, 1:dim]), train[, dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
    
    print(c("dim = ", dim))
 
