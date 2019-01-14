@@ -5,9 +5,6 @@
 # To see results:
 #     Plots stored in {ROOT}/report/Figures for plots
 
-# Load required packages
-source("./packages/requiredPackages.R")
-requiredPackages()
 
 
 for (i in 1:6){
@@ -33,15 +30,15 @@ for (i in 1:6){
 
         # Source the correct file
         fileName <- paste('results', toString(whichGenz), 'dim', toString(dim), '.csv', sep='')
-        filePath <- paste('./genz/results', toString(whichGenz), fileName, sep='/')
+        filePath <- paste('../report/Results', toString(whichGenz), fileName, sep='/')
 
-        # Retrieve integral values
+        # Retrieve estimated integral values
         integrals <- read.csv(filePath, header=TRUE, sep=",", stringsAsFactors = FALSE)
         predictionBART <- data.frame("meanValueBART" = integrals[, 2], "standardDeviationBART" = integrals[, 3])
         predictionMonteCarlo <- data.frame("meanValueMonteCarlo" = integrals[, 4], "standardDeviationMonteCarlo" = integrals[, 5])
         predictionGPBQ <-  data.frame("meanValueGP" = integrals[, 6], "standardDeviationGP" = integrals[, 7])
 
-        # Retrieve analytical integrals
+        # Retrieve analytical integral values
         whichDimension <- which(dim == dimensionsList)
         analyticalIntegrals <- read.csv("./genz/integrals.csv", header = FALSE)
         real <- analyticalIntegrals[whichGenz, whichDimension]
@@ -67,14 +64,21 @@ for (i in 1:6){
 
         # 2. Create the plot
         # Set y limits
-        yLims <- cbind(quantile(log(predictionBART$standardDeviationBART), probs=c(0.1, 0.8), na.rm=TRUE),
-                       quantile(log(predictionMonteCarlo$standardDeviationMonteCarlo), probs=c(0.1, 0.8), na.rm=TRUE))
-        yHighLimSd <- max(yLims[, 2]) * 1.5
+        yLims <- cbind(quantile(log(predictionBART$standardDeviationBART), probs=c(0.1, 0.9), na.rm=TRUE),
+                       quantile(log(predictionMonteCarlo$standardDeviationMonteCarlo), probs=c(0.1, 0.9), na.rm=TRUE))
+        
         yLowLimSd <- min(yLims[, 1])
         if (yLowLimSd < 0) {scalingFactor <- 1.5}
-        else {scalingFactor <- 0.5}
+        else {scalingFactor <- 0.2}
         yLowLimSd <-  yLowLimSd * scalingFactor
 
+        yHighLimSd <- max(yLims[, 2])
+        if (yHighLimSd > 0) {scalingFactor <- 1.5}
+        else {scalingFactor <- 0}
+        yHighLimSd <-  yHighLimSd * scalingFactor
+        yHighLimSd <- max(yLims[, 2]) * scalingFactor
+        # cat(yLowLimSd, yHighLimSd, '\n')
+        # if (dim == 2 & genzFunctionName == "oscil"){ print(yLims); print(max(log(predictionMonteCarlo$standardDeviationMonteCarlo[-1]))) }
         plot(x = log(c(2:num_iterations)), y = log(predictionMonteCarlo$standardDeviationMonteCarlo[-1]),
             pch = 16, type = "l",
             xlab = "Log number of epochs N", ylab = "Log standard deviation", col = "blue",
