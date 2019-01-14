@@ -12,7 +12,7 @@ rescale <- function(myData) {
         #myData[, i] <- pnorm(myData[, i])
         
     }
-
+    
     return(myData)
 
 }
