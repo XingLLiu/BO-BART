@@ -29,8 +29,8 @@ for (dim in c(2)) {
    # testX <- cbind(sample(1000, 10)/1000, sample(2000, 10)/2000)
    print(c("dim = ", dim))
 
-   bart <- bart(rescale(train[, 1:dim]), train[, dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
-   pred <- bartBQPredict(bart, train, rescale(test[, 1:dim]), ymax, ymin)
+   bart <- bart(train[, 1:dim], train[, dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
+   pred <- bartBQPredict(bart, train, test[, 1:dim], ymax, ymin)
 
    #bart <- bart(trainFull[, 1:dim], trainFull[, dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 2)
 
