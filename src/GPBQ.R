@@ -93,7 +93,7 @@ computeGPBQ <- function(dim, epochs, N=10, FUN)
     X <- rbind(X,candidateSet[index,])
 
     additionalResponse <- as.matrix( t(candidateSet[index,]), ncol = length(candidateSet[index,]) )
-    print(genz(additionalResponse))
+
     Y <- c(Y, genz(additionalResponse))
     
     K <- K_prime

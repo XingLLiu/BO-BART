@@ -8,10 +8,13 @@
 # we integrate from 0 to 1
 
 source("./genz/analyticalIntegrals.R")
+source("./genz/genz.R")
+library("cubature")
 
 numGenz <- 6
 dimensions <- c(1, 2, 3, 5, 10, 20)
 integrals <- matrix(rep(NA, length(dimensions) * numGenz), nrow = numGenz)
+integralsCubature <- matrix(rep(NA, length(dimensions) * numGenz), nrow = numGenz)
 
 for (k in 1:length(dimensions)){
 
@@ -22,11 +25,26 @@ for (k in 1:length(dimensions)){
     integrals[4, k] <- gaussianIntegral(dim)
     integrals[5, k] <- oscillatoryIntegral(dim)
     integrals[6, k] <- productPeakIntegral(dim)
-
     # Discontinuous integrand only defined for dim >= 2
     if (dim > 1){
         integrals[3, k] <- discIntegral(dim)
     }
+
+    ###
+    print(k)
+    print(integrals[, k])
+    integralsCubature[1, k] <- hcubature(cont, rep(0, k), rep(1, k), tol = 10^(-1))$integral
+    integralsCubature[2, k] <- hcubature(copeak, rep(0, k), rep(1, k), tol = 10^(-1))$integral
+    integralsCubature[4, k] <- hcubature(gaussian, rep(0, k), rep(1, k), tol = 10^(-1))$integral
+    integralsCubature[5, k] <- hcubature(oscil, rep(0, k), rep(1, k), tol = 10^(-1))$integral
+    integralsCubature[6, k] <- hcubature(prpeak, rep(0, k), rep(1, k), tol = 10^(-1))$integral
+    if (dim > 1){
+        integralsCubature[3, k] <- hcubature(disc, rep(0, k), rep(1, k), tol = 10^(-1))$integral
+    }
+    print(integrals[, k])
+    ###
+
+
 }
 
 # Write results to file

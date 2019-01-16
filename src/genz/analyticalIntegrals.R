@@ -31,9 +31,12 @@ copeakIntegral <- function(dim, a=5)
 # Output:
 #   Value of integral over [0, 1]^d
 {
+  # Set a value
+  a <- 600/dim^3
+
   integral <- 0
   for (n in 1:dim){
-    integral <- ( (5 * n + 1) * (5 * n - 4) )^(-1) * choose((dim - 1), (n - 1)) * (-1)^(n -1) + integral
+    integral <- ( (a * n + 1) * (a * (n - 1) + 1) )^(-1) * choose((dim - 1), (n - 1)) * (-1)^(n -1) + integral
   }
   return ( integral / (a^(dim - 1) * factorial(dim)) )
 }
@@ -57,9 +60,7 @@ discIntegral <- function(dim, a=5, u=0.5)
   }
   
   if (dim < 2){
-    
     stop("dimension must be greater than 2")
-
   }
   
   result <- ( ( 1/a ) * ( exp( a * u ) - 1 ) )  ^ 2  *  ( (1/a) * ( exp(a) - 1 ) ) ^ ( dim - 2 ) 

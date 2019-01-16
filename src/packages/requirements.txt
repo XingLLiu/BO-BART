@@ -7,3 +7,5 @@ mvtnorm
 data.tree
 matrixStats
 kernlab # for GP classification
+hydroGOF
+Rfast
