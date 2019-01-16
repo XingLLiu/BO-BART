@@ -47,6 +47,21 @@ for (i in 1:6){
         plotPath <- gsub(paste("../report/Figures/", toString(whichGenz), "/", fileName, sep=""), pattern = "csv", replacement="jpg")
         jpeg(plotPath, width = 2100, height = 1794, res=200)
         # 2. Create the plot
+        # Set y limits
+        yLims <- cbind(quantile(log(predictionBART$meanValueBART), probs=c(0.1, 0.9), na.rm=TRUE),
+                       quantile(log(predictionMonteCarlo$meanValueMonteCarlo), probs=c(0.1, 0.9), na.rm=TRUE))
+        
+        yLowLimSd <- min(yLims[, 1])
+        if (yLowLimSd < 0) {scalingFactor <- 1.5}
+        else {scalingFactor <- 0.2}
+        yLowLimSd <-  yLowLimSd * scalingFactor
+
+        yHighLimSd <- max(yLims[, 2])
+        if (yHighLimSd > 0) {scalingFactor <- 2}
+        else {scalingFactor <- 0}
+        yHighLimSd <-  yHighLimSd * scalingFactor
+        yHighLimSd <- max(yLims[, 2]) * scalingFactor
+
         par(mfrow = c(1,2), pty = "s")
         plot(x = c(1:num_iterations), y = predictionMonteCarlo$meanValueMonteCarlo,
             pch = 16, type = "l",
@@ -73,12 +88,11 @@ for (i in 1:6){
         yLowLimSd <-  yLowLimSd * scalingFactor
 
         yHighLimSd <- max(yLims[, 2])
-        if (yHighLimSd > 0) {scalingFactor <- 1.5}
+        if (yHighLimSd > 0) {scalingFactor <- 2}
         else {scalingFactor <- 0}
         yHighLimSd <-  yHighLimSd * scalingFactor
         yHighLimSd <- max(yLims[, 2]) * scalingFactor
-        # cat(yLowLimSd, yHighLimSd, '\n')
-        # if (dim == 2 & genzFunctionName == "oscil"){ print(yLims); print(max(log(predictionMonteCarlo$standardDeviationMonteCarlo[-1]))) }
+
         plot(x = log(c(2:num_iterations)), y = log(predictionMonteCarlo$standardDeviationMonteCarlo[-1]),
             pch = 16, type = "l",
             xlab = "Log number of epochs N", ylab = "Log standard deviation", col = "blue",
@@ -87,10 +101,13 @@ for (i in 1:6){
             ylim = c(yLowLimSd, yHighLimSd),
             xaxs="i", yaxs="i")
         lines(x = log(c(2:num_iterations)), log(predictionBART$standardDeviationBART[-1]), type = 'l', col = "red", lty = 1)
-        lines(x = log(c(2:num_iterations)), log(predictionGPBQ$standardDeviationGP[-1]), type = 'l', col = "green", lty = 1)
+        # lines(x = log(c(2:num_iterations)), log(predictionGPBQ$standardDeviationGP[-1]), type = 'l', col = "green", lty = 1)
 
-        legend("topleft", legend=c("MC Integration", "BART BQ", "GP BQ"),
-            col=c("blue", "red", "green"), cex=0.8, lty = c(1,1,1,1))
+        # legend("topleft", legend=c("MC Integration", "BART BQ", "GP BQ"),
+        #     col=c("blue", "red", "green"), cex=0.8, lty = c(1,1,1,1))
+
+        legend("topleft", legend=c("MC Integration", "BART BQ"),
+              col=c("blue", "red"), cex=0.8, lty = c(1,1,1,1))   
         # 3. Close the file
         dev.off()
 

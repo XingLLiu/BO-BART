@@ -1,6 +1,6 @@
 # !/usr/bin/env R
 # uncomment below and fix it according when in department cluster.
-# setwd("/scratchcomp01/hbz15/BO-BART/src/")
+setwd("/scratchcomp01/hbz15/BO-BART/src/")
 # 
 # uncomment the following when running the code for the first time to load real integral values
 # source("./genz/saveComputeIntegrals.R")
@@ -132,20 +132,5 @@ dev.off()
 
 
 print("Please check {ROOT}/report/Figures for plots")
-
-
-fac <- function(x, index){
-  if (index == 1){
-    print('return')
-    print(x)
-    return(x)
-  }
-  else {
-    print('here')
-    index <- index - 1
-    print(x)
-    x <- x * fac((x-1), index)
-  }
-}
 
 
