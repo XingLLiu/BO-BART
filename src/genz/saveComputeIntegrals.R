@@ -1,11 +1,10 @@
 # We compute the exact integrals for all the genz functions for dimensions
-# 1,2,3,5,10,20 and then store them as CSV format
-# we use the notation from https://www.sfu.ca/~ssurjano/disc.html
-# thus alpha corresponds to the a's, and beta corresponds to the b's
-# we fix a = [5,5,5,5,5...]
-# and    u = [0.5,....]
-# Hence, it is sufficient to use scalars a = 5 and u = 0.5.
-# we integrate from 0 to 1
+# 1,2,3,5,10,20 and then store them as CSV format.
+# We use the notation from https://www.sfu.ca/~ssurjano/disc.html,
+# thus alpha corresponds to the a's, and beta corresponds to the b's.
+# We fix u = [0.5,....]
+# and choose a according to the rescaling scheme (see paper).
+# The range of integration is from 0 to 1.
 
 source("./genz/analyticalIntegrals.R")
 source("./genz/genz.R")
@@ -31,15 +30,15 @@ for (k in 1:length(dimensions)){
     }
 
     ###
-    print(k)
+    cat("dim:", dim, "\n")
     print(integrals[, k])
-    integralsCubature[1, k] <- hcubature(cont, rep(0, dim), rep(1, dim))$integral
-    integralsCubature[2, k] <- hcubature(copeak, rep(0, dim), rep(1, dim))$integral
-    integralsCubature[4, k] <- hcubature(gaussian, rep(0, dim), rep(1, dim))$integral
-    integralsCubature[5, k] <- hcubature(oscil, rep(0, dim), rep(1, dim))$integral
-    integralsCubature[6, k] <- hcubature(prpeak, rep(0, dim), rep(1, dim))$integral
+    integralsCubature[1, k] <- hcubature(cont, rep(0, dim), rep(1, dim), tol = 0.1)$integral
+    integralsCubature[2, k] <- hcubature(copeak, rep(0, dim), rep(1, dim), tol = 0.1)$integral
+    integralsCubature[4, k] <- hcubature(gaussian, rep(0, dim), rep(1, dim), tol = 0.1)$integral
+    integralsCubature[5, k] <- hcubature(oscil, rep(0, dim), rep(1, dim), tol = 0.1)$integral
+    integralsCubature[6, k] <- hcubature(prpeak, rep(0, dim), rep(1, dim), tol = 0.1)$integral
     if (dim > 1){
-        integralsCubature[3, k] <- hcubature(disc, rep(0, dim), rep(1, dim))$integral
+        integralsCubature[3, k] <- hcubature(disc, rep(0, dim), rep(1, dim), tol = 0.1)$integral
     }
     print(integralsCubature[, k])
     ###

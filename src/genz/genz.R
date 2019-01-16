@@ -33,7 +33,7 @@ cont <- function(xx)
   # xx = c(x1, x2, ..., xd)
   # u = c(u1, u2, ..., ud) (optional), with default value
   #     c(0.5, 0.5, ..., 0.5)
-  # a = c(a1, a2, ..., ad) (optional), with default value c(5, 5, ..., 5)
+  # a = 150/dim^3, where dim = number of column of xx
   #
   ##########################################################################
   
@@ -85,7 +85,7 @@ copeak <- function(xx)
   # xx = c(x1, x2, ..., xd)
   # u = c(u1, u2, ..., ud) (optional), with default value
   #     c(0.5, 0.5, ..., 0.5)
-  # a = c(a1, a2, ..., ad) (optional), with default value c(5, 5, ..., 5)
+  # a = 600/dim^3, where dim = number of column of xx
   #
   #########################################################################
   
@@ -137,7 +137,7 @@ disc <- function(xx)
   # xx = c(x1, x2, ..., xd)
   # u = c(u1, u2, ..., ud) (optional), with default value
   #     c(0.5, 0.5, ..., 0.5)
-  # a = c(a1, a2, ..., ad) (optional), with default value c(5, 5, ..., 5)
+  # a = 100/dim^3, where dim = number of column of xx
   #
   #########################################################################
   
@@ -202,7 +202,7 @@ gaussian <- function(xx)
   # xx = c(x1, x2, ..., xd)
   # u  = c(u1, u2, ..., ud) (optional), with default value
   #      c(0.5, 0.5, ..., 0.5)
-  # a  = c(a1, a2, ..., ad) (optional), with default value c(5, 5, ..., 5)
+  # a  = 100/dim^2, where dim = number of column of xx
   #
   ##########################################################################
   
@@ -254,7 +254,7 @@ oscil <- function(xx)
   # xx = c(x1, x2, ..., xd)
   # u  = c(u1, u2, ..., ud) (optional), with default value
   #      c(0.5, 0.5, ..., 0.5)
-  # a  = c(a1, a2, ..., ad) (optional), with default value c(5, 5, ..., 5)
+  # a  = 110/dim^(5/2), where dim = number of column of xx
   #
   ##########################################################################
   
@@ -308,7 +308,7 @@ prpeak <- function(xx)
   # xx = c(x1, x2, ..., xd)
   # u  = c(u1, u2, ..., ud) (optional), with default value
   #      c(0.5, 0.5, ..., 0.5)
-  # a  = c(a1, a2, ..., ad) (optional), with default value c(5, 5, ..., 5)
+  # a  = 600/dim^3, where dim = number of column of xx
   #
   ##########################################################################
 
