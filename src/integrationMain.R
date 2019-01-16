@@ -1,16 +1,15 @@
-#!/usr/bin/env R
+# !/usr/bin/env R
 # uncomment below and fix it according when in department cluster.
-#setwd("/scratchcomp01/hbz15/BO-BART/src/")
+# setwd("/scratchcomp01/hbz15/BO-BART/src/")
+# 
+# uncomment the following when running the code for the first time to load real integral values
+# source("./genz/saveComputeIntegrals.R")
 
-library(MASS)
-library(cubature)
-library(lhs)
-library(data.tree)
-library(dbarts)
-library(matrixStats)
-library(mvtnorm)
+# Load required packages
+source("./packages/requiredPackages.R")
+requiredPackages()
 
-#define string formatting
+# define string formatting
 `%--%` <- function(x, y) 
 # from stack exchange:
 # https://stackoverflow.com/questions/46085274/is-there-a-string-formatting-operator-in-r-similar-to-pythons
@@ -24,12 +23,17 @@ dim <- args[1]
 num_iterations <- args[2]
 whichGenz <- args[3]
 
+<<<<<<< HEAD
 if (num_iterations == 1) stop ("NEED MORE THAN 1 ITERATION")
+=======
+if (num_iterations == 1) { stop("NEED MORE THAN 1 ITERATION") }
+>>>>>>> 816462800d5a42ace26f609df944151a71e4d838
 
 print(c(dim, num_iterations, whichGenz))
-source("./references/genz.R") # genz function to test
+source("./genz/genz.R") # genz function to test
 
-if (whichGenz < 1 | whichGenz > 6) stop("undefined genz function. Change 3rd argument to 1-6") 
+if (whichGenz < 1 | whichGenz > 6) { stop("undefined genz function. Change 3rd argument to 1-6") }
+if (whichGenz == 3 & dim == 1) { stop("incorrect dimension. Discrete Genz function only defined for dimension >= 2") } 
 
 if (whichGenz == 1) { genz <- cont; genzFunctionName <-  deparse(substitute(cont)) }
 if (whichGenz == 2) { genz <- copeak; genzFunctionName <-  deparse(substitute(copeak)) }
@@ -41,9 +45,7 @@ if (whichGenz == 6) { genz <- prpeak; genzFunctionName <-  deparse(substitute(pr
 print("Testing with: %s" %--% genzFunctionName)
 
 # prepare training dataset
-set.seed(0)
 trainX <- randomLHS(100, dim)
-print(dim(trainX))
 trainY <- genz(trainX)
 
 # Bayesian Quadrature method
@@ -70,23 +72,12 @@ source("./GPBQ.R")
 t1 <- proc.time()
 GPTime <- (t1 - t0)[[1]]
 
-predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = genz)
-# Exact integral of genz function in hypercube [0,1]^dim
-#if (whichGenz == 2){
-#    source("./copeakIntegral.R")
-#    real <- copeakIntegral(dim)
-#} else if (whichGenz == 5){
-#    source("./oscillatoryIntegral.R")
-#    real <- oscillatoryIntegral(dim)
-#} else {
-#    real <- adaptIntegrate(genz, lowerLimit = rep(0,dim), upperLimit = rep(1, dim))
-#}   
+predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = genz)  
 
-# read in analytical integrals calculated by MATLAB code
-
+# read in analytical integrals
 dimensionsList <- c(1,2,3,5,10,20)
 whichDimension <- which(dim == dimensionsList)
-analyticalIntegrals <- read.csv("./references/integrals.csv", header = FALSE)
+analyticalIntegrals <- read.csv("./genz/integrals.csv", header = FALSE)
 real <- analyticalIntegrals[whichGenz, whichDimension]
 
 # Bayesian Quadrature methods: with BART, Monte Carlo Integration and Gaussian Process respectively
@@ -145,3 +136,20 @@ dev.off()
 
 
 print("Please check {ROOT}/report/Figures for plots")
+
+
+fac <- function(x, index){
+  if (index == 1){
+    print('return')
+    print(x)
+    return(x)
+  }
+  else {
+    print('here')
+    index <- index - 1
+    print(x)
+    x <- x * fac((x-1), index)
+  }
+}
+
+
