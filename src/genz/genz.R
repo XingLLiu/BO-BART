@@ -1,6 +1,6 @@
 library(matrixStats)  
 library(MASS)
-cont <- function(xx, u=rep(0.5, 1, length(xx)), a=rep(5, 1, length(xx)))
+cont <- function(xx)
 {
   ##########################################################################
   #
@@ -33,30 +33,26 @@ cont <- function(xx, u=rep(0.5, 1, length(xx)), a=rep(5, 1, length(xx)))
   # xx = c(x1, x2, ..., xd)
   # u = c(u1, u2, ..., ud) (optional), with default value
   #     c(0.5, 0.5, ..., 0.5)
-  # a = c(a1, a2, ..., ad) (optional), with default value c(5, 5, ..., 5)
+  # a = 150/dim^3, where dim = number of column of xx
   #
   ##########################################################################
   
   if (is.matrix(xx) == FALSE) { 
-    
-    xx <- matrix(xx) 
-    
+    xx <- matrix(xx, nrow = 1)    
   }
-  
-  u=rep( 0.5, 1, ncol(xx) )
-  
-  a=rep(5, ncol(xx)) 
-  
+
+  dim <- ncol(xx)
+  a <- rep(150/dim^3, dim)  
+  u <- rep(0.5, dim)
+
   sum <- abs(xx-u) %*% a
-  
   y <- exp(-sum)
-  
   
   return(y)
 }
 
 
-copeak <- function(xx, u=rep(0.5, 1, ncol(xx)), a=rep(5, ncol(xx)) )
+copeak <- function(xx)
 {
   ##########################################################################
   #
@@ -89,29 +85,26 @@ copeak <- function(xx, u=rep(0.5, 1, ncol(xx)), a=rep(5, ncol(xx)) )
   # xx = c(x1, x2, ..., xd)
   # u = c(u1, u2, ..., ud) (optional), with default value
   #     c(0.5, 0.5, ..., 0.5)
-  # a = c(a1, a2, ..., ad) (optional), with default value c(5, 5, ..., 5)
+  # a = 600/dim^3, where dim = number of column of xx
   #
   #########################################################################
   
   if (is.matrix(xx) == FALSE) { 
-    xx <- matrix(xx) 
+    xx <- matrix(xx, nrow = 1) 
   }
-  
-  u=rep( 0.5, 1, ncol(xx) )
-  a=rep(5, ncol(xx)) 
-  
-  
-  d <- ncol(xx) # change to ncol
+
+  dim <- ncol(xx)
+  u <- rep(0.5, dim)
+  a <- matrix(rep(600/dim^3, dim), ncol = 1)
   
   sum <- xx %*% a
-  
-  y <- (1 + sum)^(-d-1)
+  y <- (1 + sum)^(-dim - 1)
   
   return(y)
 }
 
 
-disc <- function(xx, u=rep(0.5, 1, length(xx)), a=rep(5, 1, length(xx)))
+disc <- function(xx)
 {
   ##########################################################################
   #
@@ -144,34 +137,30 @@ disc <- function(xx, u=rep(0.5, 1, length(xx)), a=rep(5, 1, length(xx)))
   # xx = c(x1, x2, ..., xd)
   # u = c(u1, u2, ..., ud) (optional), with default value
   #     c(0.5, 0.5, ..., 0.5)
-  # a = c(a1, a2, ..., ad) (optional), with default value c(5, 5, ..., 5)
+  # a = 100/dim^3, where dim = number of column of xx
   #
   #########################################################################
   
   if (is.matrix(xx) == FALSE) { 
-    
-    xx <- matrix(xx) 
-    
+    xx <- matrix(xx, nrow = 1)  
   }
   
   # Function only defined for dimension >= 2
-  if (ncol(xx) < 2) stop("incorrect dimension. Discrete Genz function only defined for dimension >= 2") 
-
+  dim <- ncol(xx)
+  if (dim < 2) stop("incorrect dimension. Discrete Genz function only defined for dimension >= 2") 
+  
+  u <- rep(0.5, dim)
+  a <- rep(100/dim^3, dim)
+  
   x1 <- xx[ ,1]
   x2 <- xx[ ,2]
   u1 <- u[1]
   u2 <- u[2]
-  
-  u=rep( 0.5, 1, ncol(xx) )
-  
-  a=rep(5, ncol(xx))
-  
+
   xx [which ( x1 > u1 | x2 > u2), ] <- 0
 
   sum <- xx %*% a
-  
   y <- exp(sum)
-  
   y[which (y == 1)] <- 0
 
   
@@ -180,7 +169,7 @@ disc <- function(xx, u=rep(0.5, 1, length(xx)), a=rep(5, 1, length(xx)))
 }
 
 
-gaussian <- function(xx, u=rep(0.5, 1, length(xx)), a=rep(5, 1, length(xx)))
+gaussian <- function(xx)
 {
   ##########################################################################
   #
@@ -213,29 +202,26 @@ gaussian <- function(xx, u=rep(0.5, 1, length(xx)), a=rep(5, 1, length(xx)))
   # xx = c(x1, x2, ..., xd)
   # u  = c(u1, u2, ..., ud) (optional), with default value
   #      c(0.5, 0.5, ..., 0.5)
-  # a  = c(a1, a2, ..., ad) (optional), with default value c(5, 5, ..., 5)
+  # a  = 100/dim^2, where dim = number of column of xx
   #
   ##########################################################################
   
   if (is.matrix(xx) == FALSE) { 
-    
-    xx <- matrix(xx) 
-    
+    xx <- matrix(xx, nrow = 1) 
   }
   
-  u=rep( 0.5, 1, ncol(xx) )
-  
-  a=rep(5, ncol(xx)) 
+  dim <- ncol(xx)
+  u=rep(0.5, dim)
+  a <- rep(100/dim^2, dim) 
   
   sum <- (xx - u)^2 %*% a^2
-  
   y <- exp(-sum)
   
   return(y)
   
 }
 
-oscil <- function(xx, u=rep(0.5, 1, length(xx)), a=rep(5, 1, length(xx)))
+oscil <- function(xx)
 {
   ##########################################################################
   #
@@ -268,22 +254,19 @@ oscil <- function(xx, u=rep(0.5, 1, length(xx)), a=rep(5, 1, length(xx)))
   # xx = c(x1, x2, ..., xd)
   # u  = c(u1, u2, ..., ud) (optional), with default value
   #      c(0.5, 0.5, ..., 0.5)
-  # a  = c(a1, a2, ..., ad) (optional), with default value c(5, 5, ..., 5)
+  # a  = 110/dim^(5/2), where dim = number of column of xx
   #
   ##########################################################################
   
   if (is.matrix(xx) == FALSE) { 
-    
-    xx <- matrix(xx) 
-    
+    xx <- matrix(xx, nrow = 1) 
   }
   
-  u=rep( 0.5, 1, ncol(xx) )
-  
-  a=rep(5, ncol(xx)) 
+  dim <- ncol(xx)
+  u <- rep(0.5, 1, dim)
+  a <- rep(110/dim^(5/2), dim) 
   
   sum <- xx %*% a
-  
   y <- cos(2 * pi * u[1] + sum)
   
   return(y)
@@ -292,7 +275,7 @@ oscil <- function(xx, u=rep(0.5, 1, length(xx)), a=rep(5, 1, length(xx)))
 
 
 
-prpeak <- function(xx, u=rep(0.5, 1, length(xx)), a=rep(5, 1, length(xx)))
+prpeak <- function(xx)
 {
   ##########################################################################
   #
@@ -325,22 +308,19 @@ prpeak <- function(xx, u=rep(0.5, 1, length(xx)), a=rep(5, 1, length(xx)))
   # xx = c(x1, x2, ..., xd)
   # u  = c(u1, u2, ..., ud) (optional), with default value
   #      c(0.5, 0.5, ..., 0.5)
-  # a  = c(a1, a2, ..., ad) (optional), with default value c(5, 5, ..., 5)
+  # a  = 600/dim^3, where dim = number of column of xx
   #
   ##########################################################################
 
   if (is.matrix(xx) == FALSE) { 
-    
-    xx <- matrix(xx) 
-    
+    xx <- matrix(xx, nrow = 1)  
   }
   
-  u=rep( 0.5, 1, ncol(xx) )
+  dim <- ncol(xx)
+  u <- rep(0.5, dim)
+  a <- rep(600/dim^3, dim) 
   
-  a=rep(5, ncol(xx)) 
-  
-  sum <- a^( -2 ) + ( xx - u ) ^ 2
-  
+  sum <- a^(-2) + (xx - u)^2
   y <- rowProds(1/sum)
   
   return(y)
