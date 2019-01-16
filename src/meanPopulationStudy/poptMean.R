@@ -60,7 +60,7 @@ plot(x = c(1:num_new_surveys), y = MImean,
     xaxs="i", yaxs="i"
     )
 lines(x = c(1:num_new_surveys), BARTResults$meanValueBART, type = 'l', col = "red", lty = 1)
-abline(a = poptMean, b = 0, lty = 4)
+abline(a = poptMean, b = 0, lty = 1, col = "green")
 legend("topleft", legend=c("Monte Carlo", "BART", "Actual Mean"),
         col=c("blue", "red", "green"), cex=0.8, lty = c(1,1,1))
 
