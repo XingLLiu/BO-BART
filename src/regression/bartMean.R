@@ -26,19 +26,18 @@ fillProbabilityForNode <- function(oneTree, cutPoints, cut)
     oneTree$leftChild$probability <- (decisionRule - cut[1, oneTree$splitVar]) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
     
     oneTree$rightChild$probability <- (cut[2, oneTree$splitVar] - decisionRule) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
-    
-    cut[, oneTree$splitVar] = c(0, decisionRule)
+    range <- cut[, oneTree$splitVar]
+    cut[, oneTree$splitVar] = c(range[1], decisionRule)
     
     fillProbabilityForNode(oneTree$leftChild, cutPoints, cut)
     
-    cut[, oneTree$splitVar] = c(decisionRule, 1)
+    cut[, oneTree$splitVar] = c(decisionRule, range[2])
     
     fillProbabilityForNode(oneTree$rightChild, cutPoints, cut)
     
   } else if( is.null(oneTree$probability) ) {
     oneTree$probability <- 1
   }
-  
   return (oneTree)
 }
 
@@ -86,16 +85,14 @@ getTree <- function(sampler, chainNum, sampleNum, treeNum)
   return (tree)
 }
 
-singleTreeSum <- function(treeNum, model, drawNum, dim, train) 
+singleTreeSum <- function(treeNum, model, drawNum, dim, trainX) 
   # Sum over a single tree's terminal nodes
 {
   cutPoints<-dbarts:::createCutPoints(model$fit)
   
-  cut <- array(c(0, 1), c(2,dim)) # turn cut into this
-
-  as.matrix(train[, 1:(ncol(train)-1)])
-
-  # cut_origin <- rbind(colMins(as.matrix(train[, 1:(ncol(train)-1)]), value = TRUE), colMaxs(as.matrix(train[, 1:(ncol(train)-1)]), value = TRUE))
+  trainX_mins <- apply(trainX,2,min)
+  trainX_maxes <- apply(trainX,2,max)
+  cut <- rbind(trainX_mins, trainX_maxes)
   
   treeList <- getTree(model$fit, 1, drawNum, treeNum)
   
@@ -118,7 +115,7 @@ singleTreeSum <- function(treeNum, model, drawNum, dim, train)
   return (integral)
 }
 
-posteriorSum <- function(drawNum, model, dim, train)
+posteriorSum <- function(drawNum, model, dim, trainX)
   # Sum over all the trees in one posterior draws
   # input:
   #   drawNum: which draw of p trees
@@ -128,7 +125,7 @@ posteriorSum <- function(drawNum, model, dim, train)
   treeNum <- seq(1, nTree, length.out=nTree)
   
   #Extra variables
-  var <- list(model, drawNum, dim, train)
+  var <- list(model, drawNum, dim, trainX)
   
   #Calculate integration over all trees in the draw by mapply
   integral <- sum( unlist( mapply(singleTreeSum, treeNum, MoreArgs=var) ) )
@@ -137,7 +134,7 @@ posteriorSum <- function(drawNum, model, dim, train)
 }
 
 
-sampleIntegrals <- function(model, dim, train) 
+sampleIntegrals <- function(model, dim, trainX) 
   # sum over all posterior draws 
   # input: 
   #     model: BART model
@@ -149,7 +146,7 @@ sampleIntegrals <- function(model, dim, train)
   drawNum <- seq(1, nDraw, length.out=nDraw)
   
   #Extra Variables
-  var <- list(model, dim, train)
+  var <- list(model, dim, trainX)
   integrals <- mapply(posteriorSum, drawNum, MoreArgs=var)
   return (integrals)
 }
@@ -173,7 +170,6 @@ computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTrain
   # outputs
   meanValue <- rep(0, numNewTraining)
   standardDeviation <- rep(0, numNewTraining)
-  print("HZ ERROR")
   trainData <- cbind(trainX, trainY)
   colnames(trainData)[dim+1] <- "INCOME"
   
@@ -188,7 +184,7 @@ computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTrain
     model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
     sink()
     # obtain posterior samples
-    integrals <- sampleIntegrals(model, dim, train)
+    integrals <- sampleIntegrals(model, dim, trainData[, 1:dim])
     integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
     meanValue[i] <- mean(integrals)
     standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )

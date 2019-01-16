@@ -1,28 +1,30 @@
+setwd("~/Documents/GitHub/BO-BART/src/regression/")
+
 library(lhs)
 library(dbarts)
 library(data.tree)
 library(matrixStats)
-
 # read in data
 trainData <- read.csv("../../data/train.csv")
-testData <- read.csv("../../data/validation.csv")
 candidateData <- read.csv("../../data/candidates.csv")
-populationData <- rbind(trainData, testData, candidateData)
-
-dim <- dim(trainData)[2] - 1
+populationData <- read.csv("../../data/fullData.csv")
 
 # extract covariates and response
-trainX <- trainData[,-(dim+1)]
-trainY <- trainData[, dim+1]
+cols <- dim(trainData)[2] - 1
+trainX <- trainData[,-c(1, (cols+1))]
+trainY <- trainData[, (cols+1)]
 
-candidateX <- candidateData[,-(dim+1)]
-candidateY <- candidateData[, dim+1]
+candidateX <- candidateData[,-c(1, (cols+1))]
+candidateY <- candidateData[, (cols+1)]
 
-
+dim <- dim(trainX)
 # Compute population mean
-populationMean <- mean(populationData[,dim+1]) # 38115.99
-source("bartMean.R")
+source("./bartMean.R")
+populationMean <- mean(populationData[,ncol(populationData)]) # 38115.99
+BARTResults <- computePopulationMean(dim, trainX, trainY, candidateX, candidateY, num_iterations = 100)
 
+cat("BART Population Mean", BARTResults$meanValueBART)
+cat("True Population Mean", populationMean)
 
 # Racial mean income
 
