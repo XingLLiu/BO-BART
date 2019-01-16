@@ -5,7 +5,6 @@ library(lhs)
 library(dbarts)
 library(data.tree)
 library(matrixStats)
-
 terminalProbability <- function(currentNode) 
 # probabiltity ending up in terminal node
 {
@@ -25,8 +24,9 @@ fillProbabilityForNode <- function(oneTree, cutPoints, cut)
   if ( !is.null(oneTree$leftChild) ) {
     
     decisionRule <- cutPoints[[oneTree$splitVar]][oneTree$splitIndex]
-
+    
     oneTree$leftChild$probability <- (decisionRule - cut[1, oneTree$splitVar]) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
+    
     oneTree$rightChild$probability <- (cut[2, oneTree$splitVar] - decisionRule) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
     
     cut[, oneTree$splitVar] = c(0, decisionRule)
@@ -38,9 +38,7 @@ fillProbabilityForNode <- function(oneTree, cutPoints, cut)
     fillProbabilityForNode(oneTree$rightChild, cutPoints, cut)
     
   } else if( is.null(oneTree$probability) ) {
-
     oneTree$probability <- 1
-
   }
   
   return (oneTree)
@@ -153,7 +151,7 @@ sampleIntegrals <- function(model, dim)
   return (integrals)
 }
 
-BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, ifRegression=FALSE) 
+BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN) 
 # compute integral for BART-BQ with
 # implementation of query sequential design to add
 # more training data to the original dataset
@@ -163,8 +161,6 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, ifRegress
 #   trainY: response of training data
 #   numNewTraining: number of new training points to be added
 #   FUN: function that we are integrating over
-#   ifRegression: if TRUE then sample from normal; if FALSE then sample from Uniform(0, 1);
-#                 FALSE by default to perform integral Genz tests
 #
 # output:
 #   list of mean integral value, standard deviation of integral value and new traiing set
@@ -181,7 +177,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, ifRegress
     
     print(c("BART: Epoch=", i))
     # find the min and max range of y
-    ymin <- min(trainData[, (dim + 1)]); ymax <- max(trainData[, (dim + 1)])
+    ymin <- min(trainY); ymax <- max(trainY)
     # first build BART and scale mean and standard deviation
     sink("/dev/null")
     model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
@@ -190,11 +186,10 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, ifRegress
     integrals <- sampleIntegrals(model, dim)
     integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
     meanValue[i] <- mean(integrals)
-    standardDeviation[i] <- sqrt(sum((integrals - meanValue[i])^2) / (length(integrals) - 1))
+    standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
 
     # sequential design section, where we build the new training data
     candidateSet <- randomLHS(1000, dim)
-
     
     # predict the values
     fValues <- predict(model, candidateSet)
@@ -206,9 +201,24 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, ifRegress
     index <- sample(which(var==max(var)), 1)
     value <- FUN(t(candidateSet[index,]))
     trainData <- rbind(trainData, c(candidateSet[index,], value))
-  
-  }
+}
 
+    # sequential design section, where we build the new training data
+    candidateSet <- randomLHS(1000, dim)
+    
+    # predict the values
+    fValues <- predict(model, candidateSet)
+    
+    probability = 1 #uniform probability
+    
+    expectedValue <- colMeans(fValues*probability)
+    
+    var <- colVars(fValues)
+    index <- sample(which(var==max(var)), 1)
+    value <- FUN(t(candidateSet[index,]))
+    trainData <- rbind(trainData, c(candidateSet[index,], value))
+  }
+  cat('HelloWorld',meanValue, '\n')
   return (list("meanValueBART"=meanValue, "standardDeviationBART"=standardDeviation, 
                "trainData" = trainData))
 }
@@ -231,3 +241,4 @@ mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY)
 
   return (prediction)
 }
+
