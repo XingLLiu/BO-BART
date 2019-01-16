@@ -21,7 +21,7 @@ dim <- dim(trainX)
 # Compute population mean
 source("./bartMean.R")
 populationMean <- mean(populationData[,ncol(populationData)]) # 38115.99
-BARTResults <- computePopulationMean(dim, trainX, trainY, candidateX, candidateY, num_iterations = 100)
+BARTResults <- computePopulationMean(trainX, trainY, candidateX, candidateY, num_iterations = 100)
 
 cat("BART Population Mean", BARTResults$meanValueBART)
 cat("True Population Mean", populationMean)

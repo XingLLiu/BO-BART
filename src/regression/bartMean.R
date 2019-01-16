@@ -209,7 +209,7 @@ computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTrain
                "trainData" = trainData))
 }
 
-computePopulationMean <- function(dim, trainX, trainY, candidateX, candidateY, num_iterations) 
+computePopulationMean <- function(trainX, trainY, candidateX, candidateY, num_iterations) 
 # main method
 # input:
 #   dim
