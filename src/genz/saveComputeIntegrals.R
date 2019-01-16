@@ -33,15 +33,15 @@ for (k in 1:length(dimensions)){
     ###
     print(k)
     print(integrals[, k])
-    integralsCubature[1, k] <- hcubature(cont, rep(0, k), rep(1, k), tol = 10^(-1))$integral
-    integralsCubature[2, k] <- hcubature(copeak, rep(0, k), rep(1, k), tol = 10^(-1))$integral
-    integralsCubature[4, k] <- hcubature(gaussian, rep(0, k), rep(1, k), tol = 10^(-1))$integral
-    integralsCubature[5, k] <- hcubature(oscil, rep(0, k), rep(1, k), tol = 10^(-1))$integral
-    integralsCubature[6, k] <- hcubature(prpeak, rep(0, k), rep(1, k), tol = 10^(-1))$integral
+    integralsCubature[1, k] <- hcubature(cont, rep(0, dim), rep(1, dim))$integral
+    integralsCubature[2, k] <- hcubature(copeak, rep(0, dim), rep(1, dim))$integral
+    integralsCubature[4, k] <- hcubature(gaussian, rep(0, dim), rep(1, dim))$integral
+    integralsCubature[5, k] <- hcubature(oscil, rep(0, dim), rep(1, dim))$integral
+    integralsCubature[6, k] <- hcubature(prpeak, rep(0, dim), rep(1, dim))$integral
     if (dim > 1){
-        integralsCubature[3, k] <- hcubature(disc, rep(0, k), rep(1, k), tol = 10^(-1))$integral
+        integralsCubature[3, k] <- hcubature(disc, rep(0, dim), rep(1, dim))$integral
     }
-    print(integrals[, k])
+    print(integralsCubature[, k])
     ###
 
 

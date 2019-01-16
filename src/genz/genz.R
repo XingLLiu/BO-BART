@@ -149,7 +149,7 @@ disc <- function(xx)
   dim <- ncol(xx)
   if (dim < 2) stop("incorrect dimension. Discrete Genz function only defined for dimension >= 2") 
   
-  u <- rep(0.5, 1, dim)
+  u <- rep(0.5, dim)
   a <- rep(100/dim^3, dim)
   
   x1 <- xx[ ,1]
