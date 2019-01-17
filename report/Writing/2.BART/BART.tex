@@ -1,20 +1,20 @@
-Given a p-dimensional input $x=(x_{1}, \ldots, x_{p})$ and its response $Y$, BART \cite{BART} aims to make inference on its underlying, unknown function
+Given a $p$-dimensional input $x=(x_{1}, \ldots, x_{p})\in\mathbb{R}^p$ and its response $Y$, BART \cite{BART} aims to make inference on its underlying, unknown function
 \begin{equation}
-    Y = f(x) + \epsilon\text{, }\epsilon \sim N(0,\sigma^{2})
+    Y = f(x) + \epsilon\text{, }\epsilon \sim N(0,\sigma^{2}),
 \label{eq:underlying function}
 \end{equation}
 
-Having a Bayesian Classification and Regression Trees (CART) \cite{CART} model $T$ with $b$ terminal nodes and a set of parameters $\Theta = \{\theta_1, \ldots, \theta_b\}$, with $\theta_i$ associated with the $i$th terminal node, denote $g(x; T, \Theta)$ as the function which assigns a $\theta_i \in \Theta$ to \textbf{x}. Thus, a single tree can be expressed as 
+by estimating $f(x) = E(Y|x)$. Having BART models model $T$ with $b$ terminal nodes and a set of parameters $\Theta = \{\theta_1, \ldots, \theta_b\}$, with $\theta_i$ associated with the $i$th terminal node, denote $g(x; T, \Theta)$ as the function which assigns a $\theta_i \in \Theta$ to x. Thus, a single tree can be expressed as 
 \begin{equation}
-    Y = g(x; T, \Theta) + \epsilon\text{, }\epsilon \sim N(0, \sigma^2)
+    Y = g(x; T, \Theta) + \epsilon\text{, }\epsilon \sim N(0, \sigma^2),
 \label{eq:single tree}
 \end{equation}
 Now define the sum-of-trees model as
 \begin{equation}
-    Y = \sum_{j = 1}^{m}g(x; T_j, \Theta_j) + \epsilon\text{, }\epsilon \sim N(0, \sigma^2)
+    Y = \sum_{j = 1}^{m}g_j(x; T_j, \Theta_j) + \epsilon\text{, }\epsilon \sim N(0, \sigma^2),
 \label{eq:single tree}
 \end{equation}
-where m is the number of trees and $g(x; T_j, \Theta_j)$ is the function that assigns $\theta_{ij} \in \Theta_j$ to \textbf{x}.
+where $m$ is the number of trees and $g_j(x; T_j, \Theta_j)$ is the function that assigns $\theta_{ij} \in \Theta_j$ to $x$.
 
 For a fixed $m$, the sum-of-trees model is determined by $(T_1, \Theta_1), (T_2, \Theta_2), \ldots, (T_m, \Theta_m)$ and $\sigma$.
 
@@ -95,8 +95,8 @@ For a fixed $m$, the sum-of-trees model is determined by $(T_1, \Theta_1), (T_2,
 %     \item Draw $(T_j, \Theta_j)|R_j, \sigma$ by MH algorithm
 %     \item Go back to step 1 with $R_{j + 1}$ and $T_{j + 1}$. 
 % \end{enumerate}
-Drawing posterior trees by Metropolis-Hastings algorithm \cite{MH} ensures that $(T_1, \Theta_1), \ldots, (T_m, \Theta_m), \sigma$ converges in distribution to $P((T_1, \Theta_{1}), \ldots, (T_m, \Theta_m), \sigma|Y)$ and the induced sum-of-trees function 
+Drawing posterior trees by the Metropolis-Hastings algorithm \cite{MH} ensures that $(T_1, \Theta_1), \ldots, (T_m, \Theta_m), \sigma$ converges in distribution to $P((T_1, \Theta_{1}), \ldots, (T_m, \Theta_m), \sigma|Y)$ and the induced sum-of-trees function 
 \begin{center}
     $f(\cdot) = \sum_{j=1}^{m}g(\cdot; T_j, \Theta_j)$
 \end{center}
-hence converges to $P(f|Y)$, the posterior distribution of the true $f(\cdot)$.
+hence converges in distribution to $P(f|Y)$, the posterior distribution of the true $f(\cdot)$ \cite{BART}.
