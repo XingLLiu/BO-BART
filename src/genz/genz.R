@@ -265,7 +265,6 @@ oscil <- function(xx)
   dim <- ncol(xx)
   u <- rep(0.5, 1, dim)
   a <- rep(110/dim^(5/2), dim) 
-  a <- rep(10^(-20), dim)
   
   sum <- xx %*% a
   y <- cos(2 * pi * u[1] + sum)
