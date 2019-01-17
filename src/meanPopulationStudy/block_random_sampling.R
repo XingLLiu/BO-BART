@@ -1,5 +1,5 @@
-computeMean <- function(trainX, trainY, candidateX, candidateY, num_iterations){
-
+computeMean <- function(trainX, trainY, candidateX, candidateY, num_iterations)
+{
     # stratify the population
     maleCandidateY <- candidateY[candidateX$SEX == 1]
     femaleCandidateY <- candidateY[candidateX$SEX == 2]
