@@ -63,12 +63,12 @@ MITime <- (t1 - t0)[[1]]
 
 # Bayesian Quadrature with Gaussian Process
 print("Begin Gaussian Process Integration")
-t0 <- proc.time()
 source("./GPBQ.R")
+
+t0 <- proc.time()
+predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = genz)  
 t1 <- proc.time()
 GPTime <- (t1 - t0)[[1]]
-
-predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = genz)  
 
 # read in analytical integrals
 dimensionsList <- c(1,2,3,5,10,20)
