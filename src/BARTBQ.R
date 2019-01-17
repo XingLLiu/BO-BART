@@ -229,4 +229,3 @@ mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY)
 
   return (prediction)
 }
-

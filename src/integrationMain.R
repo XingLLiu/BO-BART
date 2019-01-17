@@ -1,6 +1,6 @@
 # !/usr/bin/env R
 # uncomment below and fix it according when in department cluster.
-setwd("/scratchcomp01/xl6116/BO-BART/src/")
+setwd("/scratchcomp01/hbz15/BO-BART/src/")
 # 
 # uncomment the following when running the code for the first time to load real integral values
 # source("./genz/saveComputeIntegrals.R")
@@ -23,7 +23,11 @@ dim <- args[1]
 num_iterations <- args[2]
 whichGenz <- args[3]
 
+<<<<<<< HEAD
+if (num_iterations == 1) stop ("NEED MORE THAN 1 ITERATION")
+=======
 if (num_iterations == 1) { stop("NEED MORE THAN 1 ITERATION") }
+>>>>>>> 816462800d5a42ace26f609df944151a71e4d838
 
 print(c(dim, num_iterations, whichGenz))
 source("./genz/genz.R") # genz function to test
@@ -132,20 +136,5 @@ dev.off()
 
 
 print("Please check {ROOT}/report/Figures for plots")
-
-
-fac <- function(x, index){
-  if (index == 1){
-    print('return')
-    print(x)
-    return(x)
-  }
-  else {
-    print('here')
-    index <- index - 1
-    print(x)
-    x <- x * fac((x-1), index)
-  }
-}
 
 
