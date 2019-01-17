@@ -9,7 +9,10 @@
 
 for (i in 1:6){
     for (j in 1:6){
-        
+        # Skip genz6 dim 2 and 20 for now 
+        if ((i == 6 & j == 2) | (i == 6 & j == 6) ){ next }
+
+
         # global parameters: dimension
         dimensionsList <- c(1,2,3,5,10,20)
         args <- cbind(dimensionsList, c(1:6))
@@ -28,9 +31,9 @@ for (i in 1:6){
         if (whichGenz == 5) { genzFunctionName <-  "oscil" }
         if (whichGenz == 6) { genzFunctionName <-  "prpeak" }
 
-        # Source the correct file
+        # Retrieve estimated integral values
         fileName <- paste('results', toString(whichGenz), 'dim', toString(dim), '.csv', sep='')
-        filePath <- paste('../report/Results', toString(whichGenz), fileName, sep='/')
+        filePath <- paste('../results/genz', toString(whichGenz), fileName, sep='/')
 
         # Retrieve estimated integral values
         integrals <- read.csv(filePath, header=TRUE, sep=",", stringsAsFactors = FALSE)
@@ -44,30 +47,34 @@ for (i in 1:6){
         real <- analyticalIntegrals[whichGenz, whichDimension]
 
         # 1. Open jpeg file
-        plotPath <- gsub(paste("../report/Figures/", toString(whichGenz), "/", fileName, sep=""), pattern = "csv", replacement="jpg")
-        jpeg(plotPath, width = 2100, height = 1794, res=200)
+        # plotName <- paste("convergenceMean", toString(whichGenz), toString(dim), "Dimensions", sep = "")
+        plotName <- paste("convergenceMean", toString(whichGenz), toString(dim), "Dimensions", ".eps", sep = "")
+        plotPath <- gsub(paste("../report/Figures/", toString(whichGenz), "/", plotName, sep=""), pattern = "csv", replacement="jpg")
+        postscript(plotPath, width = 2100, height = 1794)
+        # jpeg(plotPath, width = 2100, height = 1794, res=200)
         # 2. Create the plot
         # Set y limits
-        yLims <- cbind(quantile(log(predictionBART$meanValueBART), probs=c(0.1, 0.9), na.rm=TRUE),
-                       quantile(log(predictionMonteCarlo$meanValueMonteCarlo), probs=c(0.1, 0.9), na.rm=TRUE))
+        yLimMean <- cbind(quantile(predictionBART$meanValueBART, probs=c(0.1, 1), na.rm=TRUE),
+                       quantile(predictionMonteCarlo$meanValueMonteCarlo, probs=c(0.1, 1), na.rm=TRUE))
         
-        yLowLimSd <- min(yLims[, 1])
-        if (yLowLimSd < 0) {scalingFactor <- 1.5}
-        else {scalingFactor <- 0.2}
-        yLowLimSd <-  yLowLimSd * scalingFactor
+        yLowLimMean <- min(yLimMean[, 1])
+        if (yLowLimMean < 0) {scalingFactor <- 2}
+        else {scalingFactor <- -1}
+        yLowLimMean <-  yLowLimMean * scalingFactor
 
-        yHighLimSd <- max(yLims[, 2])
-        if (yHighLimSd > 0) {scalingFactor <- 2}
-        else {scalingFactor <- 0}
-        yHighLimSd <-  yHighLimSd * scalingFactor
-        yHighLimSd <- max(yLims[, 2]) * scalingFactor
-
-        par(mfrow = c(1,2), pty = "s")
+        yHighLimMean <- max(yLimMean[, 2])
+        if (yHighLimMean > 0) {scalingFactor <- 2}
+        else {scalingFactor <- -1}
+        yHighLimMean <-  yHighLimMean * scalingFactor
+        yHighLimMean <- max(yLimMean[, 2]) * scalingFactor
+        
+        par(mfrow = c(1,2), pty = "s", mar=c(2, 4, 4, 7))
         plot(x = c(1:num_iterations), y = predictionMonteCarlo$meanValueMonteCarlo,
             pch = 16, type = "l",
             xlab = "Number of epochs N", ylab = "Integral approximation", col = "blue",
             main = paste("Convergence of methods: mean vs N \nusing", genzFunctionName, "with", num_iterations, "epochs in", dim, "dim"),
-            ylim = c(-real, real + real), 
+            # ylim = c(-real, real + real),
+            ylim = c(yLowLimMean, yHighLimMean), 
             lty = 1,
             xaxs="i", yaxs="i"
             )
@@ -79,19 +86,19 @@ for (i in 1:6){
 
         # 2. Create the plot
         # Set y limits
-        yLims <- cbind(quantile(log(predictionBART$standardDeviationBART), probs=c(0.1, 0.9), na.rm=TRUE),
+        yLimSd <- cbind(quantile(log(predictionBART$standardDeviationBART), probs=c(0.1, 0.9), na.rm=TRUE),
                        quantile(log(predictionMonteCarlo$standardDeviationMonteCarlo), probs=c(0.1, 0.9), na.rm=TRUE))
         
-        yLowLimSd <- min(yLims[, 1])
+        yLowLimSd <- min(yLimSd[, 1])
         if (yLowLimSd < 0) {scalingFactor <- 1.5}
         else {scalingFactor <- 0.2}
         yLowLimSd <-  yLowLimSd * scalingFactor
 
-        yHighLimSd <- max(yLims[, 2])
+        yHighLimSd <- max(yLimSd[, 2])
         if (yHighLimSd > 0) {scalingFactor <- 2}
         else {scalingFactor <- 0}
         yHighLimSd <-  yHighLimSd * scalingFactor
-        yHighLimSd <- max(yLims[, 2]) * scalingFactor
+        yHighLimSd <- max(yLimSd[, 2]) * scalingFactor
 
         plot(x = log(c(2:num_iterations)), y = log(predictionMonteCarlo$standardDeviationMonteCarlo[-1]),
             pch = 16, type = "l",
