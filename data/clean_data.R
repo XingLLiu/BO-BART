@@ -19,5 +19,5 @@ candidate <- cleanData[ref[1020:2038], ]
 write.csv(train, file = "train.csv")
 write.csv(candidate, file = "candidate.csv")
 
-par(pty = "s")
+Rpar(pty = "s")
 hist(cleanData$Total_person_income, breaks = 30, xlab = "Income", ylab = "Frequency", main = NULL)

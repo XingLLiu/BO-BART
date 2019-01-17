@@ -11,22 +11,22 @@ num_new_surveys <- args[1]
 # read in data
 trainData <- read.csv("../../data/train.csv")
 candidateData <- read.csv("../../data/candidate.csv")
-populationData <- read.csv("../../data/fullData.csv")
+populationData <- read.csv("../../data/full_data.csv")
 
 # extract covariates and response
 cols <- dim(trainData)[2] - 1
 trainX <- trainData[,-c(1, (cols+1))]
-trainY <- trainData[, (cols+1)]
+trainY <- log(trainData[, (cols+1)])
 
 candidateX <- candidateData[,-c(1, (cols+1))]
-candidateY <- candidateData[, (cols+1)]
+candidateY <- log(candidateData[, (cols+1)])
 
 # Compute population mean
 source("./bartMean.R")
-BARTResults <- computePopulationMean(trainX, trainY, candidateX, candidateY, num_iterations = num_new_surveys)
+BARTResults <- computePopulationMean(trainX[1:50, ], trainY[1:50], candidateX, candidateY, num_iterations = num_new_surveys)
 
 # compute the real population mean income
-poptMean <- mean(populationData$INCOME)
+poptMean <- mean(log(populationData$Total_person_income))
 
 MImean <- c()
 MIstandardDeviation <- c()
@@ -56,20 +56,20 @@ plot(x = c(1:num_new_surveys), y = MImean,
     xlab = "Number of Queries", ylab = "Population mean", col = "blue",
     main = "Mean population income of vs N \nusing %s" %--% c(num_new_surveys),
     lty = 1,
-    ylim = c(0, 60000),
+    ylim = c(5, 20),
     xaxs="i", yaxs="i"
     )
 lines(x = c(1:num_new_surveys), BARTResults$meanValueBART, type = 'l', col = "red", lty = 1)
-abline(a = poptMean, b = 0, lty = 1, col = "green")
+abline(a = poptMean, b = 0, lty = 1, col = "black")
 legend("topleft", legend=c("Monte Carlo", "BART", "Actual Mean"),
-        col=c("blue", "red", "green"), cex=0.8, lty = c(1,1,1))
+        col=c("blue", "red", "black"), cex=0.8, lty = c(1,1,1))
 
 plot(x = c(1:num_new_surveys), y = MIstandardDeviation,
     pch = 16, type = "l",
     xlab = "Number of Queries", ylab = "Standard deviation", col = "blue",
     main = "Standard Deviation population income of vs N \nusing %s" %--% c(num_new_surveys),
     lty = 1,
-    ylim = c(0, 70000),
+    ylim = c(0, 2),
     xaxs="i", yaxs="i"
     )
 lines(x = c(1:num_new_surveys), BARTResults$standardDeviationBART, type = 'l', col = "red", lty = 1)

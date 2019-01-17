@@ -34,9 +34,11 @@ fillProbabilityForNode <- function(oneTree, cutPoints, cut)
     decisionRule <- cutPoints[[oneTree$splitVar]][oneTree$splitIndex]
     
     oneTree$leftChild$probability <- (decisionRule - cut[1, oneTree$splitVar]) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
-    
+  
     oneTree$rightChild$probability <- (cut[2, oneTree$splitVar] - decisionRule) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
+    
     range <- cut[, oneTree$splitVar]
+    
     cut[, oneTree$splitVar] = c(range[1], decisionRule)
     
     fillProbabilityForNode(oneTree$leftChild, cutPoints, cut)
@@ -191,11 +193,12 @@ computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTrain
     ymin <- min(trainData[, dim+1]); ymax <- max(trainData[, dim+1])
     # first build BART and scale mean and standard deviation
     sink("/dev/null")
-    model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
+    model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=50L, nskip=1000, ndpost=1000, ntree=200, k = 2)
     sink()
     # obtain posterior samples
     integrals <- sampleIntegrals(model, dim, trainData[, 1:dim])
     integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
+    
     meanValue[i] <- mean(integrals)
     standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
 
@@ -242,7 +245,7 @@ computePopulationMean <- function(trainX, trainY, candidateX, candidateY, num_it
 
 BRcomputeMean <- function(trainX, trainY, candidateX, candidateY, num_iterations){
 
-    # stratify the population
+    # sample the population by sex
     maleCandidateY <- candidateY[candidateX$SEX == 1]
     femaleCandidateY <- candidateY[candidateX$SEX == 2]
 
@@ -254,6 +257,7 @@ BRcomputeMean <- function(trainX, trainY, candidateX, candidateY, num_iterations
     BRmean <- c()
     BRstandardDeviation <- c()
 
+    # Monte Carlo in each block 
     for (i in 1:numMaleCandidate) {
         BRmean[i] <- mean(c(trainY, maleCandidateY[1:i]))
         BRstandardDeviation[i] <- sqrt( var(c(trainY, maleCandidateY[1:i])) )
