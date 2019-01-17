@@ -10,7 +10,7 @@ num_new_surveys <- args[1]
 
 # read in data
 trainData <- read.csv("../../data/train.csv")
-candidateData <- read.csv("../../data/candidates.csv")
+candidateData <- read.csv("../../data/candidate.csv")
 populationData <- read.csv("../../data/fullData.csv")
 
 # extract covariates and response
