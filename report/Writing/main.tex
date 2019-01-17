@@ -10,7 +10,8 @@
 \usepackage{subfigure}
 \usepackage{booktabs} % for professional tables
 \usepackage{import}
-
+%tablular x table environment
+\usepackage{tabularx}
 % hyperref makes hyperlinks in the resulting PDF.
 % If your build breaks (sometimes temporarily if a hyperlink spans a page)
 % please comment out the following usepackage line and replace
@@ -20,11 +21,14 @@
 % Attempt to make hyperref and algorithmic work together better:
 \newcommand{\theHalgorithm}{\arabic{algorithm}}
 
+
 % Use the following line for the initial blind version submitted for review:
 \usepackage{report/icml2018}
 
 % If accepted, instead use the following line for the camera-ready submission:
 %\usepackage[accepted]{icml2018}
+
+
 
 % The \icmltitle you define below is probably too long as a header.
 % Therefore, a short form for the running title is supplied here:
@@ -49,25 +53,15 @@
 % Ideally, you should not use this facility. Affiliations will be numbered
 % in order of appearance and this is the preferred way.
 \icmlsetsymbol{equal}{*}
-
 \begin{icmlauthorlist}
-\icmlauthor{Aeiau Zzzz}{equal,to}
-\icmlauthor{Bauiu C.~Yyyy}{equal,to,goo}
-\icmlauthor{Cieua Vvvvv}{goo}
-\icmlauthor{Iaesut Saoeu}{ed}
-\icmlauthor{Fiuea Rrrr}{to}
-\icmlauthor{Tateu H.~Yasehe}{ed,to,goo}
-\icmlauthor{Aaoeu Iasoh}{goo}
-\icmlauthor{Buiui Eueu}{ed}
-\icmlauthor{Aeuia Zzzz}{ed}
-\icmlauthor{Bieea C.~Yyyy}{to,goo}
-\icmlauthor{Teoau Xxxx}{ed}
-\icmlauthor{Eee Pppp}{ed}
+\icmlauthor{Seth Flaxman}{equal,to}
+\icmlauthor{Zhichao Shen}{equal,to,goo}
+\icmlauthor{Ruya Kang}{goo}
+\icmlauthor{Harrison Zhu}{ed}
+\icmlauthor{Jérôme Liu}{ed}
 \end{icmlauthorlist}
 
-\icmlaffiliation{to}{Department of Computation, University of Torontoland, Torontoland, Canada}
-\icmlaffiliation{goo}{Googol ShallowMind, New London, Michigan, USA}
-\icmlaffiliation{ed}{School of Computation, University of Edenborrow, Edenborrow, United Kingdom}
+\icmlaffiliation{to}{Department of Mathematics, Imperial College London, London, United Kingdom}
 
 \icmlcorrespondingauthor{Cieua Vvvvv}{c.vvvvv@googol.com}
 \icmlcorrespondingauthor{Eee Pppp}{ep@eden.co.uk}
@@ -75,7 +69,7 @@
 % You may provide any keywords that you
 % find helpful for describing your paper; these are used to populate
 % the "keywords" metadata in the PDF but will not be shown in the document
-\icmlkeywords{Bayesian Trees, Bayesian Quadrature, Bayesian Optimisation, Gaussian Process, Monte Carlo, Integration, Regression}
+\icmlkeywords{Bayesian Additive Regression Trees, Bayesian Quadrature, Bayesian Optimisation, Gaussian Process, Monte Carlo Methods, Regression}
 
 \vskip 0.3in
 ]
@@ -92,8 +86,12 @@
 \printAffiliationsAndNotice{\icmlEqualContribution} % otherwise use the standard text.
 
 \begin{abstract}
+Bayesian Quadrature (BQ) is an important tool for solving statistical and scientific problems with an integral at their heart. We propose a new approach to BQ based on Bayesian Additive Regression Trees (BART). We show how BART is a natural function choice for BQ, lending itself to an elegant formulation of BQ with a simple but effective sequential design approach. On a set of benchmark tests, our model outperforms both GP-BQ and Monte Carlo integration, with \textcolor{red}{better performance in high dimensions ($>$ 10)}. We also demonstrate our method in the context of survey design, where our method provides an alternative to both a simple random sample (Monte Carlo) and \textcolor{red}{a more sophisticated block (stratified) random sampling design}.
 
-This paper provides a method of choosing desirable posterior distribution for Bayesian Quadrature using Bayesian Additive Regression Trees (BART). Based on the existing Bayesian Classification and Regression Trees (CART), we extend the tree model to an additive design BART, which allows the existence of an ensemble of weak models instead of a single strong model. We show how BART makes inference on the underlying function of given data set and how this contributes to Bayesian Quadrature. It appears that our model outperforms Gaussian Process and Monte Carlo in terms of the efficiency in Bayesian Optimisation and estimating costly functions, even in higher dimension ($>$ 10). We therefore propose our new method as a complementary of the existing Bayesian Optimisation methods.
+%This paper provides a method of choosing desirable posterior distribution for Bayesian Quadrature using Bayesian Additive Regression Trees (BART). Based on the existing BART, we extend the tree model to an additive design BART, which allows the existence of an ensemble of weak models instead of a single strong model. We show how BART makes inference on the underlying function of given data set{\color{red}s} and how this contributes to Bayesian Quadrature. 
+% It appears that our model outperforms Gaussian Process and Monte Carlo integration in terms of the efficiency in Bayesian Optimisation and estimating costly functions, even in higher dimension ($>$ 10).
+%{\color{red}
+%It appears that our model outperforms Gaussian Process and Monte Carlo integration in terms of the efficiency in estimating costly functions when implemented on Genz functions of various families, even in higher dimension ($>$ 10).} We therefore propose our new method as a complementary to the existing Bayesian Optimisation methods. {\color{red}Lastly, the advantages of such BART design are illustrated by comparing it with other competing regression methods on a Metabolic pathways networks dataset.}  
 
 \end{abstract}
 
@@ -120,42 +118,40 @@ This paper provides a method of choosing desirable posterior distribution for Ba
 
 %%%%%%%%%%%%%%%%%%%%
 
-\section{Querying Sequential Design}
+\subsection{Querying Sequential Design}
 \label{Sequential Design}
 
 \import{sections/}{report/Writing/4.Sequential_Design/SQ.tex}
 
 %%%%%%%%%%%%%%%%%%%%
 
-\section{Model Performance}
+\section{Model Performance on Benchmark Tests}
 \label{Performance}
 
 \import{sections/}{report/Writing/5.Model_Performance/Result.tex}
 
 %%%%%%%%%%%%%%%%%%%%
 
-\section{Existing Competitor Methods}
-\label{Competitors}
+\section{Survey Design}
+\label{Real Data}
 
-\subsection{Monte Carlo}
-\label{MC}
-
-\subsection{Gaussian Process}
-\label{GP}
-
-%%%%%%%%%%%%%%%%%%%%
-
-\section{Extension and Realted Work}
-\label{Extension}
+\import{sections/}{report/Writing/6.Real_Data_Sets/Real_Data.tex}
 
 %%%%%%%%%%%%%%%%%%%%
 
 \section{Discussion}
 \label{Discussion}
 
+\import{sections/}{report/Writing/7.Discussion/Discussion.tex}
 
+\bibliography{report/Writing/ref.bib}
 
+%%%%%%%%%%%%%%%%%%%%
+\onecolumn
+\section*{Appendix}
 
+\import{sections/}{report/Writing/Appendix/Appendix.tex}
+\import{sections/}{report/Writing/Appendix/Appendix_GenzIntegral.tex}
 
 %%%%%%%%%%Not my content%%%%%%%%%%
 % \subsection{Submitting Papers}
@@ -614,10 +610,10 @@ This paper provides a method of choosing desirable posterior distribution for Ba
 \section*{Appendix}
 
 \import{sections/}{report/Writing/Appendix/Appendix.tex}
-
 \newpage
-\bibliography{ref}
-\bibliographystyle{unsrtnat}
+% \nocite{langley00}
+% \bibliographystyle{report/icml2018.sty}
+\bibliographystyle{report/icml2018}
 \end{document}
 
 
