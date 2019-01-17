@@ -124,6 +124,7 @@ oscillatoryIntegral <- function(dim, u=0.5)
     
     # Set value of a
     a <- 110/dim^(5/2)
+    a <- 10^(-20)
 
     # Compute integral
     integral <- 0
