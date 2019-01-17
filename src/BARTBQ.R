@@ -5,6 +5,7 @@ library(lhs)
 library(dbarts)
 library(data.tree)
 library(matrixStats)
+
 terminalProbability <- function(currentNode) 
 # probabiltity ending up in terminal node
 {
@@ -24,9 +25,8 @@ fillProbabilityForNode <- function(oneTree, cutPoints, cut)
   if ( !is.null(oneTree$leftChild) ) {
     
     decisionRule <- cutPoints[[oneTree$splitVar]][oneTree$splitIndex]
-    
+
     oneTree$leftChild$probability <- (decisionRule - cut[1, oneTree$splitVar]) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
-    
     oneTree$rightChild$probability <- (cut[2, oneTree$splitVar] - decisionRule) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
     
     cut[, oneTree$splitVar] = c(0, decisionRule)
@@ -38,7 +38,9 @@ fillProbabilityForNode <- function(oneTree, cutPoints, cut)
     fillProbabilityForNode(oneTree$rightChild, cutPoints, cut)
     
   } else if( is.null(oneTree$probability) ) {
+
     oneTree$probability <- 1
+
   }
   
   return (oneTree)
@@ -188,7 +190,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, ifRegress
     integrals <- sampleIntegrals(model, dim)
     integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
     meanValue[i] <- mean(integrals)
-    standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
+    standardDeviation[i] <- sqrt(sum((integrals - meanValue[i])^2) / (length(integrals) - 1))
 
     # sequential design section, where we build the new training data
     candidateSet <- randomLHS(1000, dim)
