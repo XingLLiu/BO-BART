@@ -23,7 +23,11 @@ dim <- args[1]
 num_iterations <- args[2]
 whichGenz <- args[3]
 
+<<<<<<< HEAD
+if (num_iterations == 1) stop ("NEED MORE THAN 1 ITERATION")
+=======
 if (num_iterations == 1) { stop("NEED MORE THAN 1 ITERATION") }
+>>>>>>> 816462800d5a42ace26f609df944151a71e4d838
 
 print(c(dim, num_iterations, whichGenz))
 source("./genz/genz.R") # genz function to test

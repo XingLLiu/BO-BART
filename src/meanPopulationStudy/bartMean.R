@@ -3,6 +3,16 @@ library(dbarts)
 library(data.tree)
 library(matrixStats)
 
+# define string formatting
+`%--%` <- function(x, y) 
+# from stack exchange:
+# https://stackoverflow.com/questions/46085274/is-there-a-string-formatting-operator-in-r-similar-to-pythons
+{
+  do.call(sprintf, c(list(x), y))
+}
+
+# Tree code
+
 terminalProbability <- function(currentNode) 
   # probabiltity ending up in terminal node
 {
@@ -209,7 +219,7 @@ computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTrain
                "trainData" = trainData))
 }
 
-computePopulationMean <- function(dim, trainX, trainY, candidateX, candidateY, num_iterations) 
+computePopulationMean <- function(trainX, trainY, candidateX, candidateY, num_iterations) 
 # main method
 # input:
 #   dim
@@ -229,5 +239,3 @@ computePopulationMean <- function(dim, trainX, trainY, candidateX, candidateY, n
 
     return (BARTResults)
 }
-
-
