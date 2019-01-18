@@ -10,7 +10,7 @@ trainData <- read.csv("../../data/train.csv")
 candidateData <- read.csv("../../data/candidate.csv")
 populationData <- read.csv("../../data/full_data.csv")
 
-studies <- c("White", "American Indian")
+studies <- c("White", "NA", "American Indian")
 
 args <- as.double(commandArgs(TRUE))
 num_new_surveys <- args[1]
@@ -33,12 +33,25 @@ for (race in c(1,3)) {
   candidateY <- candidateY[candidateX$Race == race]
   candidateX <- candidateX[candidateX$Race == race, -8]
 
+  if (race == 3 & num_new_surveys > length(candidateY)){
+    
+    print(c("out of candidate size, maximum posible value has been set as", floor(length(candidateY) * 0.8)))
+    
+    num_new_surveys <- floor(length(candidateY) * 0.8)
+    
+  } else {
+
+    trainX <- trainX[1:50, ]
+    trainY <- trainY[1:50]
+
+  }
+
   # compute the real population mean income
-  poptMean <- mean(log(populationData[populationData$Race == race,]$INCOME))
+  poptMean <- mean(log(populationData[populationData$Race == race, ]$Total_person_income))
 
   # run the BART regression model
   source("./bartMean.R")
-  BARTResults<- computePopulationMean(trainX[1:50, ], trainY[1:50], candidateX, candidateY, num_iterations = num_new_surveys)
+  BARTResults <- computePopulationMean(trainX, trainY, candidateX, candidateY, num_iterations = num_new_surveys)
 
   MImean <- c()
   MIstandardDeviation <- c()
@@ -47,8 +60,7 @@ for (race in c(1,3)) {
     MIstandardDeviation[i] <- sqrt( var(c(trainY, candidateY[1:i])) )
   }
 
-  BR <- BRcomputeMean(trainX[1:50, ], trainY[1:50], candidateX, candidateY, num_iterations = num_new_surveys)
-
+  BR <- BRcomputeMean(trainX, trainY, candidateX, candidateY, num_iterations = num_new_surveys)
 
   results <- data.frame(
         "epochs" = c(1:num_new_surveys),
@@ -56,7 +68,7 @@ for (race in c(1,3)) {
         "MIMean" = MImean, "MIsd" = MIstandardDeviation, "BRmean" = BR$BRmean, "BRsd" = BR$BRstandardDeviation,
         "PoptMean" = poptMean
   )
-  write.csv(results, file = "./%s.csv" %--% c(study),row.names=FALSE)
+  write.csv(results, file = "./%s.csv" %--% c(study), row.names=FALSE)
 
   cat("BART %s Mean" %--% c(study), BARTResults$meanValueBART[num_new_surveys])
   cat("True Population Mean", poptMean)
@@ -70,12 +82,12 @@ for (race in c(1,3)) {
        xlab = "Number of Queries", ylab = "Population mean", col = "blue",
        main = "Mean income of %s vs N \nusing %s" %--% c(study, num_new_surveys),
        lty = 1,
-       ylim = c(8, 12,
+       ylim = c(8, 12),
        xaxs="i", yaxs="i"
        )
   lines(x = c(1:num_new_surveys), BARTResults$meanValueBART, type = 'l', col = "red", lty = 1)
   lines(x = c(1:num_new_surveys), BR$BRmean, type = 'l', col = "green", lty = 1)
-  abline(a = poptMean, b = 0, lty = 4)
+  abline(a = poptMean, b = 0, lty = 1)
   legend("topleft", legend=c("Monte Carlo", "BART", "Block sampling",  "Actual Mean"),
          col=c("blue", "red", "green", "black"), cex=0.8, lty = c(1,1,1))
   
@@ -84,7 +96,7 @@ for (race in c(1,3)) {
        xlab = "Number of Queries", ylab = "Standard deviation", col = "blue",
        main = "Standard Deviation income of %s vs N \nusing %s" %--% c(study, num_new_surveys),
        lty = 1,
-       ylim = c(0, 70000),
+       ylim = c(0.5, 2),
        xaxs="i", yaxs="i"
        )
   lines(x = c(1:num_new_surveys), BARTResults$standardDeviationBART, type = 'l', col = "red", lty = 1)

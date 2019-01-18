@@ -254,8 +254,8 @@ computePopulationMean <- function(trainX, trainY, candidateX, candidateY, num_it
 BRcomputeMean <- function(trainX, trainY, candidateX, candidateY, num_iterations = num_new_surveys){
 
     # sample the population by sex
-    maleCandidateY <- candidateY[which(candidateX$Sex == 1)]
-    femaleCandidateY <- candidateY[which(candidateX$Sex == 2)]
+    maleCandidateY <- candidateY[candidateX$Sex == 1]
+    femaleCandidateY <- candidateY[candidateX$Sex == 2]
 
     maleRatio <- sum(trainX$Sex == 1) / nrow(trainX)
 
@@ -267,6 +267,7 @@ BRcomputeMean <- function(trainX, trainY, candidateX, candidateY, num_iterations
 
     # Monte Carlo in each block 
     for (i in 1:numMaleCandidate) {
+        cat("i", i, "\n")
         BRmean[i] <- mean(c(trainY, maleCandidateY[1:i]))
         BRstandardDeviation[i] <- sqrt( var(c(trainY, maleCandidateY[1:i])) )
     }
