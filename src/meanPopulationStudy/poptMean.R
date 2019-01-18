@@ -13,10 +13,6 @@ trainData <- read.csv("../../data/train.csv")
 candidateData <- read.csv("../../data/candidate.csv")
 populationData <- read.csv("../../data/full_data.csv")
 
-# trainData <- trainData[which(trainData$Sex == 1), ]
-# candidateData <- candidateData[which(candidateData$Sex == 1), ]
-# populationData <- populationData[which(populationData$Sex == 1), ]
-
 # extract covariates and response
 cols <- dim(trainData)[2] - 1
 trainX <- trainData[,-c(1, (cols+1))]

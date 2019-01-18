@@ -197,8 +197,7 @@ computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTrain
     # ymin <- min(trainData[, dim+1]); ymax <- max(trainData[, dim+1])
     # first build BART and scale mean and standard deviation
     sink("/dev/null")
-    model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, 
-    keepevery=5L, nskip=100, ndpost=50, ntree = 10, k = 5, usequant = TRUE)
+    model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=5L, nskip=100, ndpost=50, ntree = 10, k = 5, usequant = TRUE)
     sink()
     # # obtain posterior samples
     # integrals <- sampleIntegrals(model, dim, trainData[, 1:dim])
