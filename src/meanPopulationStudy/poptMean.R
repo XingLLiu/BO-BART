@@ -58,7 +58,7 @@ plot(x = c(1:num_new_surveys), y = MImean,
     xlab = "Number of Queries", ylab = "Population mean", col = "blue",
     main = "Mean population income of vs N \nusing %s" %--% c(num_new_surveys),
     lty = 1,
-    ylim = c(8,12),
+    ylim = c(9,11),
     xaxs="i", yaxs="i"
     )
 lines(x = c(1:num_new_surveys), BARTResults$meanValueBART, type = 'l', col = "red", lty = 1)
@@ -72,11 +72,11 @@ plot(x = c(1:num_new_surveys), y = MIstandardDeviation,
     xlab = "Number of Queries", ylab = "Standard deviation", col = "blue",
     main = "Standard Deviation population income of vs N \nusing %s" %--% c(num_new_surveys),
     lty = 1,
-    ylim = c(0.5, 2),
+    ylim = c(0.8, 1.5),
     xaxs="i", yaxs="i"
     )
 lines(x = c(1:num_new_surveys), BARTResults$standardDeviationBART, type = 'l', col = "red", lty = 1)
-lines(x = c(1:num_new_surveys), BR$standardDeviation, type = 'l', col = "green", lty = 1)
+lines(x = c(1:num_new_surveys), BR$BRstandardDeviation, type = 'l', col = "green", lty = 1)
 legend("topleft", legend=c("Monte Carlo", "BART", "Block sampling"),
         col=c("blue", "red", "green"), cex=0.8, lty = c(1,1))
 

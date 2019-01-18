@@ -82,7 +82,7 @@ for (race in c(1,3)) {
        xlab = "Number of Queries", ylab = "Population mean", col = "blue",
        main = "Mean income of %s vs N \nusing %s" %--% c(study, num_new_surveys),
        lty = 1,
-       ylim = c(8, 12),
+       ylim = c(9-(race-1)/2, 11-(race-1)/2),
        xaxs="i", yaxs="i"
        )
   lines(x = c(1:num_new_surveys), BARTResults$meanValueBART, type = 'l', col = "red", lty = 1)
@@ -96,11 +96,11 @@ for (race in c(1,3)) {
        xlab = "Number of Queries", ylab = "Standard deviation", col = "blue",
        main = "Standard Deviation income of %s vs N \nusing %s" %--% c(study, num_new_surveys),
        lty = 1,
-       ylim = c(0.5, 2),
+       ylim = c(0.8+(race-1)*0.3, 1.4+(race-1)*0.3),
        xaxs="i", yaxs="i"
        )
   lines(x = c(1:num_new_surveys), BARTResults$standardDeviationBART, type = 'l', col = "red", lty = 1)
-  lines(x = c(1:num_new_surveys), BR$standardDeviation, type = 'l', col = "green", lty = 1)
+  lines(x = c(1:num_new_surveys), BR$BRstandardDeviation, type = 'l', col = "green", lty = 1)
   legend("topleft", legend=c("Monte Carlo", "BART", "Block sampling"),
          col=c("blue", "red", "green"), cex=0.8, lty = c(1,1))
   
