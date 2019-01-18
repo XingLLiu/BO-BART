@@ -267,7 +267,7 @@ BRcomputeMean <- function(trainX, trainY, candidateX, candidateY, num_iterations
 
     # Monte Carlo in each block 
     for (i in 1:numMaleCandidate) {
-        cat("i", i, "\n")
+      
         BRmean[i] <- mean(c(trainY, maleCandidateY[1:i]))
         BRstandardDeviation[i] <- sqrt( var(c(trainY, maleCandidateY[1:i])) )
     }
