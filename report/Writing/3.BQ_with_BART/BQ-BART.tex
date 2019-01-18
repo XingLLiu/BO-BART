@@ -46,34 +46,35 @@
 % \end{equation}
 
 \subsection{BQ with BART}
+We now present the procedure used in Bayesian Quadrature with BART, with a querying sequential design.
 \label{BQ with BART}
-We will learn a function $f_{BART}$ and approximate:
+We will learn a function $f_{\mbox{BART}}$ and approximate:
 \begin{equation}
-	I_f \approx \int_{x \in \mathcal{X}} f_{\mbox{BART}}(x) p(x) dx
+	I_f \approx \int_{x \in \mathcal{X}} f_{\mbox{BART}}(x) p(x) dx.
 \label{eq:approx1}
 \end{equation}
-We denote the value of terminal node $\rho_i$ by $f_{\mbox{BART}}(\rho_i)$. 
+We denote the value of the $i^{th}$ terminal node of the $j^{th}$ posterior draw in the $k^{th}$ tree  $\rho_{i,j}^k$ by $f_{j,\mbox{BART}}^k(\rho_{i,j}^k)$. 
 
-Depending on the tree structure, we have $f^j_{k\mbox{BART}}$, which stands for the $k^{th}$ tree in the $j^{th}$ posterior draw. And the Eq.~\eqref{eq:single tree approximation} integral approximation given by one set of trees becomes
+Depending on the tree structure, we have the functions $f^1_{j,\mbox{BART}},\ldots,f^K_{j,\mbox{BART}}$, which stands for each of the $K$ tress, which is the pre-set value in the BART model as the number of trees, in the $j^{th}$ posterior draw. Thus the integral approximation Eq.~\eqref{eq:single tree approximation} given by the $j^{th}$ set of trees becomes
 \begin{align}
-	I_f \approx \frac{1}{ntree}\sum_{k=1}^{ntree}\sum_{i=1}^{b_j} f_{k\mbox{BART}}(\rho_i^k) p(\rho_i^k)
+	I_f^{(j)} \approx \sum_{k=1}^{K}\sum_{i=1}^{b_{k,j}} f^k_{j,\mbox{BART}}(\rho_{i,j}^k) p(\rho_{i,j}^k),
 \end{align}
-where $ntree$ is the pre-set value in the BART model as the number of posterior draws.
+where $b_{k,j}$ is the number of terminal nodes for tree $k$.
 
-After fitting BART, we calculate $I_f$ for each tree drawn from the posterior.
-If we draw $P$ samples, we obtain $I_f^{(1)}, \ldots, I_f^{(P)}$, allowing us to summarise
+After fitting the BART, we calculate $I_f$ for each tree drawn from the posterior.
+If we draw $N$ samples, we obtain $I_f^{(1)}, \ldots, I_f^{(N)}$, allowing us to summarise
 the mean and variance as:
 \begin{equation}
-	\mbox{E}[I_f] = \frac{1}{n} \sum_p I_f^{(p)}
+	\mbox{E}[I_f] \approx \frac{1}{N} \sum_{j=1}^{N} I_f^{(j)},
 \end{equation}
 \begin{equation}
-	\mbox{Var}[I_f] = \frac{1}{n} \sum_p (I_f^{(p)} - \mbox{E}[I_f])^2
+	\mbox{Var}[I_f] \approx \frac{1}{N} \sum_{j=1}^N (I_f^{(j)} - \mbox{E}[I_f])^2.
 \end{equation}
 
 \subsection{Probability Associated with Terminal Nodes}
 \label{p}
 
-If we assume a uniform prior $p(x)$ this will allow us to conveniently reuse the calculations that are already used for sampling. According to Hugh A. Chipman et al., at each node, all predictors are equally likely to be effective.
+For simplicity, we assume a uniform prior $p(x)$ this will allow us to conveniently reuse the calculations that are already used for sampling. According to \cite{BART}, at each node, all predictors are equally likely to be effective. It is also possible to use other priors, such as a normal prior.
 
 This means that calculating $p(x)$ we mentioned in Section~\ref{Introduction} should
 be simple: reuse the calculation that is built into BART for the uniform specification of $p_{\mbox{RULE}}$.
