@@ -187,6 +187,8 @@ computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTrain
   trainData <- cbind(trainX, trainY)
   colnames(trainData)[dim+1] <- "INCOME"
   
+  set.seed(123)
+
   # generate extra training data using the scheme (see pdf)
   for (i in 1:numNewTraining) {
 
