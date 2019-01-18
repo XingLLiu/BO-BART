@@ -1,7 +1,13 @@
 mixture_genz <- function(x_c){
   
-  gen_0 <- copeak
-  gen_1 <- disc
+  if (is.matrix(x_c) == FALSE) { 
+    
+    x_c <- matrix(x_c, nrow = 1) 
+    
+  }
+  
+  gen_0 <- prpeak
+  gen_1 <- gaussian
   dim <- ncol(x_c)
   
   c <- x_c[ ,dim]
@@ -9,7 +15,7 @@ mixture_genz <- function(x_c){
   
   if (is.matrix(xx) == FALSE) { 
     
-    xx <- matrix(xx) 
+    xx <- matrix(xx, nrow = 1) 
     
   }
   
@@ -18,7 +24,7 @@ mixture_genz <- function(x_c){
   
   y_0 <- as.numeric(gen_0( xx[indices_0, ] ))
   y_1 <- as.numeric(gen_1( xx[indices_1, ] ))
-  
+
   y <- rep(0, nrow(xx))
   y[indices_0] <- y_0
   y[indices_1] <- y_1
