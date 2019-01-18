@@ -33,10 +33,12 @@ fillProbabilityForNode <- function(oneTree, cutPoints, cut)
     
     decisionRule <- cutPoints[[oneTree$splitVar]][oneTree$splitIndex]
     
-    oneTree$leftChild$probability <- (decisionRule - cut[1, oneTree$splitVar]) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
+    #oneTree$leftChild$probability <- (decisionRule - cut[1, oneTree$splitVar]) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
+    oneTree$leftChild$probability <- pnorm(decisionRule) - pnorm(cut[1, oneTree$splitVar])
   
-    oneTree$rightChild$probability <- (cut[2, oneTree$splitVar] - decisionRule) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
-    
+    #oneTree$rightChild$probability <- (cut[2, oneTree$splitVar] - decisionRule) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
+    oneTree$rightChild$probability <- pnorm(cut[2, oneTree$splitVar]) - pnorm(decisionRule)
+
     range <- cut[, oneTree$splitVar]
     
     cut[, oneTree$splitVar] = c(range[1], decisionRule)
@@ -187,20 +189,21 @@ computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTrain
   
   # generate extra training data using the scheme (see pdf)
   for (i in 1:numNewTraining) {
-    
+
     print(c("BART: Epoch=", i))
     # find the min and max range of y
-    ymin <- min(trainData[, dim+1]); ymax <- max(trainData[, dim+1])
+    # ymin <- min(trainData[, dim+1]); ymax <- max(trainData[, dim+1])
     # first build BART and scale mean and standard deviation
     sink("/dev/null")
-    model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=50L, nskip=1000, ndpost=1000, ntree=200, k = 2)
+    model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, 
+    keepevery=5L, nskip=100, ndpost=50, ntree = 10, k = 5, usequant = TRUE)
     sink()
-    # obtain posterior samples
-    integrals <- sampleIntegrals(model, dim, trainData[, 1:dim])
-    integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
+    # # obtain posterior samples
+    # integrals <- sampleIntegrals(model, dim, trainData[, 1:dim])
+    # integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
     
-    meanValue[i] <- mean(integrals)
-    standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
+    # meanValue[i] <- mean(integrals)
+    # standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
 
     # predict the values
     fValues <- predict(model, candidateX)
@@ -208,11 +211,15 @@ computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTrain
     probability = 1 #uniform probability
     
     var <- colVars(fValues)
-    index <- sample(which(var==max(var)), 1)
+    index <- sample(which(var==min(var)), 1)
     INCOME <- candidateY[index]
     
     # remove newly added value from candidate set
-    trainData <- rbind(trainData, cbind(candidateX[index,], INCOME))
+    trainData <- rbind(trainData, cbind(candidateX[index, ], INCOME))
+
+    meanValue[i] <- mean(trainData[, dim+1])
+    standardDeviation[i] <- sqrt( var(trainData[, dim+1]) )
+
     candidateX <- candidateX[-index,]
     candidateY <- candidateY[-index]
     
@@ -243,16 +250,16 @@ computePopulationMean <- function(trainX, trainY, candidateX, candidateY, num_it
     return (BARTResults)
 }
 
-BRcomputeMean <- function(trainX, trainY, candidateX, candidateY, num_iterations){
+BRcomputeMean <- function(trainX, trainY, candidateX, candidateY, num_iterations = num_new_surveys){
 
     # sample the population by sex
-    maleCandidateY <- candidateY[candidateX$SEX == 1]
-    femaleCandidateY <- candidateY[candidateX$SEX == 2]
+    maleCandidateY <- candidateY[which(candidateX$Sex == 1)]
+    femaleCandidateY <- candidateY[which(candidateX$Sex == 2)]
 
-    maleRatio <- sum(trainX$SEX == 1) / nrow(trainX)
+    maleRatio <- sum(trainX$Sex == 1) / nrow(trainX)
 
-    numMaleCandidate <- floor(500 * maleRatio)
-    numFemaleCandidate <- 500 - numMaleCandidate
+    numMaleCandidate <- floor(num_iterations * maleRatio)
+    numFemaleCandidate <- num_iterations - numMaleCandidate
 
     BRmean <- c()
     BRstandardDeviation <- c()
