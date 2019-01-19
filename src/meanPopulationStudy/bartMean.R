@@ -123,7 +123,6 @@ singleTreeSum <- function(treeNum, model, drawNum, dim, trainX)
   integral <- 0
   for (node in terminalNodeList) {
     #We use the mean of prediction value Y's in the terminal node as u
-    #rescale this step
     integral <- integral + node$terminal_probability * node$mu
   }
   return (integral)
@@ -194,23 +193,22 @@ computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTrain
 
     print(c("BART: Epoch=", i))
     # find the min and max range of y
-    #ymin <- min(trainData[, dim+1]); ymax <- max(trainData[, dim+1])
+    ymin <- min(trainData[, dim+1]); ymax <- max(trainData[, dim+1])
     # first build BART and scale mean and standard deviation
     sink("/dev/null")
     model <- bart(trainData[, 1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=5L, nskip=100, ndpost=50, ntree = 10, k = 5, usequant = TRUE)
     sink()
     # # obtain posterior samples
-    #integrals <- sampleIntegrals(model, dim, trainData[, 1:dim])
-    #integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
-    
-    #meanValue[i] <- mean(integrals)
-    #standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
+    integrals <- sampleIntegrals(model, dim, trainData[, 1:dim])
+    integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
 
-    # predict the values
+    meanValue[i] <- mean(integrals)
+    standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
+
+    # predict the valuesDouble12+1
+
     fValues <- predict(model, candidateX)
-    
-    probability = 1 #uniform probability
-    
+        
     var <- colVars(fValues)
     index <- sample(which(var==min(var)), 1)
     INCOME <- candidateY[index]
@@ -218,8 +216,8 @@ computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTrain
     # remove newly added value from candidate set
     trainData <- rbind(trainData, cbind(candidateX[index, ], INCOME))
 
-    meanValue[i] <- mean(trainData[, dim+1])
-    standardDeviation[i] <- sqrt( var(trainData[, dim+1]) )
+    # meanValue[i] <- mean(trainData[, dim+1])
+    # standardDeviation[i] <- sqrt( var(trainData[, dim+1]) )
 
     candidateX <- candidateX[-index,]
     candidateY <- candidateY[-index]
