@@ -49,9 +49,9 @@ computeGPBQ <- function(dim, epochs, N=10, FUN)
   for(i in 1:N) {
     z[i] <- pmvnorm(rep(0,dim), rep(1,dim) , mean = X[i,], sigma = diag(dim))[[1]] * (2*pi)^(dim/2) # add in extra term obtained by integration
   }
-  meanValueGP[1] <- t(z) %*% ginv(K) %*% Y
+  meanValueGP[1] <- t(z) %*% chol2inv(K) %*% Y
 
-  standardDeviationGP[1] <- t(z)%*%ginv(K)%*%z #not quite right, missed out first term
+  standardDeviationGP[1] <- t(z)%*%chol2inv(K)%*%z #not quite right, missed out first term
 
 
   # train
@@ -80,8 +80,7 @@ computeGPBQ <- function(dim, epochs, N=10, FUN)
       
       z[N+p] <- candidate_p[i]
       
-      candidate_Var[i] <- t(z)%*%ginv(K_prime)%*%z # where is the integral here
-      
+      candidate_Var[i] <- t(z)%*%chol2inv(K_prime)%*%z # where is the integral here
     }
     
     index <- which(candidate_Var == max(candidate_Var))[1]
@@ -101,14 +100,11 @@ computeGPBQ <- function(dim, epochs, N=10, FUN)
     # add in extra term obtained by integration
     z[N+p] <- pmvnorm(rep(0,dim), rep(1,dim), mean = X[N+p,], sigma = diag(dim))[[1]] * (2*pi)^(dim/2)
     
-    meanValueGP[p+1] <- t(z) %*% ginv(K) %*% as.matrix(Y)
+    meanValueGP[p+1] <- t(z) %*% chol2inv(K) %*% as.matrix(Y)
     
-    standardDeviationGP[p+1] <- t(z)%*%ginv(K)%*%z #not quite right, missed out first term
+    standardDeviationGP[p+1] <- t(z)%*%chol2inv(K)%*%z #not quite right, missed out first term
     
   }
 
   return (list("meanValueGP" = meanValueGP, "standardDeviationGP" = standardDeviationGP))
-
 }
-
-
