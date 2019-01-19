@@ -25,9 +25,8 @@ fillProbabilityForNode <- function(oneTree, cutPoints, cut)
   if ( !is.null(oneTree$leftChild) ) {
     
     decisionRule <- cutPoints[[oneTree$splitVar]][oneTree$splitIndex]
-    
+
     oneTree$leftChild$probability <- (decisionRule - cut[1, oneTree$splitVar]) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
-    
     oneTree$rightChild$probability <- (cut[2, oneTree$splitVar] - decisionRule) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
     
     cut[, oneTree$splitVar] = c(0, decisionRule)
@@ -39,7 +38,9 @@ fillProbabilityForNode <- function(oneTree, cutPoints, cut)
     fillProbabilityForNode(oneTree$rightChild, cutPoints, cut)
     
   } else if( is.null(oneTree$probability) ) {
+
     oneTree$probability <- 1
+
   }
   
   return (oneTree)

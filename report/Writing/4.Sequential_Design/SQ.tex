@@ -1,35 +1,34 @@
-The major work of BQ with BART is to improve model performance by adding more training data to the original data set.
+The major work of BQ with BART is to improve model performance by adding more training data to the original data set, through an active learning procedure.
 
-The way of choosing training point is to randomly generate a set of candidates $x$ from normal distribution, select the most informative one by working out its posterior variance in $f(x)$ weighted by $p(x)$:
+The way of choosing training point is to randomly generate a set of candidates $ \mathcal{C} = \{ c_i\}_{i\in I}$ from a uniform distribution (or using a candidate set in practice, as described in Section \ref{Real Data}) and select the most informative one by calculating its posterior variance in $f(c)$ weighted by $p(c)$:
 \begin{equation}
-	x^* = \mbox{argmax}_x \mbox{Var}[f(x)p(x)]
+	c^* = \mbox{argmax}_c \widehat{\mbox{Var}}[(f_{1}(c),..,f_{N}(c))\times p(c)],
+	\label{eq:maxvariance}
+\end{equation}
+where $\widehat{\mbox{Var}}[\cdot]$ is the sample variance and $f_j$ is the sum of trees in the $j^{th}$ posterior draw. For $p(x)$ being the uniform distribution, $p(c)$ is some constant $C$ on its support $\mathcal{X}$, so assuming that the candidates in the set $\mathcal{C}$ are in $\mathcal{X}$, we can simplify the above to:
+\begin{equation}
+	c^* = \mbox{argmax}_c \widehat{\mbox{Var}}[(f_{1}(c),..,f_{N}(c))].
 	\label{eq:maxvar}
 \end{equation}
+This procedure combined with BART-BQ is summarised in Algorithm~\ref{alg:SQ}.
 
-For $p(x)$ the uniform distribution, $p(x)$ is some constant $C$ on its support, so assuming $x$ is in the support, we can simplify Eq.~\eqref{eq:maxvar}:
-\begin{equation}
-	x^* = \mbox{argmax}_{x} \mbox{Var}[f(x)C] = \mbox{argmax}_{x} \mbox{Var}[f(x)]
-	\label{eq:maxvar}
-\end{equation}
-
-To implement this in practice, we follow the BO with BART approach.
-
-\begin{algorithm}[]
+\begin{algorithm}[tbh!]
   \caption{Sequential Design}
   \label{alg:SQ}
 \begin{algorithmic}
-  \STATE {\bfseries Input:} training set X
-  \STATE train BART
-  \STATE choose $x_1, \ldots, x_n$ from uniform distribution
-  \FOR{$i=1$ {\bfseries to} $n$}
-  \STATE find $f_{\mbox{BART}}^{(1)}(x_i), \ldots, f_{\mbox{BART}}^{(P)}(x_i)$ 
-  \STATE work out the empirical variance
-  \ENDFOR
-  \STATE $x^* = \mbox{argmax}_{x} \mbox{Var}[f(x)C] = \mbox{argmax}_{x} \mbox{Var}[f(x)]
+  \STATE {\bfseries Input:}\\training set $\mathcal{D} = \{x_1, \ldots, x_n\}$, \\response $\mathcal{Y} = \{y_1, \ldots, y_n\}$, \\candidate set $\mathcal{C} = \{c_1, \ldots, c_L\},$ 
+  \\
+  number of iterations $M$
+  \FOR{$M$ iterations}
+  \STATE fit BART of $K$ trees with $\mathcal{D}$ and $\mathcal{Y}$
+  \STATE find $f_{\mbox{BART}}^{(1)}(c), \ldots, f_{\mbox{BART}}^{(K)}(c)$ for all $c\in\mathcal{C}$
+  \STATE compute the empirical variance $ \widehat{\mbox{Var}}[(f_{1}(c),..,f_{N}(c))]$
+  \STATE Find $\,c^* = \mbox{argmax}_{c} \widehat{\mbox{Var}}[(f_{1}(c),..,f_{N}(c))]
 	\label{eq:maxvar}$
-  \STATE $X = (X, x^*)$
-  \REPEAT
-  \UNTIL{required number of points is reached}
+  \STATE find response $y_c^* = f(c^*)$
+  \STATE $\mathcal{D} \leftarrow \mathcal{D}\cup \{c^*\}$, $\mathcal{C} \leftarrow \mathcal{C}\setminus \{c^*\}$
+  \STATE $\mathcal{Y} \leftarrow \mathcal{Y}\cup \{y_c^*\}$
+  \ENDFOR
 \end{algorithmic}
 \end{algorithm}
 
