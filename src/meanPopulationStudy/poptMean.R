@@ -50,13 +50,13 @@ cat("BART Population Mean", BARTResults$meanValueBART)
 cat("True Population Mean", poptMean)
 
 # 1. Open jpeg file
-jpeg("./population.jpg", width = 700, height = 583)
+png("./population.png", width = 700, height = 583)
 # 2. Create the plot
 par(mfrow = c(1,2), pty = "s")
 plot(x = c(1:num_new_surveys), y = MImean,
     pch = 16, type = "l",
     xlab = "Number of Queries", ylab = "Population mean", col = "blue",
-    main = "Mean population income of vs N \nusing %s" %--% c(num_new_surveys),
+    main = NULL,
     lty = 1,
     ylim = c(9,11),
     xaxs="i", yaxs="i"
@@ -70,7 +70,7 @@ legend("topleft", legend=c("Monte Carlo", "BART", "Block sampling", "Actual Mean
 plot(x = c(1:num_new_surveys), y = MIstandardDeviation,
     pch = 16, type = "l",
     xlab = "Number of Queries", ylab = "Standard deviation", col = "blue",
-    main = "Standard Deviation population income of vs N \nusing %s" %--% c(num_new_surveys),
+    main = NULL,
     lty = 1,
     ylim = c(0.8, 1.5),
     xaxs="i", yaxs="i"

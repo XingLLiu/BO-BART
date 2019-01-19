@@ -74,13 +74,13 @@ for (race in c(1,3)) {
   cat("True Population Mean", poptMean)
 
   # 1. Open jpeg file
-  jpeg("./%s.jpg" %--% c(study), width = 700, height = 583)
+  png("./%s.png" %--% c(study), width = 700, height = 583)
   # 2. Create the plot
   par(mfrow = c(1,2), pty = "s")
   plot(x = c(1:num_new_surveys), y = MImean,
        pch = 16, type = "l",
        xlab = "Number of Queries", ylab = "Population mean", col = "blue",
-       main = "Mean income of %s vs N \nusing %s" %--% c(study, num_new_surveys),
+       main = NULL,
        lty = 1,
        ylim = c(9-(race-1)/2, 11-(race-1)/2),
        xaxs="i", yaxs="i"
@@ -94,7 +94,7 @@ for (race in c(1,3)) {
   plot(x = c(1:num_new_surveys), y = MIstandardDeviation,
        pch = 16, type = "l",
        xlab = "Number of Queries", ylab = "Standard deviation", col = "blue",
-       main = "Standard Deviation income of %s vs N \nusing %s" %--% c(study, num_new_surveys),
+       main = NULL,
        lty = 1,
        ylim = c(0.8+(race-1)*0.3, 1.4+(race-1)*0.3),
        xaxs="i", yaxs="i"
