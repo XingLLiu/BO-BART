@@ -1,9 +1,9 @@
 setwd("~/Documents/GitHub/BO-BART/src/meanPopulationStudy/")
 source("./bartMean.R")
 
-train <- read.csv("train.csv")
-candidate <- read.csv("candidate.csv")
-population <- read.csv("full_data.csv")
+train <- read.csv("../../train.csv")
+candidate <- read.csv("../../candidate.csv")
+population <- read.csv("../../full_data.csv")
 
 train <- train[, -1]
 candidate <- candidate[, -1]
