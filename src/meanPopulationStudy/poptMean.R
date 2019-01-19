@@ -21,21 +21,24 @@ trainY <- log(trainData[, (cols+1)])
 candidateX <- candidateData[,-c(1, (cols+1))]
 candidateY <- log(candidateData[, (cols+1)])
 
+trainX <- trainX[1:50, ]
+trainY <- trainY[1:50]
+
 # compute the real population mean income
 poptMean <- mean(log(populationData$Total_person_income))
 
 # Compute population mean
 source("./bartMean.R")
-BARTResults <- computePopulationMean(trainX[1:50, ], trainY[1:50], candidateX, candidateY, num_iterations = num_new_surveys)
+BARTResults <- computePopulationMean(trainX, trainY, candidateX, candidateY, num_iterations = num_new_surveys)
 
 MImean <- c()
 MIstandardDeviation <- c()
 for (i in 1:num_new_surveys) {
-MImean[i] <- mean(c(trainY[1:50], candidateY[1:i]))
-MIstandardDeviation[i] <- sqrt( var(c(trainY[1:50], candidateY[1:i])) ) 
+MImean[i] <- mean(c(trainY, candidateY[1:i]))
+MIstandardDeviation[i] <- sqrt( var(c(trainY, candidateY[1:i])) ) 
 }
 
-BR <- BRcomputeMean(trainX[1:50, ], trainY[1:50], candidateX, candidateY, num_iterations = num_new_surveys)
+BR <- BRcomputeMean(trainX, trainY, candidateX, candidateY, num_iterations = num_new_surveys)
 
 results <- data.frame(
     "epochs" = c(1:num_new_surveys),

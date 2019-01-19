@@ -33,11 +33,11 @@ fillProbabilityForNode <- function(oneTree, cutPoints, cut)
     
     decisionRule <- cutPoints[[oneTree$splitVar]][oneTree$splitIndex]
     
-    oneTree$leftChild$probability <- (decisionRule - cut[1, oneTree$splitVar]) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
-    #oneTree$leftChild$probability <- pnorm(decisionRule) - pnorm(cut[1, oneTree$splitVar])
+    #oneTree$leftChild$probability <- (decisionRule - cut[1, oneTree$splitVar]) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
+    oneTree$leftChild$probability <- pnorm(decisionRule) - pnorm(cut[1, oneTree$splitVar])
   
-    oneTree$rightChild$probability <- (cut[2, oneTree$splitVar] - decisionRule) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
-    #oneTree$rightChild$probability <- pnorm(cut[2, oneTree$splitVar]) - pnorm(decisionRule)
+    #oneTree$rightChild$probability <- (cut[2, oneTree$splitVar] - decisionRule) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
+    oneTree$rightChild$probability <- pnorm(cut[2, oneTree$splitVar]) - pnorm(decisionRule)
 
     range <- cut[, oneTree$splitVar]
     
@@ -187,7 +187,7 @@ computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTrain
   trainData <- cbind(trainX, trainY)
   colnames(trainData)[dim+1] <- "INCOME"
   
-  set.seed(123)
+  set.seed(1223)
 
   # generate extra training data using the scheme (see pdf)
   for (i in 1:numNewTraining) {

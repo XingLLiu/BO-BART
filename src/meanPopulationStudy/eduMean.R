@@ -10,14 +10,15 @@ trainData <- read.csv("../../data/train.csv")
 candidateData <- read.csv("../../data/candidate.csv")
 populationData <- read.csv("../../data/full_data.csv")
 
-studies <- c("White", "NA", "American Indian")
+studies <- c("Highschool and below", "Beyond highschool")
+index <- matrix(c(1,17,16,24), nrow = 2, ncol = 2)
 
 args <- as.double(commandArgs(TRUE))
 num_new_surveys <- args[1]
 
-for (race in c(1,3)) {
+for (edu in 1:2) {
 
-  study <- studies[race]
+  study <- studies[edu]
   # extract covariates and response
   cols <- dim(trainData)[2] - 1
   trainX <- trainData[,-c(1, (cols+1))]
@@ -27,27 +28,17 @@ for (race in c(1,3)) {
   candidateY <- log(candidateData[, (cols+1)])
 
   # stratify the male population
-  trainY <- trainY[trainX$Race == race]
-  trainX <- trainX[trainX$Race == race, -8]
+  trainY <- trainY[trainX$Education >= index[edu, 1] & trainX$Education <= index[edu, 2]]
+  trainX <- trainX[(trainX$Education >= index[edu, 1] & trainX$Education <= index[edu, 2]), -4]
 
-  candidateY <- candidateY[candidateX$Race == race]
-  candidateX <- candidateX[candidateX$Race == race, -8]
+  candidateY <- candidateY[candidateX$Education >= index[edu, 1] & candidateX$Education <= index[edu, 2]]
+  candidateX <- candidateX[(candidateX$Education >= index[edu, 1] & candidateX$Education <= index[edu, 2]), -4]
 
-  if (race == 3 & num_new_surveys > length(candidateY)){
-    
-    print(c("out of candidate size, maximum posible value has been set as", floor(length(candidateY) * 0.8)))
-    
-    num_new_surveys <- floor(length(candidateY) * 0.8)
-    
-  } else {
-
-    trainX <- trainX[1:50, ]
-    trainY <- trainY[1:50]
-
-  }
+  trainX <- trainX[1:100, ]
+  trainY <- trainY[1:100]
 
   # compute the real population mean income
-  poptMean <- mean(log(populationData[populationData$Race == race, ]$Total_person_income))
+  poptMean <- mean(log(populationData[(populationData$Education >= index[edu, 1] & populationData$Education <= index[edu, 2]), ]$Total_person_income))
 
   # run the BART regression model
   source("./bartMean.R")
@@ -82,7 +73,7 @@ for (race in c(1,3)) {
        xlab = "Number of Queries", ylab = "Population mean", col = "blue",
        main = NULL,
        lty = 1,
-       ylim = c(9-(race-1)/2, 11-(race-1)/2),
+       ylim = c(9.5+(edu-1)/2, 10.5+(edu-1)/2),
        xaxs="i", yaxs="i"
        )
   lines(x = c(1:num_new_surveys), BARTResults$meanValueBART, type = 'l', col = "red", lty = 1)
@@ -96,7 +87,7 @@ for (race in c(1,3)) {
        xlab = "Number of Queries", ylab = "Standard deviation", col = "blue",
        main = NULL,
        lty = 1,
-       ylim = c(0.8+(race-1)*0.3, 1.4+(race-1)*0.3),
+       ylim = c(1.1-(edu-1)*0.1, 1.6-(edu-1)*0.1),
        xaxs="i", yaxs="i"
        )
   lines(x = c(1:num_new_surveys), BARTResults$standardDeviationBART, type = 'l', col = "red", lty = 1)
