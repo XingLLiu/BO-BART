@@ -35,6 +35,9 @@ computeGPBQ <- function(dim, epochs, N=10, FUN)
   standardDeviationGP <- c()
 
   X <- randomLHS(N, dim)
+  ######## Mixed Genz ########
+  X <- cbind(randomLHS(N, (dim - 1)), sample(c(0,1), N, replace = TRUE))
+  ############################	
   Y <- genz(X)
 
   K <- matrix(0,nrow=N,ncol=N)
@@ -63,10 +66,21 @@ computeGPBQ <- function(dim, epochs, N=10, FUN)
     
     candidate_p <- c()
     
+    # for(i in 1:100) {
+    #   candidate_p[i] <- pmvnorm(rep(0, dim), rep(1, dim) , mean = candidateSet[i,], sigma = diag(dim))[[1]] * (2*pi)^(dim/2) 
+    #   # add in extra term obtained by integration
+    # }
+
+    ######## Mixed Genz ########
+    candidateSet <- cbind(randomLHS(100, (dim - 1)), sample(c(0,1), 100, replace = TRUE))
+
     for(i in 1:100) {
-      candidate_p[i] <- pmvnorm(rep(0, dim), rep(1, dim) , mean = candidateSet[i,], sigma = diag(dim))[[1]] * (2*pi)^(dim/2) 
+      candidate_p[i] <- pmvnorm(rep(0, (dim - 1)), rep(1, (dim - 1)) , mean = candidateSet[i, -dim], sigma = diag((dim - 1)))[[1]] * (2*pi)^((dim - 1)/2) 
       # add in extra term obtained by integration
+      candidate_p[i] <- candidate_p[i] * 0.5 * ( exp(- 0.5 * candidateSet[i, dim]^2 ) + exp(- 0.5 * (candidateSet[i, dim]^2 - 1)) )
+
     }
+    ############################	
     
     K_prime <- diag(N+p)
     

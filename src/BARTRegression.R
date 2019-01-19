@@ -151,7 +151,7 @@ sampleIntegrals <- function(model, dim)
   return (integrals)
 }
 
-BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN) 
+BARTSequential <- function(dim, trainX, trainY, numNewTraining, FUN) 
 # compute integral for BART-BQ with
 # implementation of query sequential design to add
 # more training data to the original dataset
@@ -223,7 +223,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN)
                "trainData" = trainData))
 }
 
-mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY) 
+mainBART <- function(dim, num_iterations, FUN, trainX, trainY) 
 # main method
 # input:
 #   dim
@@ -237,7 +237,7 @@ mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY)
   # prepare training data and parameters
   genz <- FUN #select genz function
   numNewTraining <- num_iterations
-  prediction <- BARTBQSequential(dim, trainX, trainY, numNewTraining, FUN = genz) 
+  prediction <- BARTSequential(dim, trainX, trainY, numNewTraining, FUN = genz) 
 
   return (prediction)
 }

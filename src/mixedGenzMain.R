@@ -7,6 +7,7 @@
 
 # Load required packages
 source("./packages/requiredPackages.R")
+source("./genz/mixedGenz.R")
 requiredPackages()
 
 # define string formatting
@@ -29,25 +30,18 @@ print(c(dim, num_iterations, whichGenz))
 source("./genz/genz.R") # genz function to test
 
 if (whichGenz < 1 | whichGenz > 6) { stop("undefined genz function. Change 3rd argument to 1-6") }
-if (whichGenz == 3 & dim == 1) { stop("incorrect dimension. Discrete Genz function only defined for dimension >= 2") } 
-
-if (whichGenz == 1) { genz <- cont; genzFunctionName <-  deparse(substitute(cont)) }
-if (whichGenz == 2) { genz <- copeak; genzFunctionName <-  deparse(substitute(copeak)) }
-if (whichGenz == 3) { genz <- disc; genzFunctionName <-  deparse(substitute(disc)) }
-if (whichGenz == 4) { genz <- gaussian; genzFunctionName <-  deparse(substitute(gaussian)) }
-if (whichGenz == 5) { genz <- oscil; genzFunctionName <-  deparse(substitute(oscil)) }
-if (whichGenz == 6) { genz <- prpeak; genzFunctionName <-  deparse(substitute(prpeak)) }
+genz <- mixtureGenz; genzFunctionName <-  deparse(substitute(mixtureGenz)) 
 
 print("Testing with: %s" %--% genzFunctionName)
 
 # prepare training dataset
-trainX <- randomLHS(100, dim)
+trainX <- cbind(randomLHS(100, (dim - 1)), sample(c(0,1), 100, replace = TRUE))
 trainY <- genz(trainX)
 
 # Bayesian Quadrature method
 # set number of new query points using sequential design
 
-source("./BART.R")
+source("./BARTBQ.R")
 t0 <- proc.time()
 predictionBART <- mainBART(dim, num_iterations, FUN = genz, trainX, trainY)
 t1 <- proc.time()
@@ -88,18 +82,18 @@ results <- data.frame(
         "epochs" = c(1:num_iterations),
         "BARTMean" = predictionBART$meanValueBART, "BARTsd" = predictionBART$standardDeviationBART,
         "MIMean" = predictionMonteCarlo$meanValueMonteCarlo, "MIsd" = predictionMonteCarlo$standardDeviationMonteCarlo,
-        "GPMean" = predictionGPBQ$meanValueGP, "GPsd" = predictionGPBQ$standardDeviationGP,
+        # "GPMean" = predictionGPBQ$meanValueGP, "GPsd" = predictionGPBQ$standardDeviationGP,
         "actual" = rep(real, num_iterations),
         "runtimeBART" = rep(bartTime, num_iterations),
         "runtimeMI" = rep(MITime, num_iterations),
-        "runtimeGP" = rep(GPTime, num_iterations)
+        # "runtimeGP" = rep(GPTime, num_iterations)
 )
-write.csv(results, file = "../results/genz/%s/results%sdim%s.csv" %--% c(whichGenz, whichGenz, dim),row.names=FALSE)
+# write.csv(results, file = "../results/genz/%s/results%sdim%s.csv" %--% c(whichGenz, whichGenz, dim),row.names=FALSE)
 
 print("Begin Plots")
 
 # 1. Open jpeg file
-jpeg("../report/Figures/%s/convergenceMean%s%sDimensions.jpg" %--% c(whichGenz, genzFunctionName, dim), width = 700, height = 583)
+jpeg("../report/Figures/mixedGenz.jpg" %--% c(whichGenz, genzFunctionName, dim), width = 700, height = 583)
 # 2. Create the plot
 par(mfrow = c(1,2), pty = "s")
 plot(x = c(1:num_iterations), y = predictionMonteCarlo$meanValueMonteCarlo,

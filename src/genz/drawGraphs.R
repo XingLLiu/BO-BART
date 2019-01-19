@@ -6,11 +6,15 @@
 #     Plots stored in {ROOT}/report/Figures for plots
 
 
+methods <- c("BART", "MI", "GP")
+bestMethod <- matrix(NA, ncol = 6, nrow = 6)
+rownames(bestMethod) <- c("cont", "copeak", "disc", "gaussian", "oscil", "prpeak")
+colnames(bestMethod) <- c("1", "2", "3", "5", "10", "20")
 
 for (i in 1:6){
     for (j in 1:6){
         # Skip genz6 dim 2 and 20 for now 
-        if ((i == 6 & j == 2) | (i == 6 & j == 6) ){ next }
+        if ((i == 6 & j == 2)) { next }
 
 
         # global parameters: dimension
@@ -118,6 +122,13 @@ for (i in 1:6){
         # 3. Close the file
         dev.off()
 
+        # Compute abs error
+        epoch <- nrow(integrals)
+        absDifference <- abs(c(predictionBART$meanValueBART[epoch], predictionMonteCarlo$meanValueMonteCarlo[epoch], 
+                           predictionGPBQ$meanValueGP[epoch]) - real)
+        bestMethod[i, j] <- methods[which(absDifference == min(absDifference))[1]]
     }
     cat(genzFunctionName, "done", '\n')
 }
+
+write.csv(bestMethod, file = "../results/genz/bestMethods.csv")

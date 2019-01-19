@@ -151,7 +151,7 @@ sampleIntegrals <- function(model, dim)
   return (integrals)
 }
 
-BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, ifRegression=FALSE) 
+BARTSequential <- function(dim, trainX, trainY, numNewTraining, FUN, ifRegression=FALSE) 
 # compute integral for BART-BQ with
 # implementation of query sequential design to add
 # more training data to the original dataset
@@ -177,12 +177,45 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, ifRegress
   # generate extra training data using the scheme (see pdf)
   for (i in 1:numNewTraining) {
     
+    # print(c("BART: Epoch=", i))
+    # # find the min and max range of y
+    # ymin <- min(trainData[, (dim + 1)]); ymax <- max(trainData[, (dim + 1)])
+    # # first build BART and scale mean and standard deviation
+    # sink("/dev/null")
+    # model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
+    # sink()
+    # # obtain posterior samples
+    # integrals <- sampleIntegrals(model, dim)
+    # integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
+    # meanValue[i] <- mean(integrals)
+    # standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
+
+    # # sequential design section, where we build the new training data
+    # candidateSet <- randomLHS(1000, dim)
+    
+    # # predict the values
+    # fValues <- predict(model, candidateSet)
+    
+    # probability = 1 #uniform probability
+    # #expectedValue <- colMeans(fValues*probability)
+    
+    # var <- colVars(fValues)
+    # index <- sample(which(var==max(var)), 1)
+    # value <- FUN(t(candidateSet[index,]))
+    # trainData <- rbind(trainData, c(candidateSet[index,], value))
+
+
+    ######## Mixed Genz ########
     print(c("BART: Epoch=", i))
     # find the min and max range of y
     ymin <- min(trainData[, (dim + 1)]); ymax <- max(trainData[, (dim + 1)])
     # first build BART and scale mean and standard deviation
     sink("/dev/null")
-    model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
+    trainData1 <- trainData[trainData[, dim] == 1, ]
+    trainData0 <- trainData[trainData[, dim] == 0, ]
+
+    model1 <- bart(trainData1[,1:dim], trainData1[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
+    model0 <- bart(trainData0[,1:dim], trainData0[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
     sink()
     # obtain posterior samples
     integrals <- sampleIntegrals(model, dim)
@@ -191,10 +224,10 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, ifRegress
     standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
 
     # sequential design section, where we build the new training data
-    candidateSet <- randomLHS(1000, dim)
+    candidateSet <- cbind(randomLHS(1000, (dim - 1)), sample(c(0,1), 1000, replace = TRUE))
 
-    
     # predict the values
+    # Case by case for yvalues and integrals
     fValues <- predict(model, candidateSet)
     
     probability = 1 #uniform probability
@@ -204,6 +237,9 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, ifRegress
     index <- sample(which(var==max(var)), 1)
     value <- FUN(t(candidateSet[index,]))
     trainData <- rbind(trainData, c(candidateSet[index,], value))
+
+
+    ############################
   
   }
 
@@ -211,7 +247,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, ifRegress
                "trainData" = trainData))
 }
 
-mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY) 
+mainBART <- function(dim, num_iterations, FUN, trainX, trainY) 
 # main method
 # input:
 #   dim
@@ -225,7 +261,7 @@ mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY)
   # prepare training data and parameters
   genz <- FUN #select genz function
   numNewTraining <- num_iterations
-  prediction <- BARTBQSequential(dim, trainX, trainY, numNewTraining, FUN = genz) 
+  prediction <- BARTSequential(dim, trainX, trainY, numNewTraining, FUN = genz) 
 
   return (prediction)
 }
