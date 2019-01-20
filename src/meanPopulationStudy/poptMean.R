@@ -9,23 +9,20 @@ args <- as.double(commandArgs(TRUE))
 num_new_surveys <- args[1]
 
 # read in data
-trainData <- read.csv("../../data/collegeTrain.csv")
-candidateData <- read.csv("../../data/collegeRemain.csv")
-populationData <- read.csv("../../data/collegeData.csv")
+trainData <- read.csv("../../data/train.csv")
+candidateData <- read.csv("../../data/candidate.csv")
+populationData <- read.csv("../../data/full_data.csv")
 
 #extract covariates and response
 cols <- dim(trainData)[2] - 1
 trainX <- trainData[,-c(1, (cols+1))]
-trainY <- trainData[, (cols+1)]
+trainY <- log(trainData[, (cols+1)])
 
 candidateX <- candidateData[,-c(1, (cols+1))]
-candidateY <- candidateData[, (cols+1)]
-
-#trainX <- trainX[1:50, ]
-#trainY <- trainY[1:50]
+candidateY <- log(candidateData[, (cols+1)])
 
 # compute the real population mean income
-poptMean <- mean(populationData$Grad.Rate)
+poptMean <- mean(log(populationData$Total_person_income))
 
 # Compute population mean
 source("./bartMean.R")
@@ -55,17 +52,17 @@ cat("True Population Mean", poptMean)
 png("./population.png", width = 700, height = 583)
 # 2. Create the plot
 par(mfrow = c(1,2), pty = "s")
-plot(x = c(1:num_new_surveys), y = MImean,
+plot(x = c(1:num_new_surveys), y = MImean * 10,
     pch = 16, type = "l",
     xlab = "Number of Queries", ylab = "Population mean", col = "blue",
     main = NULL,
     lty = 1,
-    ylim = c(60,75),
+    ylim = c(100, 110),
     xaxs="i", yaxs="i"
     )
-lines(x = c(1:num_new_surveys), BARTResults$meanValueBART, type = 'l', col = "red", lty = 1)
-lines(x = c(1:num_new_surveys), BR$BRmean, type = 'l', col = "green", lty = 1)
-abline(a = poptMean, b = 0, lty = 1, col = "black")
+lines(x = c(1:num_new_surveys), BARTResults$meanValueBART * 10, type = 'l', col = "red", lty = 1)
+lines(x = c(1:num_new_surveys), BR$BRmean * 10, type = 'l', col = "green", lty = 1)
+abline(a = poptMean * 10, b = 0, lty = 1, col = "black")
 legend("topleft", legend=c("Monte Carlo", "BART", "Block sampling", "Actual Mean"),
         col=c("blue", "red", "green", "black"), cex=0.8, lty = c(1,1,1))
 

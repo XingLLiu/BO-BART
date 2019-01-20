@@ -11,159 +11,159 @@ library(matrixStats)
   do.call(sprintf, c(list(x), y))
 }
 
-# Tree code
+# # Tree code
 
-terminalProbability <- function(currentNode) 
-  # probabiltity ending up in terminal node
-{
-  prob <- currentNode$probability
+# terminalProbability <- function(currentNode) 
+#   # probabiltity ending up in terminal node
+# {
+#   prob <- currentNode$probability
   
-  while ( !isRoot(currentNode$parent) ) {
-    currentNode <- currentNode$parent
-    prob <- prob*currentNode$probability
-  }
+#   while ( !isRoot(currentNode$parent) ) {
+#     currentNode <- currentNode$parent
+#     prob <- prob*currentNode$probability
+#   }
   
-  return (prob)
-}
+#   return (prob)
+# }
 
-fillProbabilityForNode <- function(oneTree, cutPoints, cut) 
-  # Drop data set into the tree and assign them to different nodes 
-{
-  if ( !is.null(oneTree$leftChild) ) {
+# fillProbabilityForNode <- function(oneTree, cutPoints, cut) 
+#   # Drop data set into the tree and assign them to different nodes 
+# {
+#   if ( !is.null(oneTree$leftChild) ) {
     
-    decisionRule <- cutPoints[[oneTree$splitVar]][oneTree$splitIndex]
+#     decisionRule <- cutPoints[[oneTree$splitVar]][oneTree$splitIndex]
     
-    oneTree$leftChild$probability <- (decisionRule - cut[1, oneTree$splitVar]) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
-    #oneTree$leftChild$probability <- pnorm(decisionRule) - pnorm(cut[1, oneTree$splitVar])
+#     oneTree$leftChild$probability <- (decisionRule - cut[1, oneTree$splitVar]) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
+#     #oneTree$leftChild$probability <- pnorm(decisionRule) - pnorm(cut[1, oneTree$splitVar])
   
-    oneTree$rightChild$probability <- (cut[2, oneTree$splitVar] - decisionRule) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
-    #oneTree$rightChild$probability <- pnorm(cut[2, oneTree$splitVar]) - pnorm(decisionRule)
+#     oneTree$rightChild$probability <- (cut[2, oneTree$splitVar] - decisionRule) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
+#     #oneTree$rightChild$probability <- pnorm(cut[2, oneTree$splitVar]) - pnorm(decisionRule)
 
-    range <- cut[, oneTree$splitVar]
+#     range <- cut[, oneTree$splitVar]
     
-    cut[, oneTree$splitVar] = c(range[1], decisionRule)
+#     cut[, oneTree$splitVar] = c(range[1], decisionRule)
     
-    fillProbabilityForNode(oneTree$leftChild, cutPoints, cut)
+#     fillProbabilityForNode(oneTree$leftChild, cutPoints, cut)
     
-    cut[, oneTree$splitVar] = c(decisionRule, range[2])
+#     cut[, oneTree$splitVar] = c(decisionRule, range[2])
     
-    fillProbabilityForNode(oneTree$rightChild, cutPoints, cut)
+#     fillProbabilityForNode(oneTree$rightChild, cutPoints, cut)
     
-  } else if( is.null(oneTree$probability) ) {
-    oneTree$probability <- 1
-  }
-  return (oneTree)
-}
+#   } else if( is.null(oneTree$probability) ) {
+#     oneTree$probability <- 1
+#   }
+#   return (oneTree)
+# }
 
-terminalProbabilityStore <- function(Tree)
-  # store probability of getting to terminal node 
-{
-  terminalNodes = Traverse(Tree, filterFun = isLeaf)
+# terminalProbabilityStore <- function(Tree)
+#   # store probability of getting to terminal node 
+# {
+#   terminalNodes = Traverse(Tree, filterFun = isLeaf)
   
-  for (i in 1:length(terminalNodes)) {
-    probability2 <- terminalProbability(terminalNodes[[i]])
-    terminalNodes[[i]]$terminal_probability <- probability2
-  }
+#   for (i in 1:length(terminalNodes)) {
+#     probability2 <- terminalProbability(terminalNodes[[i]])
+#     terminalNodes[[i]]$terminal_probability <- probability2
+#   }
   
-  return (Tree)
-}
+#   return (Tree)
+# }
 
-getTree <- function(sampler, chainNum, sampleNum, treeNum)
-  # create tree
-{
-  cutPoints <- dbarts:::createCutPoints(sampler)
+# getTree <- function(sampler, chainNum, sampleNum, treeNum)
+#   # create tree
+# {
+#   cutPoints <- dbarts:::createCutPoints(sampler)
   
-  if (sampler$control@keepTrees) {
-    treeString <- sampler$state[[chainNum]]@savedTrees[treeNum, sampleNum]
-    treeFits <- sampler$state[[chainNum]]@savedTreeFits[, treeNum, sampleNum]
-  }
-  else {
-    treeString <- sampler$state[[chainNum]]@trees[treeNum]
-    treeFits <- sampler$state[[chainNum]]@treeFits[,treeNum]
-  }                           
+#   if (sampler$control@keepTrees) {
+#     treeString <- sampler$state[[chainNum]]@savedTrees[treeNum, sampleNum]
+#     treeFits <- sampler$state[[chainNum]]@savedTreeFits[, treeNum, sampleNum]
+#   }
+#   else {
+#     treeString <- sampler$state[[chainNum]]@trees[treeNum]
+#     treeFits <- sampler$state[[chainNum]]@treeFits[,treeNum]
+#   }                           
   
-  tree <- dbarts:::buildTree(strsplit(gsub("\\.", "\\. ", treeString),
-                                      " ", fixed = TRUE)[[1]])
-  tree$remainder <- NULL
+#   tree <- dbarts:::buildTree(strsplit(gsub("\\.", "\\. ", treeString),
+#                                       " ", fixed = TRUE)[[1]])
+#   tree$remainder <- NULL
   
-  tree$indices <- seq_len(length(sampler$data@y))
-  tree <- dbarts:::fillObservationsForNode(tree, sampler, cutPoints)
+#   tree$indices <- seq_len(length(sampler$data@y))
+#   tree <- dbarts:::fillObservationsForNode(tree, sampler, cutPoints)
   
-  tree <- dbarts:::fillPlotInfoForNode(tree, sampler, treeFits)
-  maxDepth <- dbarts:::getMaxDepth(tree)
+#   tree <- dbarts:::fillPlotInfoForNode(tree, sampler, treeFits)
+#   maxDepth <- dbarts:::getMaxDepth(tree)
   
-  tree <- dbarts:::fillPlotCoordinatesForNode(tree, maxDepth, 1L, 1L)
-  numEndNodes <- tree$index - 1L
-  tree$index <- NULL
+#   tree <- dbarts:::fillPlotCoordinatesForNode(tree, maxDepth, 1L, 1L)
+#   numEndNodes <- tree$index - 1L
+#   tree$index <- NULL
   
-  return (tree)
-}
+#   return (tree)
+# }
 
-singleTreeSum <- function(treeNum, model, drawNum, dim, trainX) 
-  # Sum over a single tree's terminal nodes
-{
-  cutPoints<-dbarts:::createCutPoints(model$fit)
+# singleTreeSum <- function(treeNum, model, drawNum, dim, trainX) 
+#   # Sum over a single tree's terminal nodes
+# {
+#   cutPoints<-dbarts:::createCutPoints(model$fit)
   
-  trainX_mins <- apply(trainX, 2, min)
-  trainX_maxes <- apply(trainX, 2, max)
-  cut <- rbind(trainX_mins, trainX_maxes)
+#   trainX_mins <- apply(trainX, 2, min)
+#   trainX_maxes <- apply(trainX, 2, max)
+#   cut <- rbind(trainX_mins, trainX_maxes)
   
-  treeList <- getTree(model$fit, 1, drawNum, treeNum)
+#   treeList <- getTree(model$fit, 1, drawNum, treeNum)
   
-  selectedTree <- FromListSimple(treeList) 
+#   selectedTree <- FromListSimple(treeList) 
   
-  #Modify tree by the functions written above
-  selectedTree <- fillProbabilityForNode(selectedTree, cutPoints, cut)
-  selectedTree <- terminalProbabilityStore(selectedTree)
+#   #Modify tree by the functions written above
+#   selectedTree <- fillProbabilityForNode(selectedTree, cutPoints, cut)
+#   selectedTree <- terminalProbabilityStore(selectedTree)
   
   
-  terminalNodeList <- Traverse(selectedTree, filterFun = isLeaf)
+#   terminalNodeList <- Traverse(selectedTree, filterFun = isLeaf)
   
-  #Calculate approximation of integreal in the single tree 
-  integral <- 0
-  for (node in terminalNodeList) {
-    #We use the mean of prediction value Y's in the terminal node as u
-    #integral <- integral + node$terminal_probability * node$mu
-    integral <- integral + node$mu
-  }
-  return (integral)
-}
+#   #Calculate approximation of integreal in the single tree 
+#   integral <- 0
+#   for (node in terminalNodeList) {
+#     #We use the mean of prediction value Y's in the terminal node as u
+#     #integral <- integral + node$terminal_probability * node$mu
+#     integral <- integral + node$mu
+#   }
+#   return (integral)
+# }
 
-posteriorSum <- function(drawNum, model, dim, trainX)
-  # Sum over all the trees in one posterior draws
-  # input:
-  #   drawNum: which draw of p trees
-  #   model:  set of tree
-{
-  nTree <- ncol(model$fit$state[[1]]@treeFits)
-  treeNum <- seq(1, nTree, length.out=nTree)
+# posteriorSum <- function(drawNum, model, dim, trainX)
+#   # Sum over all the trees in one posterior draws
+#   # input:
+#   #   drawNum: which draw of p trees
+#   #   model:  set of tree
+# {
+#   nTree <- ncol(model$fit$state[[1]]@treeFits)
+#   treeNum <- seq(1, nTree, length.out=nTree)
   
-  #Extra variables
-  var <- list(model, drawNum, dim, trainX)
+#   #Extra variables
+#   var <- list(model, drawNum, dim, trainX)
   
-  #Calculate integration over all trees in the draw by mapply
-  integral <- sum( unlist( mapply(singleTreeSum, treeNum, MoreArgs=var) ) )
+#   #Calculate integration over all trees in the draw by mapply
+#   integral <- sum( unlist( mapply(singleTreeSum, treeNum, MoreArgs=var) ) )
   
-  return (integral)
-}
+#   return (integral)
+# }
 
 
-sampleIntegrals <- function(model, dim, trainX) 
-  # sum over all posterior draws 
-  # input: 
-  #     model: BART model
-  #
-  # output:
-  #     integrals: mean integral values for each tree as a vector
-{
-  nDraw <- dim(model$fit$state[[1]]@savedTreeFits)[3]
-  drawNum <- seq(1, nDraw, length.out=nDraw)
+# sampleIntegrals <- function(model, dim, trainX) 
+#   # sum over all posterior draws 
+#   # input: 
+#   #     model: BART model
+#   #
+#   # output:
+#   #     integrals: mean integral values for each tree as a vector
+# {
+#   nDraw <- dim(model$fit$state[[1]]@savedTreeFits)[3]
+#   drawNum <- seq(1, nDraw, length.out=nDraw)
   
-  #Extra Variables
-  var <- list(model, dim, trainX)
-  integrals <- mapply(posteriorSum, drawNum, MoreArgs=var)
-  return (integrals)
-}
+#   #Extra Variables
+#   var <- list(model, dim, trainX)
+#   integrals <- mapply(posteriorSum, drawNum, MoreArgs=var)
+#   return (integrals)
+# }
 
 computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTraining) 
 # compute mean for BART-BQ with
@@ -189,24 +189,14 @@ computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTrain
 
   # generate extra training data using the scheme (see pdf)
   for (i in 1:numNewTraining) {
+
     set.seed(i)
+    
     print(c("BART: Epoch=", i))
     # find the min and max range of y
     ymin <- min(trainData[, dim+1]); ymax <- max(trainData[, dim+1])
     # first build BART and scale mean and standard deviation
     sink("/dev/null")
-<<<<<<< HEAD
-    model <- bart(trainData[, 1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=2L, nskip=100, ndpost=32, ntree = 15, k = 15)
-    sink()
-    # obtain posterior samples
-    integrals <- sampleIntegrals(model, dim, trainData[, 1:dim])
-    integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
-
-    meanValue[i] <- mean(integrals)
-    standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
-
-    # predict the valuesDouble12+1
-=======
     model <- bart(trainData[, 1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=5L, nskip=100, ndpost=500, ntree = 100, k = 5, usequant = TRUE)
     sink()
     # # obtain posterior samples
@@ -215,22 +205,16 @@ computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTrain
     # 
     # meanValue[i] <- mean(integrals)
     # standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
->>>>>>> f82f352181f13dde9355504300041d4061e8fd4d
 
+    meanValue[i] <- mean(colMeans(predict(model, trainX)))
+    standardDeviation[i] <- mean(colSds(predict(model, trainX)))
+    
     fValues <- predict(model, candidateX)
-<<<<<<< HEAD
-        
-=======
-    meanValue[i] <- mean(colMeans(fValues))
-    standardDeviation[i] <- mean(colSds((fValues)))
     
-    probability = 1 #uniform probability
-    
->>>>>>> f82f352181f13dde9355504300041d4061e8fd4d
     var <- colVars(fValues)
     index <- sample(which(var==min(var)), 1)
     response <- candidateY[index]
-    
+
     # remove newly added value from candidate set
     trainData <- rbind(trainData, cbind(candidateX[index, ], response))
 
@@ -270,10 +254,10 @@ computePopulationMean <- function(trainX, trainY, candidateX, candidateY, num_it
 BRcomputeMean <- function(trainX, trainY, candidateX, candidateY, num_iterations = num_new_surveys){
 
     # sample the population by sex
-    classOneCandidateY <- candidateY[candidateX$Private == 1]
-    classTwoCandidateY <- candidateY[candidateX$Private == 2]
+    classOneCandidateY <- candidateY[candidateX$Sex == 1]
+    classTwoCandidateY <- candidateY[candidateX$Sex == 2]
 
-    classOneRatio <- sum(trainX$Private == 1) / nrow(trainX)
+    classOneRatio <- sum(trainX$Sex == 1) / nrow(trainX)
 
     numClassOneCandidate <- floor(num_iterations * classOneRatio)
     numClassTwoCandidate <- num_iterations - numClassOneCandidate
