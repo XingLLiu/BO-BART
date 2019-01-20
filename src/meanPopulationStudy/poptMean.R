@@ -9,23 +9,23 @@ args <- as.double(commandArgs(TRUE))
 num_new_surveys <- args[1]
 
 # read in data
-trainData <- read.csv("../../data/train.csv")
-candidateData <- read.csv("../../data/candidate.csv")
-populationData <- read.csv("../../data/full_data.csv")
+trainData <- read.csv("../../data/collegeTrain.csv")
+candidateData <- read.csv("../../data/collegeRemain.csv")
+populationData <- read.csv("../../data/collegeData.csv")
 
-# extract covariates and response
+#extract covariates and response
 cols <- dim(trainData)[2] - 1
 trainX <- trainData[,-c(1, (cols+1))]
-trainY <- log(trainData[, (cols+1)])
+trainY <- trainData[, (cols+1)]
 
 candidateX <- candidateData[,-c(1, (cols+1))]
-candidateY <- log(candidateData[, (cols+1)])
+candidateY <- candidateData[, (cols+1)]
 
-trainX <- trainX[1:50, ]
-trainY <- trainY[1:50]
+#trainX <- trainX[1:50, ]
+#trainY <- trainY[1:50]
 
 # compute the real population mean income
-poptMean <- mean(log(populationData$Total_person_income))
+poptMean <- mean(populationData$Grad.Rate)
 
 # Compute population mean
 source("./bartMean.R")
@@ -48,7 +48,6 @@ results <- data.frame(
 )
 write.csv(results, file = "./population.csv",row.names=FALSE)
 
-
 cat("BART Population Mean", BARTResults$meanValueBART)
 cat("True Population Mean", poptMean)
 
@@ -61,7 +60,7 @@ plot(x = c(1:num_new_surveys), y = MImean,
     xlab = "Number of Queries", ylab = "Population mean", col = "blue",
     main = NULL,
     lty = 1,
-    ylim = c(9,11),
+    ylim = c(60,75),
     xaxs="i", yaxs="i"
     )
 lines(x = c(1:num_new_surveys), BARTResults$meanValueBART, type = 'l', col = "red", lty = 1)

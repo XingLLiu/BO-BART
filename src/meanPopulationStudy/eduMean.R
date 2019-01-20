@@ -6,12 +6,20 @@ library(data.tree)
 library(matrixStats)
 
 # read in data
-trainData <- read.csv("../../data/train.csv")
-candidateData <- read.csv("../../data/candidate.csv")
-populationData <- read.csv("../../data/full_data.csv")
+# trainData <- read.csv("../../data/train.csv")
+# candidateData <- read.csv("../../data/candidate.csv")
+# populationData <- read.csv("../../data/full_data.csv")
 
-studies <- c("Highschool and below", "Beyond highschool")
-index <- matrix(c(1,17,16,24), nrow = 2, ncol = 2)
+# studies <- c("Highschool and below", "Beyond highschool")
+# index <- matrix(c(1,17,16,24), nrow = 2, ncol = 2)
+
+studies <- c("High accept rate", "Low accept rate")
+index <- matrix(c(0,0.79,0.78,1), nrow = 2, ncol = 2)
+
+# read in data
+trainData <- read.csv("../../data/collegeTrain.csv")
+candidateData <- read.csv("../../data/collegeRemain.csv")
+populationData <- read.csv("../../data/collegeData.csv")
 
 args <- as.double(commandArgs(TRUE))
 num_new_surveys <- args[1]
@@ -19,27 +27,42 @@ num_new_surveys <- args[1]
 for (edu in 1:2) {
 
   study <- studies[edu]
-  # extract covariates and response
+  # # extract covariates and response
+  # cols <- dim(trainData)[2] - 1
+  # trainX <- trainData[,-c(1, (cols+1))]
+  # trainY <- log(trainData[, (cols+1)])
+
+  # candidateX <- candidateData[,-c(1, (cols+1))]
+  # candidateY <- log(candidateData[, (cols+1)])
+
+  #extract covariates and response
   cols <- dim(trainData)[2] - 1
   trainX <- trainData[,-c(1, (cols+1))]
-  trainY <- log(trainData[, (cols+1)])
+  trainY <- trainData[, (cols+1)]
 
   candidateX <- candidateData[,-c(1, (cols+1))]
-  candidateY <- log(candidateData[, (cols+1)])
+  candidateY <- candidateData[, (cols+1)]
 
   # stratify the male population
-  trainY <- trainY[trainX$Education >= index[edu, 1] & trainX$Education <= index[edu, 2]]
-  trainX <- trainX[(trainX$Education >= index[edu, 1] & trainX$Education <= index[edu, 2]), -4]
+  #trainY <- trainY[trainX$Education >= index[edu, 1] & trainX$Education <= index[edu, 2]]
+  #trainX <- trainX[(trainX$Education >= index[edu, 1] & trainX$Education <= index[edu, 2]), -4]
 
-  candidateY <- candidateY[candidateX$Education >= index[edu, 1] & candidateX$Education <= index[edu, 2]]
-  candidateX <- candidateX[(candidateX$Education >= index[edu, 1] & candidateX$Education <= index[edu, 2]), -4]
+  trainY <- trainY[trainX$Accept/trainX$Apps >= index[edu, 1] & trainX$Accept/trainX$Apps <= index[edu, 2]]
+  trainX <- trainX[trainX$Accept/trainX$Apps >= index[edu, 1] & trainX$Accept/trainX$Apps <= index[edu, 2], -c(2,3)]
+  
+  # candidateY <- candidateY[candidateX$Education >= index[edu, 1] & candidateX$Education <= index[edu, 2]]
+  # candidateX <- candidateX[(candidateX$Education >= index[edu, 1] & candidateX$Education <= index[edu, 2]), -4]
 
-  trainX <- trainX[1:100, ]
-  trainY <- trainY[1:100]
+  candidateY <- candidateY[candidateX$Accept/candidateX$Apps >= index[edu, 1] & candidateX$Accept/candidateX$Apps <= index[edu, 2]]
+  candidateX <- candidateX[candidateX$Accept/candidateX$Apps >= index[edu, 1] & candidateX$Accept/candidateX$Apps <= index[edu, 2], -c(2,3)]
+  
+  # trainX <- trainX[1:100, ]
+  # trainY <- trainY[1:100]
 
   # compute the real population mean income
-  poptMean <- mean(log(populationData[(populationData$Education >= index[edu, 1] & populationData$Education <= index[edu, 2]), ]$Total_person_income))
-
+  #poptMean <- mean(log(populationData[(populationData$Education >= index[edu, 1] & populationData$Education <= index[edu, 2]), ]$Total_person_income))
+  poptMean <- mean(populationData[populationData$Accept/populationData$Apps >= index[edu, 1] & populationData$Accept/populationData$Apps <= index[edu, 2], ]$Grad.Rate)
+  
   # run the BART regression model
   source("./bartMean.R")
   BARTResults <- computePopulationMean(trainX, trainY, candidateX, candidateY, num_iterations = num_new_surveys)
@@ -73,7 +96,7 @@ for (edu in 1:2) {
        xlab = "Number of Queries", ylab = "Population mean", col = "blue",
        main = NULL,
        lty = 1,
-       ylim = c(9.5+(edu-1)/2, 10.5+(edu-1)/2),
+       ylim = c(60+(edu-1)/2, 75+(edu-1)/2),
        xaxs="i", yaxs="i"
        )
   lines(x = c(1:num_new_surveys), BARTResults$meanValueBART, type = 'l', col = "red", lty = 1)

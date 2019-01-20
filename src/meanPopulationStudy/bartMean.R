@@ -123,7 +123,8 @@ singleTreeSum <- function(treeNum, model, drawNum, dim, trainX)
   integral <- 0
   for (node in terminalNodeList) {
     #We use the mean of prediction value Y's in the terminal node as u
-    integral <- integral + node$terminal_probability * node$mu
+    #integral <- integral + node$terminal_probability * node$mu
+    integral <- integral + node$mu
   }
   return (integral)
 }
@@ -184,21 +185,19 @@ computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTrain
   meanValue <- rep(0, numNewTraining)
   standardDeviation <- rep(0, numNewTraining)
   trainData <- cbind(trainX, trainY)
-  colnames(trainData)[dim+1] <- "INCOME"
-  
-  set.seed(1223)
+  colnames(trainData)[dim+1] <- "response"
 
   # generate extra training data using the scheme (see pdf)
   for (i in 1:numNewTraining) {
-
+    set.seed(i)
     print(c("BART: Epoch=", i))
     # find the min and max range of y
     ymin <- min(trainData[, dim+1]); ymax <- max(trainData[, dim+1])
     # first build BART and scale mean and standard deviation
     sink("/dev/null")
-    model <- bart(trainData[, 1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=5L, nskip=100, ndpost=50, ntree = 10, k = 5, usequant = TRUE)
+    model <- bart(trainData[, 1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=2L, nskip=100, ndpost=32, ntree = 15, k = 15)
     sink()
-    # # obtain posterior samples
+    # obtain posterior samples
     integrals <- sampleIntegrals(model, dim, trainData[, 1:dim])
     integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
 
@@ -211,10 +210,10 @@ computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTrain
         
     var <- colVars(fValues)
     index <- sample(which(var==min(var)), 1)
-    INCOME <- candidateY[index]
+    response <- candidateY[index]
     
     # remove newly added value from candidate set
-    trainData <- rbind(trainData, cbind(candidateX[index, ], INCOME))
+    trainData <- rbind(trainData, cbind(candidateX[index, ], response))
 
     # meanValue[i] <- mean(trainData[, dim+1])
     # standardDeviation[i] <- sqrt( var(trainData[, dim+1]) )
@@ -243,7 +242,7 @@ computePopulationMean <- function(trainX, trainY, candidateX, candidateY, num_it
   # prepare training data and parameters
     numNewTraining <- num_iterations
     dim <- ncol(trainX)
-    # compute population mean income
+    # compute population mean response
     BARTResults <- computeBART(dim, trainX, trainY, candidateX, candidateY, numNewTraining) 
 
     return (BARTResults)
@@ -252,27 +251,27 @@ computePopulationMean <- function(trainX, trainY, candidateX, candidateY, num_it
 BRcomputeMean <- function(trainX, trainY, candidateX, candidateY, num_iterations = num_new_surveys){
 
     # sample the population by sex
-    maleCandidateY <- candidateY[candidateX$Sex == 1]
-    femaleCandidateY <- candidateY[candidateX$Sex == 2]
+    classOneCandidateY <- candidateY[candidateX$Private == 1]
+    classTwoCandidateY <- candidateY[candidateX$Private == 2]
 
-    maleRatio <- sum(trainX$Sex == 1) / nrow(trainX)
+    classOneRatio <- sum(trainX$Private == 1) / nrow(trainX)
 
-    numMaleCandidate <- floor(num_iterations * maleRatio)
-    numFemaleCandidate <- num_iterations - numMaleCandidate
+    numClassOneCandidate <- floor(num_iterations * classOneRatio)
+    numClassTwoCandidate <- num_iterations - numClassOneCandidate
 
     BRmean <- c()
     BRstandardDeviation <- c()
 
     # Monte Carlo in each block 
-    for (i in 1:numMaleCandidate) {
+    for (i in 1:numClassOneCandidate) {
       
-        BRmean[i] <- mean(c(trainY, maleCandidateY[1:i]))
-        BRstandardDeviation[i] <- sqrt( var(c(trainY, maleCandidateY[1:i])) )
+        BRmean[i] <- mean(c(trainY, classOneCandidateY[1:i]))
+        BRstandardDeviation[i] <- sqrt( var(c(trainY, classOneCandidateY[1:i])) )
     }
 
-    for (i in 1:numFemaleCandidate) {
-        BRmean[i+numMaleCandidate] <- mean(c(trainY, maleCandidateY[1:numMaleCandidate], femaleCandidateY[1:i]))
-        BRstandardDeviation[i+numMaleCandidate] <- sqrt( var(c(trainY, maleCandidateY[1:numMaleCandidate], femaleCandidateY[1:i])) )
+    for (i in 1:numClassTwoCandidate) {
+        BRmean[i+numClassOneCandidate] <- mean(c(trainY, classOneCandidateY[1:numClassOneCandidate], classTwoCandidateY[1:i]))
+        BRstandardDeviation[i+numClassOneCandidate] <- sqrt( var(c(trainY, classOneCandidateY[1:numClassOneCandidate], classTwoCandidateY[1:i])) )
     }
     
     return(list("BRmean" = BRmean, "BRstandardDeviation" = BRstandardDeviation))
