@@ -191,7 +191,7 @@ computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTrain
   for (i in 1:numNewTraining) {
 
     set.seed(i)
-    
+
     print(c("BART: Epoch=", i))
     # find the min and max range of y
     ymin <- min(trainData[, dim+1]); ymax <- max(trainData[, dim+1])
@@ -206,15 +206,14 @@ computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTrain
     # meanValue[i] <- mean(integrals)
     # standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
 
-    meanValue[i] <- mean(colMeans(predict(model, trainX)))
-    standardDeviation[i] <- mean(colSds(predict(model, trainX)))
+    meanValue[i] <- mean(colMeans(predict(model, candidateX)))
     
     fValues <- predict(model, candidateX)
     
     var <- colVars(fValues)
-    index <- sample(which(var==min(var)), 1)
+    index <- sample(which(var==max(var)), 1)
     response <- candidateY[index]
-
+    
     # remove newly added value from candidate set
     trainData <- rbind(trainData, cbind(candidateX[index, ], response))
 
@@ -223,7 +222,8 @@ computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTrain
 
     candidateX <- candidateX[-index,]
     candidateY <- candidateY[-index]
-    
+    standardDeviation[i] <- sqrt( var(candidateY)) 
+
   }
 
   return (list("meanValueBART"=meanValue, "standardDeviationBART"=standardDeviation, 
