@@ -33,11 +33,11 @@ fillProbabilityForNode <- function(oneTree, cutPoints, cut)
     
     decisionRule <- cutPoints[[oneTree$splitVar]][oneTree$splitIndex]
     
-    #oneTree$leftChild$probability <- (decisionRule - cut[1, oneTree$splitVar]) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
-    oneTree$leftChild$probability <- pnorm(decisionRule) - pnorm(cut[1, oneTree$splitVar])
+    oneTree$leftChild$probability <- (decisionRule - cut[1, oneTree$splitVar]) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
+    #oneTree$leftChild$probability <- pnorm(decisionRule) - pnorm(cut[1, oneTree$splitVar])
   
-    #oneTree$rightChild$probability <- (cut[2, oneTree$splitVar] - decisionRule) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
-    oneTree$rightChild$probability <- pnorm(cut[2, oneTree$splitVar]) - pnorm(decisionRule)
+    oneTree$rightChild$probability <- (cut[2, oneTree$splitVar] - decisionRule) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
+    #oneTree$rightChild$probability <- pnorm(cut[2, oneTree$splitVar]) - pnorm(decisionRule)
 
     range <- cut[, oneTree$splitVar]
     
@@ -194,20 +194,22 @@ computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTrain
 
     print(c("BART: Epoch=", i))
     # find the min and max range of y
-    #ymin <- min(trainData[, dim+1]); ymax <- max(trainData[, dim+1])
+    ymin <- min(trainData[, dim+1]); ymax <- max(trainData[, dim+1])
     # first build BART and scale mean and standard deviation
     sink("/dev/null")
-    model <- bart(trainData[, 1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=5L, nskip=100, ndpost=50, ntree = 10, k = 5, usequant = TRUE)
+    model <- bart(trainData[, 1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=5L, nskip=100, ndpost=500, ntree = 100, k = 5, usequant = TRUE)
     sink()
     # # obtain posterior samples
-    #integrals <- sampleIntegrals(model, dim, trainData[, 1:dim])
-    #integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
-    
-    #meanValue[i] <- mean(integrals)
-    #standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
+    # integrals <- sampleIntegrals(model, dim, trainData[, 1:dim])
+    # integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
+    # 
+    # meanValue[i] <- mean(integrals)
+    # standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
 
     # predict the values
     fValues <- predict(model, candidateX)
+    meanValue[i] <- mean(colMeans(fValues))
+    standardDeviation[i] <- mean(colSds((fValues)))
     
     probability = 1 #uniform probability
     
@@ -218,8 +220,8 @@ computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTrain
     # remove newly added value from candidate set
     trainData <- rbind(trainData, cbind(candidateX[index, ], INCOME))
 
-    meanValue[i] <- mean(trainData[, dim+1])
-    standardDeviation[i] <- sqrt( var(trainData[, dim+1]) )
+    # meanValue[i] <- mean(trainData[, dim+1])
+    # standardDeviation[i] <- sqrt( var(trainData[, dim+1]) )
 
     candidateX <- candidateX[-index,]
     candidateY <- candidateY[-index]
