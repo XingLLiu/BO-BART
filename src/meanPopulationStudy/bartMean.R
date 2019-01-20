@@ -33,11 +33,11 @@ fillProbabilityForNode <- function(oneTree, cutPoints, cut)
     
     decisionRule <- cutPoints[[oneTree$splitVar]][oneTree$splitIndex]
     
-    #oneTree$leftChild$probability <- (decisionRule - cut[1, oneTree$splitVar]) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
-    oneTree$leftChild$probability <- pnorm(decisionRule) - pnorm(cut[1, oneTree$splitVar])
+    oneTree$leftChild$probability <- (decisionRule - cut[1, oneTree$splitVar]) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
+    #oneTree$leftChild$probability <- pnorm(decisionRule) - pnorm(cut[1, oneTree$splitVar])
   
-    #oneTree$rightChild$probability <- (cut[2, oneTree$splitVar] - decisionRule) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
-    oneTree$rightChild$probability <- pnorm(cut[2, oneTree$splitVar]) - pnorm(decisionRule)
+    oneTree$rightChild$probability <- (cut[2, oneTree$splitVar] - decisionRule) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
+    #oneTree$rightChild$probability <- pnorm(cut[2, oneTree$splitVar]) - pnorm(decisionRule)
 
     range <- cut[, oneTree$splitVar]
     
@@ -195,6 +195,7 @@ computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTrain
     ymin <- min(trainData[, dim+1]); ymax <- max(trainData[, dim+1])
     # first build BART and scale mean and standard deviation
     sink("/dev/null")
+<<<<<<< HEAD
     model <- bart(trainData[, 1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=2L, nskip=100, ndpost=32, ntree = 15, k = 15)
     sink()
     # obtain posterior samples
@@ -205,9 +206,27 @@ computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTrain
     standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
 
     # predict the valuesDouble12+1
+=======
+    model <- bart(trainData[, 1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=5L, nskip=100, ndpost=500, ntree = 100, k = 5, usequant = TRUE)
+    sink()
+    # # obtain posterior samples
+    # integrals <- sampleIntegrals(model, dim, trainData[, 1:dim])
+    # integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
+    # 
+    # meanValue[i] <- mean(integrals)
+    # standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
+>>>>>>> f82f352181f13dde9355504300041d4061e8fd4d
 
     fValues <- predict(model, candidateX)
+<<<<<<< HEAD
         
+=======
+    meanValue[i] <- mean(colMeans(fValues))
+    standardDeviation[i] <- mean(colSds((fValues)))
+    
+    probability = 1 #uniform probability
+    
+>>>>>>> f82f352181f13dde9355504300041d4061e8fd4d
     var <- colVars(fValues)
     index <- sample(which(var==min(var)), 1)
     response <- candidateY[index]
