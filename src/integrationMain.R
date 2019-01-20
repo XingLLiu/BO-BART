@@ -47,9 +47,9 @@ trainY <- genz(trainX)
 # Bayesian Quadrature method
 # set number of new query points using sequential design
 
-source("./BART.R")
+source("./BARTBQ.R")
 t0 <- proc.time()
-predictionBART <- mainBART(dim, num_iterations, FUN = genz, trainX, trainY)
+predictionBART <- mainBARTBQ(dim, num_iterations, FUN = genz, trainX, trainY)
 t1 <- proc.time()
 bartTime <- (t1 - t0)[[1]]
 # Bayesian Quadrature with Monte Carlo integration method
@@ -132,5 +132,3 @@ dev.off()
 
 
 print("Please check {ROOT}/report/Figures for plots")
-
-

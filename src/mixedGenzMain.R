@@ -33,11 +33,11 @@ if (whichGenz < 1 | whichGenz > 6) { stop("undefined genz function. Change 3rd a
 genz <- mixtureGenz; genzFunctionName <-  deparse(substitute(mixtureGenz)) 
 
 print("Testing with: %s" %--% genzFunctionName)
-
+print("here")
 # prepare training dataset
 trainX <- cbind(randomLHS(100, (dim - 1)), sample(c(0,1), 100, replace = TRUE))
 trainY <- genz(trainX)
-
+print("there")
 # Bayesian Quadrature method
 # set number of new query points using sequential design
 

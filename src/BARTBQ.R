@@ -179,59 +179,23 @@ BARTSequential <- function(dim, trainX, trainY, numNewTraining, FUN, ifRegressio
   # generate extra training data using the scheme (see pdf)
   for (i in 1:numNewTraining) {
     
-    # print(c("BART: Epoch=", i))
-    # # find the min and max range of y
-    # ymin <- min(trainData[, (dim + 1)]); ymax <- max(trainData[, (dim + 1)])
-    # # first build BART and scale mean and standard deviation
-    # sink("/dev/null")
-    # model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
-    # sink()
-    # # obtain posterior samples
-    # integrals <- sampleIntegrals(model, dim)
-    # integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
-    # meanValue[i] <- mean(integrals)
-    # standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
-
-    # # sequential design section, where we build the new training data
-    # candidateSet <- randomLHS(1000, dim)
-    
-    # # predict the values
-    # fValues <- predict(model, candidateSet)
-    
-    # probability = 1 #uniform probability
-    # #expectedValue <- colMeans(fValues*probability)
-    
-    # var <- colVars(fValues)
-    # index <- sample(which(var==max(var)), 1)
-    # value <- FUN(t(candidateSet[index,]))
-    # trainData <- rbind(trainData, c(candidateSet[index,], value))
-
-
-    ######## Mixed Genz ########
     print(c("BART: Epoch=", i))
+    # find the min and max range of y
+    ymin <- min(trainData[, (dim + 1)]); ymax <- max(trainData[, (dim + 1)])
     # first build BART and scale mean and standard deviation
-
-    clusters <- makeCluster(2)
-    registerDoParallel(clusters)
     sink("/dev/null")
-    combinedIntegrals <- for (i in 0:1, .combine="c") %dopar% {
-      trainData <- trainData[trainData[, dim] == i, ]
-      # find the min and max range of y
-      ymin <- min(trainData[, (dim + 1)]); ymax <- max(trainData[, (dim + 1)])
-      model <- bart(trainData1[,1:dim], trainData1[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
-      integrals <- sampleIntegrals(model, dim)
-      integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
-    }
+    model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
     sink()
-    meanValue[i] <- mean(combinedIntegrals) * 0.5
-    standardDeviation[i] <- sqrt( sum((combinedIntegrals*0.5 - meanValue[i])^2) / (length(integrals) - 1) )
     # obtain posterior samples
+    integrals <- sampleIntegrals(model, dim)
+    integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
+    meanValue[i] <- mean(integrals)
+    standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
 
     # sequential design section, where we build the new training data
-    candidateSet <- cbind(randomLHS(1000, (dim - 1)), sample(c(0,1), 1000, replace = TRUE))
-
+    candidateSet <- randomLHS(1000, dim)
+    
     # predict the values
-    # Case by case for yvalues and integrals
     fValues <- predict(model, candidateSet)
     
     probability = 1 #uniform probability
@@ -241,9 +205,6 @@ BARTSequential <- function(dim, trainX, trainY, numNewTraining, FUN, ifRegressio
     index <- sample(which(var==max(var)), 1)
     value <- FUN(t(candidateSet[index,]))
     trainData <- rbind(trainData, c(candidateSet[index,], value))
-
-
-    ############################
   
   }
 
@@ -251,7 +212,7 @@ BARTSequential <- function(dim, trainX, trainY, numNewTraining, FUN, ifRegressio
                "trainData" = trainData))
 }
 
-mainBART <- function(dim, num_iterations, FUN, trainX, trainY) 
+mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY) 
 # main method
 # input:
 #   dim

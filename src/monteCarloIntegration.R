@@ -11,9 +11,6 @@ monteCarloIntegrationUniform <- function(FUN, numSamples, dim)
 	
 	for (i in 1:numSamples) {
 	  CandidateSet <- matrix(runif(i*dim), ncol = dim)
-	  ######## Mixed Genz ########
-	  CandidateSet <- cbind(randomLHS(i, (dim - 1)), sample(c(0,1), i, replace = TRUE))
-	  ############################	
 
 	  functionSamples <- FUN(CandidateSet)
 	  meanValueMonteCarlo[i] <- mean(functionSamples)
