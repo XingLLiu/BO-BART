@@ -208,8 +208,9 @@ computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTrain
 
     # predict the values
     fValues <- predict(model, candidateX)
-    meanValue[i] <- mean(colMeans(fValues))
-    standardDeviation[i] <- mean(colSds((fValues)))
+      integrals <- rowMeans(fValues)
+      meanValue[i] <- mean(integrals)
+      standardDeviation[i] <- sd(integrals) 
     
     probability = 1 #uniform probability
     
