@@ -23,7 +23,7 @@ gaussianKernel <- function(xPrime, X, lengthscale = 0.1)
 
 rescale <- function(x) {x * attr(x, 'scaled:scale') + attr(x, 'scaled:center')}
 
-computeGPBQ <- function(dim, epochs, N=100, FUN, lengthscale=0.1) 
+computeGPBQ <- function(dim, epochs, N=100, FUN, lengthscale=0.29) 
 # method for computation of the integration
 # includes query sequential design
 # input:
@@ -73,10 +73,10 @@ computeGPBQ <- function(dim, epochs, N=100, FUN, lengthscale=0.1)
     K_prime <- diag(N+p)
     
     K_prime[1:(N+p-1), 1:(N+p-1)] <- K
-    
     for (i in 1:100) {
-      
-      kernel_new_entries <- kernelMatrix(rbfdot(.5/lengthscale^2), candidateSet[i,], X)
+
+      kernel_new_entries <- kernelMatrix(rbfdot(.5/lengthscale^2), matrix(candidateSet[i,], nrow = 1), X)
+
 
       K_prime[1:(N+p-1),(N+p)] <- kernel_new_entries
       K_prime[(N+p),1:(N+p-1)] <- kernel_new_entries
@@ -88,7 +88,7 @@ computeGPBQ <- function(dim, epochs, N=100, FUN, lengthscale=0.1)
     
     index <- which(candidate_Var == max(candidate_Var))[1]
     
-    kernel_new_entry <- kernelMatrix(rbfdot(.5/lengthscale^2), candidateSet[index,], X)
+    kernel_new_entry <- kernelMatrix(rbfdot(.5/lengthscale^2), matrix(candidateSet[index,], nrow = 1), X)
     
     K_prime[N+p,1:(N+p-1)] <- kernel_new_entry
     K_prime[1:(N+p-1),N+p] <- kernel_new_entry

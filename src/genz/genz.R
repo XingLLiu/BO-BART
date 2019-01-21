@@ -320,7 +320,7 @@ prpeak <- function(xx)
   dim <- ncol(xx)
   u <- rep(0.5, dim)
   #a <- rep(600/dim^3, dim) 
-  a <- rep(600/dim^3, dim) * 0.01
+  a <- rep(600/dim^3, dim)
   
   sum <- a^(-2) + (xx - u)^2
   y <- rowProds(1/sum)

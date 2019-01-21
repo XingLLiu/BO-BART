@@ -8,6 +8,7 @@
 # Load required packages
 source("./packages/requiredPackages.R")
 requiredPackages()
+set.seed(0)
 
 # define string formatting
 `%--%` <- function(x, y) 
@@ -64,8 +65,11 @@ print("Final Results:")
 print(c("Actual integral:", real))
 print(c("GP integral:", predictionGPBQ$meanValueGP[num_iterations]))
 
-print("Writing full results to ../results/genz%s" %--% c(whichGenz))
+print("Writing full results to ../results/genz%s" %--% c(whichGenz, dim))
 results <- data.frame(
+		"epochs" = c(1:num_iterations),
+		"GPMean" = predictionGPBQ$meanValueGP,
+		"GPVariance" = predictionGPBQ$varianceGP,
         "runtimeGP" = GPTime
 )
 
