@@ -95,6 +95,7 @@ copeak <- function(xx)
 
   dim <- ncol(xx)
   u <- rep(0.5, dim)
+
   a <- matrix(rep(600/dim^3, dim), ncol = 1)
   
   sum <- xx %*% a
@@ -318,7 +319,8 @@ prpeak <- function(xx)
   
   dim <- ncol(xx)
   u <- rep(0.5, dim)
-  a <- rep(600/dim^3, dim) 
+  #a <- rep(600/dim^3, dim) 
+  a <- rep(600/dim^3, dim) * 0.01
   
   sum <- a^(-2) + (xx - u)^2
   y <- rowProds(1/sum)
