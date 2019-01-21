@@ -4,7 +4,7 @@
 library(mvtnorm)
 library(MASS)
 library(kernlab)
-gaussianKernel <- function(xPrime, X, lengthscale = 0.1) 
+gaussianKernel <- function(xPrime, X, lengthscale = 0.29) 
   # The exp squared covariance function, hence calculating covariance matrix cov
   # input:
   #     X: Initial design matrix
@@ -44,11 +44,11 @@ computeGPBQ <- function(dim, epochs, N=100, FUN, lengthscale=0.29)
   jitter = 1e-6
 
   # compute kernel matrix for starting dataset
-  # for (i in 1:N) {
-  #   K[i,] <- gaussianKernel(X[i,], X)
-  # }
-  library(kernlab)
-  K = kernelMatrix(rbfdot(.5/lengthscale^2), X)
+  for (i in 1:N) {
+    K[i,] <- gaussianKernel(X[i,], X)
+  }
+  #library(kernlab)
+  #K = kernelMatrix(rbfdot(.5/lengthscale^2), X)
   
   z<-c();
   for(i in 1:N) {
@@ -75,7 +75,7 @@ computeGPBQ <- function(dim, epochs, N=100, FUN, lengthscale=0.29)
     K_prime[1:(N+p-1), 1:(N+p-1)] <- K
     for (i in 1:100) {
 
-      kernel_new_entries <- kernelMatrix(rbfdot(.5/lengthscale^2), matrix(candidateSet[i,], nrow = 1), X)
+      kernel_new_entries <- gaussianKernel(candidateSet[i,], X)
 
 
       K_prime[1:(N+p-1),(N+p)] <- kernel_new_entries
@@ -88,7 +88,7 @@ computeGPBQ <- function(dim, epochs, N=100, FUN, lengthscale=0.29)
     
     index <- which(candidate_Var == max(candidate_Var))[1]
     
-    kernel_new_entry <- kernelMatrix(rbfdot(.5/lengthscale^2), matrix(candidateSet[index,], nrow = 1), X)
+    kernel_new_entry <- gaussianKernel(candidateSet[index,], X)
     
     K_prime[N+p,1:(N+p-1)] <- kernel_new_entry
     K_prime[1:(N+p-1),N+p] <- kernel_new_entry
