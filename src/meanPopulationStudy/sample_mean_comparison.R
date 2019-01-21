@@ -3,12 +3,12 @@ source("./bartMean.R")
 
 train <- read.csv("../../data/train.csv")
 candidate <- read.csv("../../data/candidate.csv")
-candidate <- read.csv("../../data/full_data.csv") # was population
+g <- read.csv("../../data/full_data.csv") # was population
 population <- read.csv("../../data/full_data.csv") 
 
-train <- train[, -1]
-candidate <- candidate[, -1]
-population <- population[, -1]
+train <- train[sample(nrow(train)), -1]
+candidate <- candidate[sample(nrow(candidate)), -1]
+population <- population[sample(nrow(population)), -1]
 
 par(mfrow = c(2, 2))
 
@@ -31,7 +31,8 @@ for (i in c(50, 200, 500, 1019)){
   MIstandardDeviation <- c()
   for (j in 1:NN) {
     MImean[j] <- mean(c(trainY, candidateY[1:j]))
-    MIstandardDeviation[j] <- sqrt( var(c(trainY, candidateY[1:j])) ) 
+    n = length(c(trainY, candidateY[1:j]))
+    MIstandardDeviation[j] <- sqrt( var(c(trainY, candidateY[1:j])) /(n-1)) 
   }
   
   BR <- BRcomputeMean(trainX, trainY, candidateX, candidateY, num_iterations = NN)
@@ -48,5 +49,16 @@ for (i in c(50, 200, 500, 1019)){
   abline(a = poptMean * 10, b = 0, lty = 1, col = "black")
   legend("topleft", legend=c("Monte Carlo", "BART", "Block sampling", "Actual Mean"),
          col=c("blue", "red", "green", "black"), cex=0.8, lty = c(1,1,1))
+  plot(x = c(1:NN), y = MIstandardDeviation,
+       pch = 16, type = "l",
+       xlab = "Number of Queries", ylab = "SD", col = "blue",
+       main = "Mean population income of vs N \nusing %s",
+       lty = 1,
+       #ylim = c(98,105),
+       xaxs="i", yaxs="i")
+  lines(x = c(1:NN), BARTResults$standardDeviationBART, type = 'l', col = "red", lty = 1)
+  #lines(x = c(1:NN), BR$BRstandardDeviation, type = 'l', col = "green", lty = 1)
+  legend("topleft", legend=c("Monte Carlo", "BART", "Block sampling"),
+         col=c("blue", "red", "green"), cex=0.8, lty = c(1,1,1))
   
 }

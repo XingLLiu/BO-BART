@@ -10,8 +10,11 @@ num_new_surveys <- args[1]
 
 # read in data
 trainData <- read.csv("../../data/train.csv")
-candidateData <- read.csv("../../data/candidate.csv")
+candidateData <- read.csv("../../data/remain.csv")
 populationData <- read.csv("../../data/full_data.csv")
+
+trainData <- trainData[sample(nrow(trainData)), ]
+candidateData <- candidateData[sample(nrow(candidateData)), ]
 
 #extract covariates and response
 cols <- dim(trainData)[2] - 1
@@ -31,11 +34,15 @@ BARTResults <- computePopulationMean(trainX, trainY, candidateX, candidateY, num
 MImean <- c()
 MIstandardDeviation <- c()
 for (i in 1:num_new_surveys) {
-MImean[i] <- mean(c(trainY, candidateY[1:i]))
-MIstandardDeviation[i] <- sqrt( var(c(trainY, candidateY[1:i])) ) 
+    
+    MImean[i] <- mean(c(trainY, candidateY[1:i]))
+
+    n = length(c(trainY, candidateY[1:i]))
+    MIstandardDeviation[i] <- sqrt( var(c(trainY, candidateY[1:i])) /(n-1) )
+
 }
 
-BR <- BRcomputeMean(trainX, trainY, candidateX, candidateY, num_iterations = num_new_surveys)
+BR <- BRcomputeMean(trainX, trainY, candidateX, candidateY, group = "Race", num_iterations = num_new_surveys)
 
 results <- data.frame(
     "epochs" = c(1:num_new_surveys),
@@ -57,7 +64,7 @@ plot(x = c(1:num_new_surveys), y = MImean * 10,
     xlab = "Number of Queries", ylab = "Population mean", col = "blue",
     main = NULL,
     lty = 1,
-    ylim = c(100, 110),
+    ylim = c(100, 105),
     xaxs="i", yaxs="i"
     )
 lines(x = c(1:num_new_surveys), BARTResults$meanValueBART * 10, type = 'l', col = "red", lty = 1)
@@ -71,7 +78,7 @@ plot(x = c(1:num_new_surveys), y = MIstandardDeviation,
     xlab = "Number of Queries", ylab = "Standard deviation", col = "blue",
     main = NULL,
     lty = 1,
-    ylim = c(0.8, 1.5),
+    ylim = c(0, 0.2),
     xaxs="i", yaxs="i"
     )
 lines(x = c(1:num_new_surveys), BARTResults$standardDeviationBART, type = 'l', col = "red", lty = 1)

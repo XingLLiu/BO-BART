@@ -7,8 +7,11 @@ library(matrixStats)
 
 # read in data
 trainData <- read.csv("../../data/train.csv")
-candidateData <- read.csv("../../data/candidate.csv")
+candidateData <- read.csv("../../data/remain.csv")
 populationData <- read.csv("../../data/full_data.csv")
+
+trainData <- trainData[sample(nrow(trainData)), ]
+candidateData <- candidateData[sample(nrow(candidateData)), ]
 
 studies <- c("Highschool and below", "Beyond highschool")
 index <- matrix(c(1,17,16,24), nrow = 2, ncol = 2)
@@ -44,11 +47,15 @@ for (cat in 1:2) {
   MImean <- c()
   MIstandardDeviation <- c()
   for (i in 1:num_new_surveys) {
+    
     MImean[i] <- mean(c(trainY, candidateY[1:i]))
-    MIstandardDeviation[i] <- sqrt( var(c(trainY, candidateY[1:i])) )
+    
+    n = length(c(trainY, candidateY[1:i]))
+    MIstandardDeviation[i] <- sqrt( var(c(trainY, candidateY[1:i])) /(n-1) )
+
   }
 
-  BR <- BRcomputeMean(trainX, trainY, candidateX, candidateY, num_iterations = num_new_surveys)
+  BR <- BRcomputeMean(trainX, trainY, candidateX, candidateY, "Race", num_iterations = num_new_surveys)
 
   results <- data.frame(
         "epochs" = c(1:num_new_surveys),
@@ -84,7 +91,7 @@ for (cat in 1:2) {
        xlab = "Number of Queries", ylab = "Standard deviation", col = "blue",
        main = NULL,
        lty = 1,
-       ylim = c(1.1-(cat-1)*0.1, 1.6-(cat-1)*0.1),
+       ylim = c(0, 0.4),
        xaxs="i", yaxs="i"
        )
   lines(x = c(1:num_new_surveys), BARTResults$standardDeviationBART, type = 'l', col = "red", lty = 1)
