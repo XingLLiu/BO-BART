@@ -1,7 +1,7 @@
 "","1","2","3","5","10","20"
-"cont","BART","MI","GP","BART","MI","BART"
-"copeak","MI","MI","GP","GP","GP","BART"
-"disc",NA,"BART","MI","BART","BART","BART"
-"gaussian","GP","MI","BART","BART","GP","MI"
-"oscil","MI","GP","GP","GP","GP","GP"
-"prpeak","BART",NA,"GP","BART","GP","MI"
+"cont",NA,NA,NA,NA,NA,NA
+"copeak",NA,NA,NA,NA,NA,NA
+"disc",NA,NA,NA,NA,NA,NA
+"gaussian",NA,NA,NA,NA,NA,NA
+"oscil",NA,NA,NA,NA,NA,NA
+"prpeak",NA,NA,NA,NA,NA,NA
