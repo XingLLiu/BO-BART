@@ -1,13 +1,16 @@
 # !/usr/bin/env R
 # uncomment below and fix it according when in department cluster.
 # setwd("/scratchcomp01/xl6116/BO-BART/src/")
-# 
+setwd(getwd())
 # uncomment the following when running the code for the first time to load real integral values
 # source("./genz/saveComputeIntegrals.R")
 
 # Load required packages
-source("./packages/requiredPackages.R")
-requiredPackages()
+library(lhs)
+library(mvtnorm)
+library(matrixStats)
+library(kernlab)
+library(cubature)
 set.seed(0)
 
 # define string formatting
@@ -18,11 +21,20 @@ set.seed(0)
   do.call(sprintf, c(list(x), y))
 }
 
+calc_lengthscale <- function(dim) {
+  samples <- c()
+  for (i in 1:dim) {
+    samples <- cbind(samples, runif(1000))
+  }
+  lengthscale <- median(dist(samples))
+}
+
 # global parameters: dimension
 args <- as.double(commandArgs(TRUE))
 dim <- args[1]
 num_iterations <- args[2]
 whichGenz <- args[3]
+lengthscale <- calc_lengthscale(dim)
 
 if (num_iterations == 1) { stop("NEED MORE THAN 1 ITERATION") }
 
@@ -50,7 +62,7 @@ print("Begin Gaussian Process Integration")
 source("./GPBQ.R")
 
 t0 <- proc.time()
-predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = genz)  
+predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = genz, lengthscale)  
 t1 <- proc.time()
 GPTime <- (t1 - t0)[[1]]
 
@@ -64,6 +76,7 @@ real <- analyticalIntegrals[whichGenz, whichDimension]
 print("Final Results:")
 print(c("Actual integral:", real))
 print(c("GP integral:", predictionGPBQ$meanValueGP[num_iterations]))
+print(c("lenthscale=", lengthscale))
 
 print("Writing full results to ../results/genz%s" %--% c(whichGenz, dim))
 results <- data.frame(
@@ -72,5 +85,5 @@ results <- data.frame(
 		"GPVariance" = predictionGPBQ$varianceGP,
         "runtimeGP" = GPTime
 )
-print(GPTime)
+
 write.csv(results, file = "../results/genz/GPresults%sdim%s.csv" %--% c(whichGenz, dim),row.names=FALSE)

@@ -49,17 +49,8 @@ for (j in 1:6){
         integrals <- read.csv(filePath, header=TRUE, sep=",", stringsAsFactors = FALSE)
         BARTRunTimeAll[i, j] <- integrals[1, 9]
 
-        cat(i, j, "\n")
-        cat("BARTruntime", integrals[1, 9], "\n")
         # Rearrange GP run time
-
-        # if (GPRunTimeAll[1, (6 * i + (j - 1))] == 0){
-        #     GPRunTimeRearranged[i, j] <- NA
-        # } else{
-        #     GPRunTimeRearranged[i, j] <- GPRunTimeAll[1, (6 * i + (j - 1))]
-        # }
         GPRunTimeRearranged[i, j] <- GPRunTimeAll[1, (1 + 6 * i + j)]
-        cat("GPruntime", GPRunTimeRearranged[i, j], "\n")
     }
 
     cat("Dim", dim, "done", '\n')
@@ -69,8 +60,6 @@ for (j in 1:6){
 GPRunTime <- colMeans(GPRunTimeRearranged, na.rm = TRUE)
 BARTRunTime <- colMeans(BARTRunTimeAll, na.rm = TRUE)
 
-print(BARTRunTime)
-print(GPRunTime)
 
 # 1. Open jpeg file
 # plotName <- paste("convergenceMean", toString(whichGenz), toString(dim), "Dimensions", ".eps", sep = "")
@@ -82,7 +71,7 @@ postscript(plotPath, width = 2100, height = 1794)
 # 2. Create the plot
 # Set y limits
 
-par(mar=c(2, 4, 4, 7))
+par(mar=c(4, 4, 4, 7))
 plot(x = 1:6, y = BARTRunTime,
     pch = 16, type = "b",
     xlab = "Dimension", ylab = "Time", col = "black",
@@ -90,12 +79,12 @@ plot(x = 1:6, y = BARTRunTime,
     xlim = c(0.8, 6.2),
     cex = 1.5,
     lty = 2,
-    xaxs="i", yaxs="i"
+    xaxs="i", yaxs="i",
+    xaxt = "n"
     )
 lines(GPRunTime, col = "blue", type = "o", lty = 2, pch = 19, cex = 1.5)
-legend("topleft", legend=c("BART BQ", "GP BQ"),
-    col=c("black", "blue"), cex=0.8, lty = c(1,1,1,1))
-
+axis(1, at=1:6, labels=c(1, 2, 3, 5, 10, 20))
+legend("topleft", legend=c("BART BQ", "GP BQ"), col=c("black", "blue"), lty=rep(2, 2), cex=1.2, lwd=rep(2,2))
 
 # 3. Close the file
 dev.off()
