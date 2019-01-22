@@ -5,6 +5,7 @@ library(dbarts)
 library(data.tree)
 library(matrixStats)
 source("./bartMean.R")
+# set seed to enable reproduction
 set.seed(1223)
 
 args <- as.double(commandArgs(TRUE))
@@ -31,7 +32,7 @@ candidateY <- candidateData[, (cols+1)]
 # compute the real population mean income
 poptMean <- mean(populationData$Total_person_income)
 
-# Compute population mean
+# compute population average income estimates by BARTBQ
 BARTResults <- computeBART(trainX, trainY, candidateX, candidateY, num_iterations=num_new_surveys)
 
 # population average income estimation by Monte Carlo
@@ -102,8 +103,10 @@ for (cat in 1:2) {
   # compute the real population mean income
   eduMean <- mean(populationData[(populationData$Education >= mat[1, cat] & populationData$Education <= mat[2, cat]), ]$Total_person_income)
   
+  # stratified population average income estimation by Monte Carlo
   eduMIResults <- computeMI(eduTrainX, eduTrainY, eduCandidateX, eduCandidateY, num_iterations=num_new_surveys)
 
+  # stratified population average income estimation by block random sampling
   eduBRSResults <- computeBRS(eduTrainX, eduTrainY, eduCandidateX, eduCandidateY, "Race", num_iterations=num_new_surveys)
 
   # store results

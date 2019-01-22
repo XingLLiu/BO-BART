@@ -18,20 +18,23 @@ computePopulationMean <- function(dim, trainX, trainY, condidateX, candidateY, n
 # For every iteration, we compute the test error
 # input:
 #   dim: dimension
-#   trainX: covariates of training data
-#   trainY: response of training data
-#   numNewTraining: number of new training points to be added
+#   trainX: covariates of training set
+#   trainY: regressors of training set
+#   candidateX: covariates of candidate set
+#   candidateY: regressor of candidate set
+#   num_iterations: number of new training data to be added
 #
 # output:
-#   list of mean integral value, standard deviation of integral value and new traiing set
+#   list of mean integral value, standard deviation of integral 
+#   value (segmented and not segmented) and new traiing set
 {
   print( c("Adding number of new training data:", num_iterations) )
   # outputs
   meanValue <- rep(0, num_iterations)
   standardDeviation <- rep(0, num_iterations)
-  trainData <- cbind(trainX, trainY)
   eduMeanValue <- matrix(0, 2*num_iterations, nrow=2, ncol=num_iterations)
   eduStandardDeviation <- matrix(0, 2*num_iterations, nrow=2, ncol=num_iterations)
+  trainData <- cbind(trainX, trainY)
   
   colnames(trainData)[dim+1] <- "response"
 
@@ -40,13 +43,15 @@ computePopulationMean <- function(dim, trainX, trainY, condidateX, candidateY, n
 
   # generate extra training data using the scheme (see pdf)
   for (i in 1:num_iterations) {
-
+    
+    # set seed to enable reproduction of the results
     set.seed(i)
 
     print(c("BART: Epoch=", i))
     # first build BART model
     sink("/dev/null")
-    model <- bart(trainData[, 1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=5L, nskip=100, ndpost=200, ntree=50, k=10, usequant=FALSE) #200 
+    model <- bart(trainData[, 1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=5L, 
+                  nskip=100, ndpost=200, ntree=50, k=10, usequant=FALSE)
     sink()
 
     # predict the values
@@ -88,31 +93,33 @@ computePopulationMean <- function(dim, trainX, trainY, condidateX, candidateY, n
 
   }
 
-  return (list("meanValueBART"=meanValue, "standardDeviationBART"=standardDeviation, 
-               "eduMeanValueBART"=eduMeanValue, "eduStandardDeviationBART"=eduStandardDeviation, "trainData"=trainData))
+  return(list("meanValueBART"=meanValue, "standardDeviationBART"=standardDeviation, 
+              "eduMeanValueBART"=eduMeanValue, "eduStandardDeviationBART"=eduStandardDeviation, "trainData"=trainData))
+
 }
 
 computeBART <- function(trainX, trainY, candidateX, candidateY, num_iterations) 
 # main method
 # input:
-#   dim
-#   num_iterations:
 #   trainX: covariates of training set
 #   trainY: regressors of training set
-#   testX: covariates of test set
-#   testY: regressor of test set
+#   candidateX: covariates of candidate set
+#   candidateY: regressor of candidate set
+#   num_iterations: number of new training data to be added
 #
 # returns prediction as a list
 {
-  # prepare training data and parameters
+    # prepare training data and parameters
     numNewTraining <- num_iterations
     dim <- ncol(trainX)
+
     # compute population mean response
     BARTResults <- computePopulationMean(dim, trainX, trainY, candidateX, candidateY, num_iterations=numNewTraining) 
 
     return (BARTResults)
 }
 
+# method of stratificaiton from CRAN package "fifer"
 stratified <- function(df, group, size, select=NULL, replace=FALSE, bothSets=FALSE) {
 
   if (is.null(select)) {
@@ -177,6 +184,7 @@ stratified <- function(df, group, size, select=NULL, replace=FALSE, bothSets=FAL
 }
 
 computeMI <- function(trainX, trainY, candidateX, candidateY, num_iterations)
+# Monte Carlo integration that provides sample mean
 {
 
   MImean <- c()
@@ -196,11 +204,14 @@ computeMI <- function(trainX, trainY, candidateX, candidateY, num_iterations)
 }
 
 
-computeBRS <- function(trainX, trainY, candidateX, candidateY, group, num_iterations){
-
+computeBRS <- function(trainX, trainY, candidateX, candidateY, group, num_iterations)
+# block random sampling on race of population
+{
     dim <- ncol(trainX)
     data <- cbind(candidateX, candidateY)
+    # sample query points
     samples <- stratified(data, group, num_iterations/length(candidateY))
+    # randomise the order of the samples
     samples <- samples[sample(nrow(samples)), ]
 
     BRmean <- c()
