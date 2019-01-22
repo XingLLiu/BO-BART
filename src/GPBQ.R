@@ -1,4 +1,3 @@
-############
 #Bayesian Quadrature with Gaussian Process
 ############
 library(mvtnorm)
@@ -44,22 +43,28 @@ computeGPBQ <- function(dim, epochs, N=100, FUN, lengthscale=0.29)
   jitter = 1e-6
 
   # compute kernel matrix for starting dataset
-  for (i in 1:N) {
-    K[i,] <- gaussianKernel(X[i,], X)
+  #for (i in 1:N) {
+  #  K[i,] <- gaussianKernel(X[i,], X)
+  #}
+  K = kernelMatrix(rbfdot(.5/lengthscale^2), X)
+  
+  # compute the variance
+  k = function(arg) {
+    return(exp(-.5 * sum((arg[1]-arg[2])^2)/lengthscale^2))
   }
-  #library(kernlab)
-  #K = kernelMatrix(rbfdot(.5/lengthscale^2), X)
+  int.points <- randomLHS(500000, 2)
+  vv = vapply(1:nrow(int.points), function(i) k(int.points[i,]),0)
+  var.firstterm = mean(vv)^dim
   
   z<-c();
   for(i in 1:N) {
     z[i] <- pmvnorm(rep(0,dim), rep(1,dim) , mean = X[i,], sigma = diag(lengthscale^2, dim))[[1]] * (2*pi*lengthscale^2)^(dim/2) # add in extra term obtained by integration
   }
   meanValueGP[1] <- t(z) %*% solve(K + diag(jitter, N) , rescale(Y))
-  varianceGP[1] <- t(z)%*% solve(K + diag(jitter, N) , z) #not quite right, missed out first term
+  varianceGP[1] <- var.firstterm - t(z)%*% solve(K + diag(jitter, N) , z) #not quite right, missed out first term
 
   # train
   for (p in 1:epochs) {
-    print(c("GP: Epochs no.:", p))
     candidateSet <- randomLHS(100,dim)
     
     candidate_Var <- c()
@@ -75,7 +80,7 @@ computeGPBQ <- function(dim, epochs, N=100, FUN, lengthscale=0.29)
     K_prime[1:(N+p-1), 1:(N+p-1)] <- K
     for (i in 1:100) {
 
-      kernel_new_entries <- gaussianKernel(candidateSet[i,], X)
+      kernel_new_entries <- kernelMatrix(rbfdot(.5/lengthscale^2), matrix(candidateSet[i,], nrow = 1), X)
 
 
       K_prime[1:(N+p-1),(N+p)] <- kernel_new_entries
@@ -88,7 +93,7 @@ computeGPBQ <- function(dim, epochs, N=100, FUN, lengthscale=0.29)
     
     index <- which(candidate_Var == max(candidate_Var))[1]
     
-    kernel_new_entry <- gaussianKernel(candidateSet[index,], X)
+    kernel_new_entry <- kernelMatrix(rbfdot(.5/lengthscale^2), matrix(candidateSet[index,], nrow=1), X)
     
     K_prime[N+p,1:(N+p-1)] <- kernel_new_entry
     K_prime[1:(N+p-1),N+p] <- kernel_new_entry
@@ -102,9 +107,7 @@ computeGPBQ <- function(dim, epochs, N=100, FUN, lengthscale=0.29)
     # add in extra term obtained by integration
     z[N+p] <- pmvnorm(rep(0,dim), rep(1,dim), mean = X[N+p,], sigma = diag(lengthscale^2, dim))[[1]] * (2*pi*lengthscale^2)^(dim/2)
     meanValueGP[p+1] <- t(z) %*% solve(K + diag(jitter,nrow(K)), as.matrix(rescale(Y)))
-    varianceGP[p+1] <- 0.230663^dim - t(z)%*%solve(K + diag(jitter,nrow(K)), z) #not quite right, missed out first term
-    print(c("variance", varianceGP[p+1]))
-    print(c("mean", meanValueGP[p+1]))
+    varianceGP[p+1] <- var.firstterm - t(z)%*%solve(K + diag(jitter,nrow(K)), z) #not quite right, missed out first term
     
   }
 
