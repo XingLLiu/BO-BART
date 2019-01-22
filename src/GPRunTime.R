@@ -72,5 +72,5 @@ results <- data.frame(
 		"GPVariance" = predictionGPBQ$varianceGP,
         "runtimeGP" = GPTime
 )
-
+print(GPTime)
 write.csv(results, file = "../results/genz/GPresults%sdim%s.csv" %--% c(whichGenz, dim),row.names=FALSE)
