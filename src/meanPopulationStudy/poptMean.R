@@ -59,7 +59,7 @@ plot(x = c(1:num_new_surveys), y = MIResults$meanValueMI,
     xlab = "Number of Queries", ylab = "Population mean", col = "blue",
     main = NULL,
     lty = 1,
-    ylim = c(35000, 60000),
+    ylim = c(35000, 70000),
     xaxs="i", yaxs="i"
     )
 lines(x = c(1:num_new_surveys), BARTResults$meanValueBART, type = 'l', col = "red", lty = 1)
@@ -125,7 +125,7 @@ for (cat in 1:2) {
        xlab = "Number of Queries", ylab = "Population mean", col = "blue",
        main = NULL,
        lty = 1,
-       ylim = c(25000+15000*(cat-1), 70000-5000*(cat-1)),
+       ylim = c(25000+10000*(cat-1), 70000),
        xaxs="i", yaxs="i"
        )
   lines(x = c(1:num_new_surveys), BARTResults$eduMeanValueBART[cat, ], type = 'l', col = "red", lty = 1)

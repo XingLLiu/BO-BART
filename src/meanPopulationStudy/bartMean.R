@@ -46,7 +46,7 @@ computePopulationMean <- function(dim, trainX, trainY, condidateX, candidateY, n
     print(c("BART: Epoch=", i))
     # first build BART model
     sink("/dev/null")
-    model <- bart(trainData[, 1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=5L, nskip=100, ndpost=200, ntree=50, k=10, usequant=FALSE) #50 10; 60 8; 100 10 
+    model <- bart(trainData[, 1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=5L, nskip=100, ndpost=200, ntree=50, k=10, usequant=FALSE) #200 
     sink()
 
     # predict the values
