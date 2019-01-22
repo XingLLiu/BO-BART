@@ -184,7 +184,8 @@ BARTSequential <- function(dim, trainX, trainY, numNewTraining, FUN, ifRegressio
     ymin <- min(trainData[, (dim + 1)]); ymax <- max(trainData[, (dim + 1)])
     # first build BART and scale mean and standard deviation
     sink("/dev/null")
-    model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
+    # model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
+    model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000)
     sink()
     # obtain posterior samples
     integrals <- sampleIntegrals(model, dim)

@@ -102,10 +102,7 @@ computeGPBQ <- function(dim, epochs, N=10, FUN)
     
     meanValueGP[p+1] <- t(z) %*% chol2inv(K) %*% as.matrix(Y)
     
-    # standardDeviationGP[p+1] <- t(z)%*%chol2inv(K)%*%z #not quite right, missed out first term
-    #########################
-    standardDeviationGP[p+1] <- sqrt(var(meanValueGP[1:(p+1)]))
-    #########################
+    standardDeviationGP[p+1] <- t(z)%*%chol2inv(K)%*%z #not quite right, missed out first term
     
   }
 
