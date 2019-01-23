@@ -11,7 +11,7 @@ bestMethod <- matrix(NA, ncol = 6, nrow = 6)
 rownames(bestMethod) <- c("cont", "copeak", "disc", "gaussian", "oscil", "prpeak")
 colnames(bestMethod) <- c("1", "2", "3", "5", "10", "20")
 
-for (i in 1:1){
+for (i in 5:5){
     for (j in 5:5){
 
 
@@ -52,6 +52,7 @@ for (i in 1:1){
         whichDimension <- which(dim == dimensionsList)
         analyticalIntegrals <- read.csv("./genz/integrals.csv", header = FALSE)
         real <- analyticalIntegrals[whichGenz, whichDimension]
+        # real <- analyticalIntegrals[5, 5]
 
         # 1. Open jpeg file
         plotName <- paste("convergenceMean", toString(whichGenz), toString(dim), "Dimensions", "NoSeqDes", ".eps", sep = "")
@@ -94,22 +95,22 @@ for (i in 1:1){
         #     col=c("blue", "red", "green", "chocolate", "black", "cadetblue", "gold", "magenta"), cex=0.8, lty = c(1,1,1,1))
         # axis(4, at = signif(real, digits=4), las = 2, cex.axis=1.8)
 
-        plot(x = c(1:num_iterations), y = predictionGPBQ$meanValueGP,
+        plot(x = c(1:num_iterations), y = results[, 6],
             pch = 16, type = "l",
             xlab = "Number of epochs N", ylab = "Integral estimate", col = "blue",
-            ylim = c(0.5, 0.77), 
+            ylim = c(0.142, 0.175), 
             lty = 1,
             xaxs="i", yaxs="i",
             cex.lab = 2.2,
             cex.axis = 1.8
         )
-        lines(x = c(1:num_iterations), predictionGPBQNoSeqDesign$meanValueGPNoSeq, type = 'l', col = "chocolate", lty = 1)
-        lines(x = c(1:num_iterations), results[, 2], type = 'l', col = "cadetblue", lty = 1)
-        lines(x = c(1:num_iterations), results[, 3], type = 'l', col = "gold", lty = 1)
-        lines(x = c(1:num_iterations), results[, 4], type = 'l', col = "magenta", lty = 1)
-        abline(a = real, b = 0, lty = 4)
-        legend("topleft", legend=c("GP BQ", "Actual", "GP 10", "GP 30", "GP 50", "GP 70"),
-            col=c("blue", "chocolate", "black", "cadetblue", "gold", "magenta"), cex=0.8, lty = c(1,1,1,1))
+        lines(x = c(1:num_iterations), results[, 2], type = 'l', col = "chocolate", lty = 1)
+        lines(x = c(1:num_iterations), results[, 3], type = 'l', col = "cadetblue", lty = 1)
+        lines(x = c(1:num_iterations), results[, 4], type = 'l', col = "gold", lty = 1)
+        lines(x = c(1:num_iterations), results[, 5], type = 'l', col = "magenta", lty = 1)
+        abline(a = real, b = 0, lty = 4, col = "black")
+        legend("topright", legend=c("GP 10", "GP 30", "GP 50", "GP 70", "GP 100", "Actual"),
+            col=c("chocolate", "cadetblue", "gold", "magenta", "blue", "black"), cex=0.8, lty = c(1,1,1,1))
         axis(4, at = signif(real, digits=4), las = 2, cex.axis=1.8)
 
         dev.off()

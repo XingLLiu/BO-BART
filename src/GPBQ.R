@@ -113,5 +113,5 @@ computeGPBQ <- function(dim, epochs, N=100, FUN, lengthscale=1)
     
   }
 
-  return (list("meanValueGP" = meanValueGP, "standardDeviationGP" = sqrt(varianceGP)))
+  return (list("meanValueGP" = meanValueGP, "varianceGP" = varianceGP))
 }

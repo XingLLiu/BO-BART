@@ -72,21 +72,21 @@ postscript(plotPath, width = 2100, height = 1794)
 # Set y limits
 
 par(mar=c(7, 7, 4, 4))
-plot(x = 1:6, y = BARTRunTime,
+plot(x = c(1, 2, 3, 5, 10, 20), y = BARTRunTime/3600,
     pch = 16, type = "b",
-    xlab = "Dimension", ylab = "Time", col = "black",
-    ylim = c(0, 20000),
-    xlim = c(0.8, 6.2),
+    xlab = "Dimension", ylab = "Time (hours)", col = "black",
+    ylim = c(0, 20000/3600),
+    xlim = c(0.8, 20.2),
     cex = 1.5,
-    lty = 2,
+    lty = 1,
     xaxs="i", yaxs="i",
     xaxt = "n",
     cex.lab = 2.2,
     cex.axis = 1.8
     )
-lines(GPRunTime, col = "blue", type = "o", lty = 2, pch = 19, cex = 1.8)
-axis(1, at=1:6, labels=c(1, 2, 3, 5, 10, 20), cex.axis=1.8)
-legend("topleft", legend=c("BART BQ", "GP BQ"), col=c("black", "blue"), lty=rep(2, 2), cex=1.2, lwd=rep(2,2))
+lines(c(1, 2, 3, 5, 10, 20), GPRunTime/3600, col = "blue", type = "o", lty = 2, pch = 19, cex = 1.5)
+axis(1, at=c(1, 2, 3, 5, 10, 20), labels=c(1, 2, 3, 5, 10, 20), cex.axis=1.8)
+legend("topleft", legend=c("BART BQ", "GP BQ"), col=c("black", "blue"), lty=c(1, 2), cex=1.2, lwd=rep(2,2))
 
 # 3. Close the file
 dev.off()
