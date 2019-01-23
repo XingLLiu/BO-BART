@@ -1,10 +1,13 @@
 monteCarloIntegrationUniform <- function(FUN, numSamples, dim)
-# Monte Carlo Integration
-# input:
-# 		FUN: function f in the integral
-#		numSamples: number of samples to take
-# output:
-#		prediction: list containing meanValue2 and standardDeviation of the integral
+  #'Crude Monte Carlo Approximation
+  #' 
+  #'@description The function approximates the integral of interest using curde monte carlo
+  #' 
+  #'@param FUN Function; The function to be integrated 
+  #'@param numSamples Integer; The number of samples used in calculate mean
+  #'@param dim Integer; The dimension of the input X
+  #'
+  #'@return List; A list containing meanValue (appximation) and the variance of crude monte Carlo
 {
 	meanValueMonteCarlo <- rep(0, numSamples)
 	standardDeviationMonteCarlo <- rep(0, numSamples)
