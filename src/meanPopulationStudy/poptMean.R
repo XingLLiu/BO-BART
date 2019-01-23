@@ -4,6 +4,7 @@ library(lhs)
 library(dbarts)
 library(data.tree)
 library(matrixStats)
+library(docstring)
 source("./bartMean.R")
 # set seed to enable reproduction
 set.seed(1223)
@@ -152,6 +153,5 @@ for (cat in 1:2) {
   
   # 3. Close the file
   dev.off()
-
 }
 

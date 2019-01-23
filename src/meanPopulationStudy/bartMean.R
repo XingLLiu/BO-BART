@@ -12,24 +12,22 @@ library(docstring)
   do.call(sprintf, c(list(x), y))
 }
 
-computePopulationMean <- function(dim, trainX, trainY, condidateX, candidateY, num_iterations) 
+computeBART <- function(trainX, trainY, condidateX, candidateY, num_iterations) 
 #' BART-BQ for estimating average income
 #' @description Compute mean for BART-BQ with
-# implementation of query sequential design 
-# of adding more training data to the original dataset
-# For every iteration, we compute the test error
-# input:
-#   dim: dimension
-#   trainX: covariates of training set
-#   trainY: regressors of training set
-#   candidateX: covariates of candidate set
-#   candidateY: regressor of candidate set
-#   num_iterations: number of new training data to be added
-#
-# output:
-#   list of mean integral value, standard deviation of integral 
-#   value (segmented and not segmented) and new traiing set
+#' implementation of query sequential design 
+#' of adding more training data to the original dataset.
+#' @param trainX data frame. Covariates of training set.
+#' @param trainY data frame. Regressors of training set.
+#' number of rows must agree with number of rows of trianX.
+#' @param candidateX data frame. Covariates of candidate set.
+#' @param candidateY data frame. Regressor of candidate set.
+#' @param num_iterations numeric. Number of new training data to be added.
+#' @details For every iteration, we compute the test error.
+#' @return A list of mean integral value, standard deviation of integral 
+#' value (segmented and not segmented) and new training set. 
 {
+  dim <- ncol(trainX)
   print( c("Adding number of new training data:", num_iterations) )
   # outputs
   meanValue <- rep(0, num_iterations)
@@ -100,29 +98,10 @@ computePopulationMean <- function(dim, trainX, trainY, condidateX, candidateY, n
 
 }
 
-computeBART <- function(trainX, trainY, candidateX, candidateY, num_iterations) 
-# main method
-# input:
-#   trainX: covariates of training set
-#   trainY: regressors of training set
-#   candidateX: covariates of candidate set
-#   candidateY: regressor of candidate set
-#   num_iterations: number of new training data to be added
-#
-# returns prediction as a list
-{
-    # prepare training data and parameters
-    numNewTraining <- num_iterations
-    dim <- ncol(trainX)
-
-    # compute population mean response
-    BARTResults <- computePopulationMean(dim, trainX, trainY, candidateX, candidateY, num_iterations=numNewTraining) 
-
-    return (BARTResults)
-}
 
 stratified <- function(df, group, size, select=NULL, replace=FALSE, bothSets=FALSE) 
-# method of stratificaiton from CRAN package "fifer"
+#' Stratified sampling
+#' @description Method of stratificaiton from CRAN package fifer.
 {
   if (is.null(select)) {
     df <- df
@@ -185,17 +164,18 @@ stratified <- function(df, group, size, select=NULL, replace=FALSE, bothSets=FAL
   }
 }
 
+
 computeMI <- function(trainX, trainY, candidateX, candidateY, num_iterations)
-# simple random sampling (Monte Carlo)
-# input:
-#   trainX: covariates of training set
-#   trainY: regressors of training set
-#   candidateX: covariates of candidate set
-#   candidateY: regressor of candidate set
-#   num_iterations: number of new training data to be added
-#
-# output:
-#   list of mean integral value and standard deviation
+#' Simple random sampling (Monte Carlo)
+#' @description Compute sample mean of response by simple random sampling 
+#' @param trainX data frame. Covariates of training set.
+#' @param trainY data frame. Regressors of training set.
+#' number of rows must agree with number of rows of trianX.
+#' @param candidateX data frame. Covariates of candidate set.
+#' @param candidateY data frame. Regressor of candidate set.
+#' @param num_iterations numeric. Number of new training data to be added.
+#' @return A list of mean integral value, standard deviation of integral 
+#' value (segmented and not segmented) and new training set. 
 {
 
   MImean <- c()
@@ -216,17 +196,18 @@ computeMI <- function(trainX, trainY, candidateX, candidateY, num_iterations)
 
 
 computeBRS <- function(trainX, trainY, candidateX, candidateY, group, num_iterations)
-# block random sampling
-# input:
-#   trainX: covariates of training set
-#   trainY: regressors of training set
-#   candidateX: covariates of candidate set
-#   candidateY: regressor of candidate set
-#   group: string of the name of variable to be stratified on
-#   num_iterations: number of new training data to be added
-#
-# output:
-#   list of mean integral value and standard deviation
+#' Block random sampling by group
+#' @description Compute sample mean of response by block random sampling, 
+#' blocks are buildt based on group.
+#' @param trainX data frame. Covariates of training set.
+#' @param trainY data frame. Regressors of training set.
+#' number of rows must agree with number of rows of trianX.
+#' @param candidateX data frame. Covariates of candidate set.
+#' @param candidateY data frame. Regressor of candidate set.
+#' @param group string. Name of the attribute to be stratified on.
+#' @param num_iterations numeric. Number of new training data to be added.
+#' @return A list of mean integral value, standard deviation of integral 
+#' value (segmented and not segmented) and new training set. 
 {
     dim <- ncol(trainX)
     data <- cbind(candidateX, candidateY)
