@@ -34,6 +34,7 @@ args <- as.double(commandArgs(TRUE))
 dim <- args[1]
 num_iterations <- args[2]
 whichGenz <- args[3]
+num_training <- args[4]
 lengthscale <- calc_lengthscale(dim)
 
 if (num_iterations == 1) { stop("NEED MORE THAN 1 ITERATION") }
@@ -53,16 +54,12 @@ if (whichGenz == 6) { genz <- prpeak; genzFunctionName <-  deparse(substitute(pr
 
 print("Testing with: %s" %--% genzFunctionName)
 
-# prepare training dataset
-trainX <- randomLHS(100, dim)
-trainY <- genz(trainX)
-
 # Bayesian Quadrature with Gaussian Process
 print("Begin Gaussian Process Integration")
 source("./GPBQ.R")
 
 t0 <- proc.time()
-predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = genz, lengthscale)  
+predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=num_training, FUN = genz, lengthscale)  
 t1 <- proc.time()
 GPTime <- (t1 - t0)[[1]]
 
@@ -78,7 +75,7 @@ print(c("Actual integral:", real))
 print(c("GP integral:", predictionGPBQ$meanValueGP[num_iterations]))
 print(c("lenthscale=", lengthscale))
 
-print("Writing full results to ../results/genz%s" %--% c(whichGenz, dim))
+print("Writing full results to ../results/genz%s_dim%s" %--% c(whichGenz, dim))
 results <- data.frame(
 		"epochs" = c(1:num_iterations),
 		"GPMean" = predictionGPBQ$meanValueGP,
@@ -86,4 +83,4 @@ results <- data.frame(
         "runtimeGP" = GPTime
 )
 
-write.csv(results, file = "../results/genz/GPresults%sdim%s.csv" %--% c(whichGenz, dim),row.names=FALSE)
+write.csv(results, file = "../results/genz/GPresults%sdim%s_training%s.csv" %--% c(whichGenz, dim, num_training),row.names=FALSE)
