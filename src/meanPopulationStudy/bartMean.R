@@ -12,9 +12,9 @@ library(matrixStats)
 }
 
 computePopulationMean <- function(dim, trainX, trainY, condidateX, candidateY, num_iterations) 
-# compute mean for BART-BQ with
-# implementation of query sequential design to add
-# more training data to the original dataset
+# Compute mean for BART-BQ with
+# implementation of query sequential design 
+# to add more training data to the original dataset
 # For every iteration, we compute the test error
 # input:
 #   dim: dimension
@@ -119,9 +119,9 @@ computeBART <- function(trainX, trainY, candidateX, candidateY, num_iterations)
     return (BARTResults)
 }
 
+stratified <- function(df, group, size, select=NULL, replace=FALSE, bothSets=FALSE) 
 # method of stratificaiton from CRAN package "fifer"
-stratified <- function(df, group, size, select=NULL, replace=FALSE, bothSets=FALSE) {
-
+{
   if (is.null(select)) {
     df <- df
   } else {
@@ -184,7 +184,16 @@ stratified <- function(df, group, size, select=NULL, replace=FALSE, bothSets=FAL
 }
 
 computeMI <- function(trainX, trainY, candidateX, candidateY, num_iterations)
-# Monte Carlo integration that provides sample mean
+# simple random sampling (Monte Carlo)
+# input:
+#   trainX: covariates of training set
+#   trainY: regressors of training set
+#   candidateX: covariates of candidate set
+#   candidateY: regressor of candidate set
+#   num_iterations: number of new training data to be added
+#
+# output:
+#   list of mean integral value and standard deviation
 {
 
   MImean <- c()
@@ -205,7 +214,17 @@ computeMI <- function(trainX, trainY, candidateX, candidateY, num_iterations)
 
 
 computeBRS <- function(trainX, trainY, candidateX, candidateY, group, num_iterations)
-# block random sampling on race of population
+# block random sampling
+# input:
+#   trainX: covariates of training set
+#   trainY: regressors of training set
+#   candidateX: covariates of candidate set
+#   candidateY: regressor of candidate set
+#   group: string of the name of variable to be stratified on
+#   num_iterations: number of new training data to be added
+#
+# output:
+#   list of mean integral value and standard deviation
 {
     dim <- ncol(trainX)
     data <- cbind(candidateX, candidateY)
@@ -228,5 +247,4 @@ computeBRS <- function(trainX, trainY, candidateX, candidateY, group, num_iterat
     }
     
     return(list("meanValueBRS"=BRmean, "standardDeviationBRS"=BRstandardDeviation))
-
 }
