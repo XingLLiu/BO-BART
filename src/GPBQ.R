@@ -3,7 +3,7 @@
 library(mvtnorm)
 library(MASS)
 library(kernlab)
-gaussianKernel <- function(xPrime, X, lengthscale = 0.29) 
+gaussianKernel <- function(xPrime, X, lengthscale = 1) 
   # The exp squared covariance function, hence calculating covariance matrix cov
   # input:
   #     X: Initial design matrix
@@ -22,7 +22,7 @@ gaussianKernel <- function(xPrime, X, lengthscale = 0.29)
 
 rescale <- function(x) {x * attr(x, 'scaled:scale') + attr(x, 'scaled:center')}
 
-computeGPBQ <- function(dim, epochs, N=100, FUN, lengthscale=0.29) 
+computeGPBQ <- function(dim, epochs, N=100, FUN, lengthscale=1) 
 # method for computation of the integration
 # includes query sequential design
 # input:
@@ -56,7 +56,7 @@ computeGPBQ <- function(dim, epochs, N=100, FUN, lengthscale=0.29)
   vv = vapply(1:nrow(int.points), function(i) k(int.points[i,]),0)
   var.firstterm = mean(vv)^dim
   
-  z<-c();
+  z<-c()
   for(i in 1:N) {
     z[i] <- pmvnorm(rep(0,dim), rep(1,dim) , mean = X[i,], sigma = diag(lengthscale^2, dim))[[1]] * (2*pi*lengthscale^2)^(dim/2) # add in extra term obtained by integration
   }
@@ -65,6 +65,8 @@ computeGPBQ <- function(dim, epochs, N=100, FUN, lengthscale=0.29)
 
   # train
   for (p in 1:epochs) {
+   
+    print(c("epoch", p))
     candidateSet <- randomLHS(100,dim)
     
     candidate_Var <- c()
