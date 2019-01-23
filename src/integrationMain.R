@@ -1,7 +1,5 @@
 # !/usr/bin/env R
-# uncomment below and fix it according when in department cluster.
-# setwd("/scratchcomp01/xl6116/BO-BART/src/")
-# 
+setwd(getwd())
 # uncomment the following when running the code for the first time to load real integral values
 # source("./genz/saveComputeIntegrals.R")
 
@@ -129,7 +127,6 @@ legend("topleft", legend=c("MC Integration", "BART BQ", "GP BQ"),
        col=c("blue", "red", "green"), cex=0.8, lty = c(1,1,1,1))
 # 3. Close the file
 dev.off()
-
 
 print("Please check {ROOT}/report/Figures for plots")
 
