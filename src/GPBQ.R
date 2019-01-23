@@ -4,12 +4,18 @@ library(mvtnorm)
 library(MASS)
 library(kernlab)
 gaussianKernel <- function(xPrime, X, lengthscale = 1) 
-  # The exp squared covariance function, hence calculating covariance matrix cov
-  # input:
-  #     X: Initial design matrix
-  #     xPrime: a covariate. 
-  # output:
-  #     K: covariance i.e. cov(X, xPrime)
+  
+  #'Standard Kernel Function in GP
+  #' 
+  #'@description This function calculates the covariance of xPrime with respect
+  #'to each row of X
+  #' 
+  #'@param xprime Numeric Array; 
+  #'@param X Matrix
+  #'@param lengthscale Real; parameter in standard kernel
+  #'
+  #'@return K; Covariance matrix between xprime and X
+  
 {
   K <- c()
   
@@ -23,12 +29,20 @@ gaussianKernel <- function(xPrime, X, lengthscale = 1)
 rescale <- function(x) {x * attr(x, 'scaled:scale') + attr(x, 'scaled:center')}
 
 computeGPBQ <- function(dim, epochs, N=100, FUN, lengthscale=1) 
-# method for computation of the integration
-# includes query sequential design
-# input:
-#     dim:
-#     epochs: number of training instances
-#     N: 
+  
+  #'Gaussian Process with Bayesian Quadrature
+  #' 
+  #'@description This function calculates the approxiamtion of integration using
+  #'Gaussian Process, Bayesian Quadrature and Sequential Design
+  #' 
+  #'@param dim Integer; Dimension of input X 
+  #'@param epochs Integer; Number of new data points
+  #'@param N Integerl; Number of data points in the initial train set
+  #'@param FUN Function; The function to be integrated
+  #'@param lengthscale Integer; The parameter in standard kernel
+  #'
+  #'@return List; A list containing meanValue (apprimation) and variance of GP method
+
 {
   #define genz function
   genz <- FUN
