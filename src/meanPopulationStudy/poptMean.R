@@ -24,13 +24,13 @@ candidateData <- candidateData[sample(nrow(candidateData)), ]
 cols <- dim(trainData)[2] - 1
 
 trainX <- trainData[, -c(1, (cols+1))]
-trainY <- trainData[, (cols+1)]
+trainY <- trainData[, (cols+1)]/1000
 
 candidateX <- candidateData[, -c(1, (cols+1))]
-candidateY <- candidateData[, (cols+1)]
+candidateY <- candidateData[, (cols+1)]/1000
 
 # compute the real population mean income
-poptMean <- mean(populationData$Total_person_income)
+poptMean <- mean(populationData$Total_person_income/1000)
 
 # compute population average income estimates by BARTBQ
 BARTResults <- computeBART(trainX, trainY, candidateX, candidateY, num_iterations=num_new_surveys)
@@ -46,7 +46,7 @@ results <- data.frame(
     "epochs" = c(1:num_new_surveys),
     "BARTMean" = BARTResults$meanValueBART, "BARTsd" = BARTResults$standardDeviationBART,
     "MIMean" = MIResults$meanValueMI, "MIsd" = MIResults$standardDeviationMI, 
-    "BRSmean" = BRSResults$meanValueBRS, "BRSsd" = BRSResults$standardDeviationBRS, 
+    "BRSMean" = BRSResults$meanValueBRS, "BRSsd" = BRSResults$standardDeviationBRS, 
     "PoptMean" = poptMean
 )
 write.csv(results, file = "./population.csv", row.names=FALSE)
@@ -57,10 +57,10 @@ png("./population.png", width = 700, height = 583)
 par(mfrow = c(1,2), pty = "s")
 plot(x = c(1:num_new_surveys), y = MIResults$meanValueMI,
     pch = 16, type = "l",
-    xlab = "Number of Queries", ylab = "Population mean", col = "blue",
+    xlab = "Number of candidates added", ylab = "Average income (K$)", col = "blue",
     main = NULL,
     lty = 1,
-    ylim = c(35000, 70000),
+    ylim = c(35, 70),
     xaxs="i", yaxs="i"
     )
 lines(x = c(1:num_new_surveys), BARTResults$meanValueBART, type = 'l', col = "red", lty = 1)
@@ -71,10 +71,10 @@ legend("topleft", legend=c("Monte Carlo", "BART", "Block sampling", "Actual Mean
 
 plot(x = c(1:num_new_surveys), y = MIResults$standardDeviationMI,
     pch = 16, type = "l",
-    xlab = "Number of Queries", ylab = "Standard deviation", col = "blue",
+    xlab = "Number of candidates added", ylab = "Standard deviation", col = "blue",
     main = NULL,
     lty = 1,
-    ylim = c(0, 8000),
+    ylim = c(0, 15),
     xaxs="i", yaxs="i"
     )
 lines(x = c(1:num_new_surveys), BARTResults$standardDeviationBART, type = 'l', col = "red", lty = 1)
@@ -101,7 +101,7 @@ for (cat in 1:2) {
   eduCandidateX <- candidateX[(candidateX$Education >= mat[1, cat] & candidateX$Education <= mat[2, cat]), ]
 
   # compute the real population mean income
-  eduMean <- mean(populationData[(populationData$Education >= mat[1, cat] & populationData$Education <= mat[2, cat]), ]$Total_person_income)
+  eduMean <- mean(populationData[(populationData$Education >= mat[1, cat] & populationData$Education <= mat[2, cat]), ]$Total_person_income/1000)
   
   # stratified population average income estimation by Monte Carlo
   eduMIResults <- computeMI(eduTrainX, eduTrainY, eduCandidateX, eduCandidateY, num_iterations=num_new_surveys)
@@ -125,10 +125,10 @@ for (cat in 1:2) {
   par(mfrow = c(1,2), pty = "s")
   plot(x = c(1:num_new_surveys), y = eduMIResults$meanValueMI, 
        pch = 16, type = "l",
-       xlab = "Number of Queries", ylab = "Population mean", col = "blue",
+       xlab = "Number of candidates added", ylab = "Average income (K$)", col = "blue",
        main = NULL,
        lty = 1,
-       ylim = c(25000+10000*(cat-1), 70000),
+       ylim = c(25+10*(cat-1), 70),
        xaxs="i", yaxs="i"
        )
   lines(x = c(1:num_new_surveys), BARTResults$eduMeanValueBART[cat, ], type = 'l', col = "red", lty = 1)
@@ -139,10 +139,10 @@ for (cat in 1:2) {
   
   plot(x = c(1:num_new_surveys), y = eduMIResults$standardDeviationMI,
        pch = 16, type = "l",
-       xlab = "Number of Queries", ylab = "Standard deviation", col = "blue",
+       xlab = "Number of candidates added", ylab = "Standard deviation", col = "blue",
        main = NULL,
        lty = 1,
-       ylim = c(1000, 12000),
+       ylim = c(0, 15),
        xaxs="i", yaxs="i"
        )
   lines(x = c(1:num_new_surveys), BARTResults$eduStandardDeviationBART[cat, ], type = 'l', col = "red", lty = 1)
