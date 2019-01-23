@@ -2,6 +2,7 @@ library(lhs)
 library(dbarts)
 library(data.tree)
 library(matrixStats)
+library(docstring)
 
 # define string formatting
 `%--%` <- function(x, y) 
@@ -11,263 +12,222 @@ library(matrixStats)
   do.call(sprintf, c(list(x), y))
 }
 
-# Tree code
-
-terminalProbability <- function(currentNode) 
-  # probabiltity ending up in terminal node
+computeBART <- function(trainX, trainY, condidateX, candidateY, num_iterations) 
+#' BART-BQ for estimating average income
+#' @description Compute mean for BART-BQ with
+#' implementation of query sequential design 
+#' of adding more training data to the original dataset.
+#' @param trainX data frame. Covariates of training set.
+#' @param trainY data frame. Regressors of training set.
+#' number of rows must agree with number of rows of trianX.
+#' @param candidateX data frame. Covariates of candidate set.
+#' @param candidateY data frame. Regressor of candidate set.
+#' @param num_iterations numeric. Number of new training data to be added.
+#' @details For every iteration, we compute the test error.
+#' @return A list of mean integral value, standard deviation of integral 
+#' value (segmented and not segmented) and new training set. 
 {
-  prob <- currentNode$probability
-  
-  while ( !isRoot(currentNode$parent) ) {
-    currentNode <- currentNode$parent
-    prob <- prob*currentNode$probability
-  }
-  
-  return (prob)
-}
-
-fillProbabilityForNode <- function(oneTree, cutPoints, cut) 
-  # Drop data set into the tree and assign them to different nodes 
-{
-  if ( !is.null(oneTree$leftChild) ) {
-    
-    decisionRule <- cutPoints[[oneTree$splitVar]][oneTree$splitIndex]
-    
-    oneTree$leftChild$probability <- (decisionRule - cut[1, oneTree$splitVar]) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
-  
-    oneTree$rightChild$probability <- (cut[2, oneTree$splitVar] - decisionRule) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
-    
-    range <- cut[, oneTree$splitVar]
-    
-    cut[, oneTree$splitVar] = c(range[1], decisionRule)
-    
-    fillProbabilityForNode(oneTree$leftChild, cutPoints, cut)
-    
-    cut[, oneTree$splitVar] = c(decisionRule, range[2])
-    
-    fillProbabilityForNode(oneTree$rightChild, cutPoints, cut)
-    
-  } else if( is.null(oneTree$probability) ) {
-    oneTree$probability <- 1
-  }
-  return (oneTree)
-}
-
-terminalProbabilityStore <- function(Tree)
-  # store probability of getting to terminal node 
-{
-  terminalNodes = Traverse(Tree, filterFun = isLeaf)
-  
-  for (i in 1:length(terminalNodes)) {
-    probability2 <- terminalProbability(terminalNodes[[i]])
-    terminalNodes[[i]]$terminal_probability <- probability2
-  }
-  
-  return (Tree)
-}
-
-getTree <- function(sampler, chainNum, sampleNum, treeNum)
-  # create tree
-{
-  cutPoints <- dbarts:::createCutPoints(sampler)
-  
-  if (sampler$control@keepTrees) {
-    treeString <- sampler$state[[chainNum]]@savedTrees[treeNum, sampleNum]
-    treeFits <- sampler$state[[chainNum]]@savedTreeFits[, treeNum, sampleNum]
-  }
-  else {
-    treeString <- sampler$state[[chainNum]]@trees[treeNum]
-    treeFits <- sampler$state[[chainNum]]@treeFits[,treeNum]
-  }                           
-  
-  tree <- dbarts:::buildTree(strsplit(gsub("\\.", "\\. ", treeString),
-                                      " ", fixed = TRUE)[[1]])
-  tree$remainder <- NULL
-  
-  tree$indices <- seq_len(length(sampler$data@y))
-  tree <- dbarts:::fillObservationsForNode(tree, sampler, cutPoints)
-  
-  tree <- dbarts:::fillPlotInfoForNode(tree, sampler, treeFits)
-  maxDepth <- dbarts:::getMaxDepth(tree)
-  
-  tree <- dbarts:::fillPlotCoordinatesForNode(tree, maxDepth, 1L, 1L)
-  numEndNodes <- tree$index - 1L
-  tree$index <- NULL
-  
-  return (tree)
-}
-
-singleTreeSum <- function(treeNum, model, drawNum, dim, trainX) 
-  # Sum over a single tree's terminal nodes
-{
-  cutPoints<-dbarts:::createCutPoints(model$fit)
-  
-  trainX_mins <- apply(trainX,2,min)
-  trainX_maxes <- apply(trainX,2,max)
-  cut <- rbind(trainX_mins, trainX_maxes)
-  
-  treeList <- getTree(model$fit, 1, drawNum, treeNum)
-  
-  selectedTree <- FromListSimple(treeList) 
-  
-  #Modify tree by the functions written above
-  selectedTree <- fillProbabilityForNode(selectedTree, cutPoints, cut)
-  selectedTree <- terminalProbabilityStore(selectedTree)
-  
-  
-  terminalNodeList <- Traverse(selectedTree, filterFun = isLeaf)
-  
-  #Calculate approximation of integreal in the single tree 
-  integral <- 0
-  for (node in terminalNodeList) {
-    #We use the mean of prediction value Y's in the terminal node as u
-    #rescale this step
-    integral <- integral + node$terminal_probability * node$mu
-  }
-  return (integral)
-}
-
-posteriorSum <- function(drawNum, model, dim, trainX)
-  # Sum over all the trees in one posterior draws
-  # input:
-  #   drawNum: which draw of p trees
-  #   model:  set of tree
-{
-  nTree <- ncol(model$fit$state[[1]]@treeFits)
-  treeNum <- seq(1, nTree, length.out=nTree)
-  
-  #Extra variables
-  var <- list(model, drawNum, dim, trainX)
-  
-  #Calculate integration over all trees in the draw by mapply
-  integral <- sum( unlist( mapply(singleTreeSum, treeNum, MoreArgs=var) ) )
-  
-  return (integral)
-}
-
-
-sampleIntegrals <- function(model, dim, trainX) 
-  # sum over all posterior draws 
-  # input: 
-  #     model: BART model
-  #
-  # output:
-  #     integrals: mean integral values for each tree as a vector
-{
-  nDraw <- dim(model$fit$state[[1]]@savedTreeFits)[3]
-  drawNum <- seq(1, nDraw, length.out=nDraw)
-  
-  #Extra Variables
-  var <- list(model, dim, trainX)
-  integrals <- mapply(posteriorSum, drawNum, MoreArgs=var)
-  return (integrals)
-}
-
-computeBART <- function(dim, trainX, trainY, condidateX, candidateY, numNewTraining) 
-# compute mean for BART-BQ with
-# implementation of query sequential design to add
-# more training data to the original dataset
-# For every iteration, we compute the test error
-# input:
-#   dim: dimension
-#   trainX: covariates of training data
-#   trainY: response of training data
-#   numNewTraining: number of new training points to be added
-#
-# output:
-#   list of mean integral value, standard deviation of integral value and new traiing set
-{
-  
-  print( c("Adding number of new training data:", numNewTraining ) )
+  dim <- ncol(trainX)
+  print( c("Adding number of new training data:", num_iterations) )
   # outputs
-  meanValue <- rep(0, numNewTraining)
-  standardDeviation <- rep(0, numNewTraining)
+  meanValue <- rep(0, num_iterations)
+  standardDeviation <- rep(0, num_iterations)
+  eduMeanValue <- matrix(0, 2*num_iterations, nrow=2, ncol=num_iterations)
+  eduStandardDeviation <- matrix(0, 2*num_iterations, nrow=2, ncol=num_iterations)
   trainData <- cbind(trainX, trainY)
-  colnames(trainData)[dim+1] <- "INCOME"
   
+  colnames(trainData)[dim+1] <- "response"
+
+  # index of segmentation
+  index <- matrix(c(1,16,17,24), nrow = 2, ncol = 2)
+
   # generate extra training data using the scheme (see pdf)
-  for (i in 1:numNewTraining) {
+  for (i in 1:num_iterations) {
     
+    # set seed to enable reproduction of the results
+    set.seed(i)
+
     print(c("BART: Epoch=", i))
-    # find the min and max range of y
-    ymin <- min(trainData[, dim+1]); ymax <- max(trainData[, dim+1])
-    # first build BART and scale mean and standard deviation
+    # first build BART model
     sink("/dev/null")
-    model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=50L, nskip=1000, ndpost=1000, ntree=200, k = 2)
+    model <- bart(trainData[, 1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=5L, 
+                  nskip=100, ndpost=200, ntree=50, k=10, usequant=FALSE)
     sink()
-    # obtain posterior samples
-    integrals <- sampleIntegrals(model, dim, trainData[, 1:dim])
-    integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
-    
-    meanValue[i] <- mean(integrals)
-    standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
 
     # predict the values
     fValues <- predict(model, candidateX)
-    
-    probability = 1 #uniform probability
-    
+
+    # posterior mean and variance
+    integrals <- rowMeans(fValues)
+    meanValue[i] <- mean(integrals)
+    standardDeviation[i] <- sd(integrals) 
+
+    # select the best candidate, find its response
     var <- colVars(fValues)
     index <- sample(which(var==max(var)), 1)
-    INCOME <- candidateY[index]
+    response <- candidateY[index]
+
+    # data segmentation by education level
+    mat <- matrix(c(1,16,17,24), nrow = 2, ncol = 2)
+
+    for (cat in 1:2){
+
+      eduCandidateX <- candidateX[(candidateX$Education >= mat[1, cat] & candidateX$Education <= mat[2, cat]), ]
+      
+      # make prediction
+      fValues <- predict(model, eduCandidateX)
+
+      # posterior mean and variance
+      integrals <- rowMeans(fValues)
+      eduMeanValue[cat, i] <- mean(integrals)
+      eduStandardDeviation[cat, i] <- sd(integrals)
+
+    }
     
+    # add new data to train set
+    trainData <- rbind(trainData, cbind(candidateX[index, ], response))
+
     # remove newly added value from candidate set
-    trainData <- rbind(trainData, cbind(candidateX[index,], INCOME))
     candidateX <- candidateX[-index,]
     candidateY <- candidateY[-index]
-    
+
   }
 
-  return (list("meanValueBART"=meanValue, "standardDeviationBART"=standardDeviation, 
-               "trainData" = trainData))
+  return(list("meanValueBART"=meanValue, "standardDeviationBART"=standardDeviation, 
+              "eduMeanValueBART"=eduMeanValue, "eduStandardDeviationBART"=eduStandardDeviation, "trainData"=trainData))
+
 }
 
-computePopulationMean <- function(trainX, trainY, candidateX, candidateY, num_iterations) 
-# main method
-# input:
-#   dim
-#   num_iterations:
-#   trainX: covariates of training set
-#   trainY: regressors of training set
-#   testX: covariates of test set
-#   testY: regressor of test set
-#
-# returns prediction as a list
+
+stratified <- function(df, group, size, select=NULL, replace=FALSE, bothSets=FALSE) 
+#' Stratified sampling
+#' @description Method of stratificaiton from CRAN package fifer.
 {
-  # prepare training data and parameters
-    numNewTraining <- num_iterations
-    dim <- ncol(trainX)
-    # compute population mean income
-    BARTResults <- computeBART(dim, trainX, trainY, candidateX, candidateY, numNewTraining) 
-
-    return (BARTResults)
+  if (is.null(select)) {
+    df <- df
+  } else {
+    if (is.null(names(select))) stop("'select' must be a named list")
+    if (!all(names(select) %in% names(df)))
+      stop("Please verify your 'select' argument")
+    temp <- sapply(names(select),
+                   function(x) df[[x]] %in% select[[x]])
+    df <- df[rowSums(temp) == length(select), ]
+  }
+  df.interaction <- interaction(df[group], drop = TRUE)
+  df.table <- table(df.interaction)
+  df.split <- split(df, df.interaction)
+  if (length(size) > 1) {
+    if (length(size) != length(df.split))
+      stop("Number of groups is ", length(df.split),
+           " but number of sizes supplied is ", length(size))
+    if (is.null(names(size))) {
+      n <- setNames(size, names(df.split))
+      message(sQuote("size"), " vector entered as:\n\nsize = structure(c(",
+              paste(n, collapse = ", "), "),\n.Names = c(",
+              paste(shQuote(names(n)), collapse = ", "), ")) \n\n")
+    } else {
+      ifelse(all(names(size) %in% names(df.split)),
+             n <- size[names(df.split)],
+             stop("Named vector supplied with names ",
+                  paste(names(size), collapse = ", "),
+                  "\n but the names for the group levels are ",
+                  paste(names(df.split), collapse = ", ")))
+    }
+  } else if (size < 1) {
+    n <- round(df.table * size, digits = 0)
+  } else if (size >= 1) {
+    if (all(df.table >= size) || isTRUE(replace)) {
+      n <- setNames(rep(size, length.out = length(df.split)),
+                    names(df.split))
+    } else {
+      message(
+        "Some groups\n---",
+        paste(names(df.table[df.table < size]), collapse = ", "),
+        "---\ncontain fewer observations",
+        " than desired number of samples.\n",
+        "All observations have been returned from those groups.")
+      n <- c(sapply(df.table[df.table >= size], function(x) x = size),
+             df.table[df.table < size])
+    }
+  }
+  temp <- lapply(
+    names(df.split),
+    function(x) df.split[[x]][sample(df.table[x],
+                                     n[x], replace = replace), ])
+  set1 <- do.call("rbind", temp)
+  
+  if (isTRUE(bothSets)) {
+    set2 <- df[!rownames(df) %in% rownames(set1), ]
+    list(SET1 = set1, SET2 = set2)
+  } else {
+    set1
+  }
 }
 
-BRcomputeMean <- function(trainX, trainY, candidateX, candidateY, num_iterations){
 
-    # sample the population by sex
-    maleCandidateY <- candidateY[candidateX$SEX == 1]
-    femaleCandidateY <- candidateY[candidateX$SEX == 2]
+computeMI <- function(trainX, trainY, candidateX, candidateY, num_iterations)
+#' Simple random sampling (Monte Carlo)
+#' @description Compute sample mean of response by simple random sampling 
+#' @param trainX data frame. Covariates of training set.
+#' @param trainY data frame. Regressors of training set.
+#' number of rows must agree with number of rows of trianX.
+#' @param candidateX data frame. Covariates of candidate set.
+#' @param candidateY data frame. Regressor of candidate set.
+#' @param num_iterations numeric. Number of new training data to be added.
+#' @return A list of mean integral value, standard deviation of integral 
+#' value (segmented and not segmented) and new training set. 
+{
 
-    maleRatio <- sum(trainX$SEX == 1) / nrow(trainX)
+  MImean <- c()
+  MIstandardDeviation <- c()
 
-    numMaleCandidate <- floor(500 * maleRatio)
-    numFemaleCandidate <- 500 - numMaleCandidate
+  for (i in 1:num_iterations) {
+    
+    MImean[i] <- mean(c(trainY, candidateY[1:i]))
+
+    n = length(c(trainY, candidateY[1:i]))
+    MIstandardDeviation[i] <- sqrt( var(c(trainY, candidateY[1:i]))/(n-1) )
+
+  }
+
+  return(list("meanValueMI"=MImean, "standardDeviationMI"=MIstandardDeviation))
+
+}
+
+
+computeBRS <- function(trainX, trainY, candidateX, candidateY, group, num_iterations)
+#' Block random sampling by group
+#' @description Compute sample mean of response by block random sampling, 
+#' blocks are buildt based on group.
+#' @param trainX data frame. Covariates of training set.
+#' @param trainY data frame. Regressors of training set.
+#' number of rows must agree with number of rows of trianX.
+#' @param candidateX data frame. Covariates of candidate set.
+#' @param candidateY data frame. Regressor of candidate set.
+#' @param group string. Name of the attribute to be stratified on.
+#' @param num_iterations numeric. Number of new training data to be added.
+#' @return A list of mean integral value, standard deviation of integral 
+#' value (segmented and not segmented) and new training set. 
+{
+    dim <- ncol(trainX)
+    data <- cbind(candidateX, candidateY)
+    # sample query points
+    samples <- stratified(data, group, num_iterations/length(candidateY))
+    # randomise the order of the samples
+    samples <- samples[sample(nrow(samples)), ]
 
     BRmean <- c()
     BRstandardDeviation <- c()
 
     # Monte Carlo in each block 
-    for (i in 1:numMaleCandidate) {
-        BRmean[i] <- mean(c(trainY, maleCandidateY[1:i]))
-        BRstandardDeviation[i] <- sqrt( var(c(trainY, maleCandidateY[1:i])) )
-    }
+    for (i in 1:num_iterations) {
+      
+        BRmean[i] <- mean(c(trainY, samples[1:i, dim+1]))
 
-    for (i in 1:numFemaleCandidate) {
-        BRmean[i+numMaleCandidate] <- mean(c(trainY, maleCandidateY[1:numMaleCandidate], femaleCandidateY[1:i]))
-        BRstandardDeviation[i+numMaleCandidate] <- sqrt( var(c(trainY, maleCandidateY[1:numMaleCandidate], femaleCandidateY[1:i])) )
+        n = length(c(trainY, samples[1:i, dim+1]))
+        BRstandardDeviation[i] <- sqrt( var(c(trainY, samples[1:i, dim+1])) /(n-1) )
+
     }
     
-    return(list("BRmean" = BRmean, "BRstandardDeviation" = BRstandardDeviation))
-
+    return(list("meanValueBRS"=BRmean, "standardDeviationBRS"=BRstandardDeviation))
 }
