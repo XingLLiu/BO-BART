@@ -5,8 +5,16 @@ library(lhs)
 library(dbarts)
 library(data.tree)
 library(matrixStats)
+
 terminalProbability <- function(currentNode) 
-# probabiltity ending up in terminal node
+  #'Terminal Node Probability
+  #' 
+  #'@description This function calculates the probability assigned to the 
+  #' input terminal node.
+  #' 
+  #'@param currentNode Node; Terminal node of the tree
+  #'
+  #'@return The probability assigned to the input terminal node.
 {
   prob <- currentNode$probability
   
@@ -19,14 +27,21 @@ terminalProbability <- function(currentNode)
 }
 
 fillProbabilityForNode <- function(oneTree, cutPoints, cut) 
-# Drop data set into the tree and assign them to different nodes 
+  #'Fill Non-Terminal Node Probability
+  #' 
+  #'@description This function calculates the prior probability of all the non-terminal tree nodes 
+  #'and fill that node with the prior probability.
+  #' 
+  #'@param currentNode Node; Non-terminal nodes in the tree
+  #'
+  #'@return The non-terminal tree nodes filled with prior probability.
 {
+  
   if ( !is.null(oneTree$leftChild) ) {
     
     decisionRule <- cutPoints[[oneTree$splitVar]][oneTree$splitIndex]
-    
+
     oneTree$leftChild$probability <- (decisionRule - cut[1, oneTree$splitVar]) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
-    
     oneTree$rightChild$probability <- (cut[2, oneTree$splitVar] - decisionRule) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
     
     cut[, oneTree$splitVar] = c(0, decisionRule)
@@ -38,14 +53,21 @@ fillProbabilityForNode <- function(oneTree, cutPoints, cut)
     fillProbabilityForNode(oneTree$rightChild, cutPoints, cut)
     
   } else if( is.null(oneTree$probability) ) {
+
     oneTree$probability <- 1
+
   }
   
   return (oneTree)
 }
 
-terminalProbabilityStore <- function(Tree)
-# store probability of getting to terminal node 
+terminalProbabilityStore <- function(Tree) 
+  #'Fill Terminal Node Probability
+  #' 
+  #'@description This function store probabilities into all terminal nodes of the tree.
+  #'@param currentNode Node; Root node of a tree
+  #'
+  #'@return Root node with terminal-node probabilities stored.
 {
   terminalNodes = Traverse(Tree, filterFun = isLeaf)
   
@@ -58,7 +80,18 @@ terminalProbabilityStore <- function(Tree)
 }
 
 getTree <- function(sampler, chainNum, sampleNum, treeNum)
-# create tree
+  #'Build tree
+  #' 
+  #'@description The function builds tree and fills attributes to each node of the tree
+  #' 
+  #'@param sampler List; Bart model
+  #'@param chainNum Integer; The index of the chain 
+  #'@param sampleNum Integer; The index of the posterior sample draw
+  #'@param treenNum Integer; The index of the tree sample extracted
+  #'
+  #'@return A tree sample in BART fitting at the position specifized
+  #'by chainNum, sampleNUm and treeNum, with attributeds filled into
+  #'each node of the tree
 {
   cutPoints <- dbarts:::createCutPoints(sampler)
   
@@ -89,7 +122,17 @@ getTree <- function(sampler, chainNum, sampleNum, treeNum)
 }
 
 singleTreeSum <- function(treeNum, model, drawNum, dim) 
-# Sum over a single tree's terminal nodes
+  #'Sum of Terminal Tree Nodes
+  #' 
+  #'@description This function sums over the product of a tree terminal node's mu value
+  #'and probability. Tree's position is specified by treeNum and drawNum
+  #' 
+  #'@param treeNum Integer; The index of tree sample extracted
+  #'@param moodel List; The BART fitting model
+  #'@drawNum Integer; The index of the posterior draw
+  #'@dim Integer;
+  #'
+  #'@return The probability assigned to the input terminal node.
 {
   cutPoints<-dbarts:::createCutPoints(model$fit)
   cut <- array(c(0, 1), c(2,dim))
@@ -188,7 +231,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, ifRegress
     integrals <- sampleIntegrals(model, dim)
     integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
     meanValue[i] <- mean(integrals)
-    standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
+    standardDeviation[i] <- sqrt(sum((integrals - meanValue[i])^2) / (length(integrals) - 1))
 
     # sequential design section, where we build the new training data
     candidateSet <- randomLHS(1000, dim)

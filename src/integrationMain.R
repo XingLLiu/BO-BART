@@ -1,6 +1,6 @@
 # !/usr/bin/env R
 # uncomment below and fix it according when in department cluster.
-setwd("/scratchcomp01/hbz15/BO-BART/src/")
+# setwd("/scratchcomp01/xl6116/BO-BART/src/")
 # 
 # uncomment the following when running the code for the first time to load real integral values
 # source("./genz/saveComputeIntegrals.R")
@@ -23,7 +23,11 @@ dim <- args[1]
 num_iterations <- args[2]
 whichGenz <- args[3]
 
+<<<<<<< HEAD
 if (num_iterations == 1) stop ("NEED MORE THAN 1 ITERATION")
+=======
+if (num_iterations == 1) { stop("NEED MORE THAN 1 ITERATION") }
+>>>>>>> 0b3958b002346881c0bcf1cd1c5179a9ef39ef6f
 
 print(c(dim, num_iterations, whichGenz))
 source("./genz/genz.R") # genz function to test
@@ -63,12 +67,12 @@ MITime <- (t1 - t0)[[1]]
 
 # Bayesian Quadrature with Gaussian Process
 print("Begin Gaussian Process Integration")
-t0 <- proc.time()
 source("./GPBQ.R")
+
+t0 <- proc.time()
+predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = genz)  
 t1 <- proc.time()
 GPTime <- (t1 - t0)[[1]]
-
-predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = genz)  
 
 # read in analytical integrals
 dimensionsList <- c(1,2,3,5,10,20)

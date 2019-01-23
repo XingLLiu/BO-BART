@@ -1,6 +1,10 @@
 #setwd("~/Documents/GitHub/BO-BART/src/meanPopulationStudy/")
 # read in data
+<<<<<<< HEAD
 #data <- read.csv("selected_data.csv")
+=======
+data <- read.csv("full_data.csv")
+>>>>>>> 0b3958b002346881c0bcf1cd1c5179a9ef39ef6f
 
 set.seed(1223)
 
@@ -19,3 +23,8 @@ candidate <- cleanData[ref[1020:2038], ]
 write.csv(train, file = "train.csv")
 write.csv(candidate, file = "candidate.csv")
 
+<<<<<<< HEAD
+=======
+Rpar(pty = "s")
+hist(data$Total_person_income, breaks = 30, xlab = "Income", ylab = "Frequency", main = NULL, xaxs = "i", yaxs = "i")
+>>>>>>> 0b3958b002346881c0bcf1cd1c5179a9ef39ef6f
