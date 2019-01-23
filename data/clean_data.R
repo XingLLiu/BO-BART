@@ -5,9 +5,9 @@ library(mlogit)
 # read in data
 data <- read.csv("full_data.csv")
 
-png("population.png", width = 600, height = 600)
+png("hist_pop.png", width = 450, height = 450)
 Rpar(pty = "s")
-hist(data$Total_person_income, breaks = 30, xlab = "Income", ylab = "Frequency", main = NULL, xaxs = "i", yaxs = "i")
+hist(data$Total_person_income/1000, breaks = 30, xlab = "Total personal income (K$)", ylab = "Frequency", main = NULL, xaxs = "i", yaxs = "i")
 dev.off()
 
 png("white.png", width = 600, height = 600)
