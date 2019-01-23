@@ -53,7 +53,7 @@ for (i in 1:6){
         postscript(plotPath, width = 2800, height = 1794)
 
         # 2. Create the plot
-        # Set y limits 
+        # Set y limits
         yLimMean <- cbind(quantile(predictionBART$meanValueBART, probs=c(0, 1), na.rm=TRUE),
                        quantile(predictionMonteCarlo$meanValueMonteCarlo, probs=c(0, 1), na.rm=TRUE))
         
@@ -72,7 +72,7 @@ for (i in 1:6){
         plot(x = c(1:num_iterations), y = predictionMonteCarlo$meanValueMonteCarlo,
             pch = 16, type = "l",
             xlab = "Number of epochs N", ylab = "Integral estimates", col = "blue",
-            ylim = c(yLowLimMean, yHighLimMean),
+            ylim = c(yLowLimMean, yHighLimMean), 
             # ylim = ylims[1:2],
             xaxs="i", yaxs="i",
             cex.lab = 2.0,
@@ -82,7 +82,7 @@ for (i in 1:6){
         lines(x = c(1:num_iterations), predictionGPBQ$meanValueGP, type = 'l', col = "green", lty = 1)
         abline(a = real, b = 0, lty = 4)
         axis(4, at = signif(real, digits=4), las = 2, cex.axis = 1.2)
-        legend("topright", legend=c("MC Integration", "BART BQ", "GP BQ", "Actual"),
+        legend("topleft", legend=c("MC Integration", "BART BQ", "GP BQ", "Actual"),
             col=c("blue", "red", "green", "black"), cex=0.8, lty = c(1,1,1,1), bg="white")
 
         # 2. Create the plot
