@@ -57,7 +57,7 @@ png("./population.png", width = 700, height = 583)
 par(mfrow = c(1,2), pty = "s")
 plot(x = c(1:num_new_surveys), y = MIResults$meanValueMI,
     pch = 16, type = "l",
-    xlab = "Number of candidates added", ylab = "Average income (K$)", col = "blue",
+    xlab = "Number of candidates added", ylab = "Average income (thousands of US$)", col = "blue",
     main = NULL,
     lty = 1,
     ylim = c(35, 70),
@@ -125,7 +125,7 @@ for (cat in 1:2) {
   par(mfrow = c(1,2), pty = "s")
   plot(x = c(1:num_new_surveys), y = eduMIResults$meanValueMI, 
        pch = 16, type = "l",
-       xlab = "Number of candidates added", ylab = "Average income (K$)", col = "blue",
+       xlab = "Number of candidates added", ylab = "Average income (thousands of US$)", col = "blue",
        main = NULL,
        lty = 1,
        ylim = c(25+10*(cat-1), 70),
