@@ -7,7 +7,7 @@ data <- read.csv("full_data.csv")
 
 png("hist_pop.png", width = 450, height = 450)
 Rpar(pty = "s")
-hist(data$Total_person_income/1000, breaks = 30, xlab = "Total personal income (K$)", ylab = "Frequency", main = NULL, xaxs = "i", yaxs = "i")
+hist(data$Total_person_income/1000, breaks = 30, xlab = "Total personal income (thousands of US$)", ylab = "Frequency", main = NULL, xaxs = "i", yaxs = "i")
 dev.off()
 
 png("white.png", width = 600, height = 600)
