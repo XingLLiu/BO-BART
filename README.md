@@ -7,3 +7,5 @@ Dependencies
 ```
 
 ```
+
+## Real life data estimation (average income in thousand US$) ##
