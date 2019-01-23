@@ -35,7 +35,7 @@ Bayesian Optimization using Bayesian Additive Regression Trees
     mvtnorm
 ```
 
-##To run the genz integrals approximations:
+## To run the genz integrals approximations:
 
 1) Install the dependencies in `R`. Make sure you are using **R 3.5.0** or higher.
 
