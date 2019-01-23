@@ -2,6 +2,7 @@ library(lhs)
 library(dbarts)
 library(data.tree)
 library(matrixStats)
+library(docstring)
 
 # define string formatting
 `%--%` <- function(x, y) 
@@ -12,9 +13,10 @@ library(matrixStats)
 }
 
 computePopulationMean <- function(dim, trainX, trainY, condidateX, candidateY, num_iterations) 
-# Compute mean for BART-BQ with
+#' BART-BQ for estimating average income
+#' @description Compute mean for BART-BQ with
 # implementation of query sequential design 
-# to add more training data to the original dataset
+# of adding more training data to the original dataset
 # For every iteration, we compute the test error
 # input:
 #   dim: dimension
