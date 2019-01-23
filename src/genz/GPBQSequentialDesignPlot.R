@@ -54,8 +54,7 @@ for (i in 1:1){
         real <- analyticalIntegrals[whichGenz, whichDimension]
 
         # 1. Open jpeg file
-        # plotName <- paste("convergenceMean", toString(whichGenz), toString(dim), "Dimensions", sep = "")
-        plotName <- paste("convergenceMean", toString(whichGenz), toString(dim), "Dimensions", ".eps", sep = "")
+        plotName <- paste("convergenceMean", toString(whichGenz), toString(dim), "Dimensions", "NoSeqDes", ".eps", sep = "")
         plotPath <- gsub(paste("../report/Figures/", toString(whichGenz), "/", plotName, sep=""), pattern = "csv", replacement="jpg")
         postscript(plotPath, width = 2100, height = 1794)
         # jpeg(plotPath, width = 2100, height = 1794, res=200)
@@ -75,56 +74,44 @@ for (i in 1:1){
         yHighLimMean <-  yHighLimMean * scalingFactor
         yHighLimMean <- max(yLimMean[, 2]) * scalingFactor
         
-        par(mar=c(7, 7, 7, 7))
-        plot(x = c(1:num_iterations), y = predictionMonteCarlo$meanValueMonteCarlo,
+        par(mar=c(7, 6, 6, 10))
+        # plot(x = c(1:num_iterations), y = predictionMonteCarlo$meanValueMonteCarlo,
+        #     pch = 16, type = "l",
+        #     xlab = "Number of epochs N", ylab = "Integral approximation", col = "blue",
+        #     ylim = c(0.5, 0.77), 
+        #     lty = 1,
+        #     xaxs="i", yaxs="i",
+        #      cex.lab = 2.2,
+        #      cex.axis = 1.8
+        #     )
+        # lines(x = c(1:num_iterations), predictionBART$meanValueBART, type = 'l', col = "red", lty = 1)
+        # lines(x = c(1:num_iterations), predictionGPBQ$meanValueGP, type = 'l', col = "green", lty = 1)
+        # lines(x = c(1:num_iterations), predictionGPBQNoSeqDesign$meanValueGPNoSeq, type = 'l', col = "chocolate", lty = 1)
+        # lines(x = c(1:num_iterations), results[, 2], type = 'l', col = "cadetblue", lty = 1)
+        # lines(x = c(1:num_iterations), results[, 3], type = 'l', col = "gold", lty = 1)
+        # lines(x = c(1:num_iterations), results[, 4], type = 'l', col = "magenta", lty = 1)
+        # legend("topleft", legend=c("MC Integration", "BART BQ", "GP BQ", "Actual", "GP 10", "GP 30", "GP 50", "GP 70"),
+        #     col=c("blue", "red", "green", "chocolate", "black", "cadetblue", "gold", "magenta"), cex=0.8, lty = c(1,1,1,1))
+        # axis(4, at = signif(real, digits=4), las = 2, cex.axis=1.8)
+
+        plot(x = c(1:num_iterations), y = predictionGPBQ$meanValueGP,
             pch = 16, type = "l",
-            xlab = "Number of epochs N", ylab = "Integral approximation", col = "blue",
-            # main = paste("Convergence of methods: mean vs N \nusing", genzFunctionName, "with", num_iterations, "epochs in", dim, "dim"),
-            # ylim = c(-real, real + real),
+            xlab = "Number of epochs N", ylab = "Integral estimate", col = "blue",
             ylim = c(0.5, 0.77), 
             lty = 1,
-            xaxs="i", yaxs="i"
-            )
-        lines(x = c(1:num_iterations), predictionBART$meanValueBART, type = 'l', col = "red", lty = 1)
-        lines(x = c(1:num_iterations), predictionGPBQ$meanValueGP, type = 'l', col = "green", lty = 1)
+            xaxs="i", yaxs="i",
+            cex.lab = 2.2,
+            cex.axis = 1.8
+        )
         lines(x = c(1:num_iterations), predictionGPBQNoSeqDesign$meanValueGPNoSeq, type = 'l', col = "chocolate", lty = 1)
+        lines(x = c(1:num_iterations), results[, 2], type = 'l', col = "cadetblue", lty = 1)
+        lines(x = c(1:num_iterations), results[, 3], type = 'l', col = "gold", lty = 1)
+        lines(x = c(1:num_iterations), results[, 4], type = 'l', col = "magenta", lty = 1)
         abline(a = real, b = 0, lty = 4)
-        legend("topleft", legend=c("MC Integration", "BART BQ", "GP BQ", "GP without Seq. Des.", "Actual"),
-            col=c("blue", "red", "green", "green", "black"), cex=0.8, lty = c(1,1,1,1))
+        legend("topleft", legend=c("GP BQ", "Actual", "GP 10", "GP 30", "GP 50", "GP 70"),
+            col=c("blue", "chocolate", "black", "cadetblue", "gold", "magenta"), cex=0.8, lty = c(1,1,1,1))
+        axis(4, at = signif(real, digits=4), las = 2, cex.axis=1.8)
 
-        # # 2. Create the plot
-        # # Set y limits
-        # yLimSd <- cbind(quantile(log(predictionBART$standardDeviationBART), probs=c(0.1, 0.9), na.rm=TRUE),
-        #                quantile(log(predictionMonteCarlo$standardDeviationMonteCarlo), probs=c(0.1, 0.9), na.rm=TRUE))
-        
-        # yLowLimSd <- min(yLimSd[, 1])
-        # if (yLowLimSd < 0) {scalingFactor <- 1.5}
-        # else {scalingFactor <- 0.2}
-        # yLowLimSd <-  yLowLimSd * scalingFactor
-
-        # yHighLimSd <- max(yLimSd[, 2])
-        # if (yHighLimSd > 0) {scalingFactor <- 2}
-        # else {scalingFactor <- 0}
-        # yHighLimSd <-  yHighLimSd * scalingFactor
-        # yHighLimSd <- max(yLimSd[, 2]) * scalingFactor
-
-        # plot(x = log(c(2:num_iterations)), y = log(predictionMonteCarlo$standardDeviationMonteCarlo[-1]),
-        #     pch = 16, type = "l",
-        #     xlab = "Log number of epochs N", ylab = "Log standard deviation", col = "blue",
-        #     main = paste("Convergence of methods: log(sd) vs log(N) \nusing", genzFunctionName, "with", num_iterations, "epochs in", dim, "dim"),
-        #     lty = 1,
-        #     ylim = c(yLowLimSd, yHighLimSd),
-        #     xaxs="i", yaxs="i")
-        # lines(x = log(c(2:num_iterations)), log(predictionBART$standardDeviationBART[-1]), type = 'l', col = "red", lty = 1)
-        # lines(x = c(1:num_iterations), predictionGPBQNoSeqDesign$standardDeviationGPNoSeq, type = 'l', col = "green", lty = 1)
-        # # lines(x = log(c(2:num_iterations)), log(predictionGPBQ$standardDeviationGP[-1]), type = 'l', col = "green", lty = 1)
-
-        # # legend("topleft", legend=c("MC Integration", "BART BQ", "GP BQ"),
-        # #     col=c("blue", "red", "green"), cex=0.8, lty = c(1,1,1,1))
-
-        # legend("topleft", legend=c("MC Integration", "BART BQ", "GPBQ without Seq. Des."),
-        #       col=c("blue", "red", "green"), cex=0.8, lty = c(1,1,1,1))   
-        # 3. Close the file
         dev.off()
 
     }

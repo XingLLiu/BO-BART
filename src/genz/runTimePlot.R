@@ -71,7 +71,7 @@ postscript(plotPath, width = 2100, height = 1794)
 # 2. Create the plot
 # Set y limits
 
-par(mar=c(4, 4, 4, 7))
+par(mar=c(7, 7, 4, 4))
 plot(x = 1:6, y = BARTRunTime,
     pch = 16, type = "b",
     xlab = "Dimension", ylab = "Time", col = "black",
@@ -80,10 +80,12 @@ plot(x = 1:6, y = BARTRunTime,
     cex = 1.5,
     lty = 2,
     xaxs="i", yaxs="i",
-    xaxt = "n"
+    xaxt = "n",
+    cex.lab = 2.2,
+    cex.axis = 1.8
     )
-lines(GPRunTime, col = "blue", type = "o", lty = 2, pch = 19, cex = 1.5)
-axis(1, at=1:6, labels=c(1, 2, 3, 5, 10, 20))
+lines(GPRunTime, col = "blue", type = "o", lty = 2, pch = 19, cex = 1.8)
+axis(1, at=1:6, labels=c(1, 2, 3, 5, 10, 20), cex.axis=1.8)
 legend("topleft", legend=c("BART BQ", "GP BQ"), col=c("black", "blue"), lty=rep(2, 2), cex=1.2, lwd=rep(2,2))
 
 # 3. Close the file
