@@ -82,7 +82,7 @@ for (i in 1:6){
         lines(x = c(1:num_iterations), predictionGPBQ$meanValueGP, type = 'l', col = "green", lty = 1)
         abline(a = real, b = 0, lty = 4)
         axis(4, at = signif(real, digits=4), las = 2, cex.axis = 1.2)
-        legend("topleft", legend=c("MC Integration", "BART BQ", "GP BQ", "Actual"),
+        legend("topright", legend=c("MC Integration", "BART BQ", "GP BQ", "Actual"),
             col=c("blue", "red", "green", "black"), cex=0.8, lty = c(1,1,1,1), bg="white")
 
         # 2. Create the plot
@@ -101,7 +101,7 @@ for (i in 1:6){
         yHighLimSd <-  yHighLimSd * scalingFactor
         yHighLimSd <- yHighLimSd * scalingFactor
 
-        plot(x = log(c(2:num_iterations)), y = log(predictionMonteCarlo$standardDeviationMonteCarlo[-1]),
+        plot(x = log(c(2:num_iterations)), y = log(predictionMonteCarlo$standardDeviationMonteCarlo[-1]/sqrt(c(1:(num_iterations-1)))),
             pch = 16, type = "l",
             xlab = "Log number of epochs N", ylab = "Log standard deviation", col = "blue",
             lty = 1,
@@ -112,7 +112,7 @@ for (i in 1:6){
             cex.axis = 1.5
             )
         lines(x = log(c(2:num_iterations)), log(predictionBART$standardDeviationBART[-1]), type = 'l', col = "red", lty = 1)
-        legend("topleft", legend=c("MC Integration", "BART BQ"), bg="white",
+        legend("topright", legend=c("MC Integration", "BART BQ"), bg="white",
               col=c("blue", "red"), cex=0.8, lty = c(1,1,1,1), pt.cex = 1.5)   
         # 3. Close the file
         dev.off()
