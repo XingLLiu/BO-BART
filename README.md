@@ -1,5 +1,7 @@
 # BO-BART
-Bayesian Optimization using Bayesian Additive Regression Trees
+Bayesian Optimization using Bayesian Additive Regression Trees (under review)
+
+- Kang R, Liu X, Shen Z, Zhu H and Flaxman S
 
 ## Code directory ##
 
