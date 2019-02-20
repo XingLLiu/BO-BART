@@ -1,7 +1,13 @@
 # BO-BART
+
+[![Documentation Status](https://readthedocs.org/projects/bart-bq/badge/?version=latest)](https://bart-bq.readthedocs.io/en/latest/?badge=latest)
+
+
 Bayesian Optimization using Bayesian Additive Regression Trees (under review)
 
 - Kang R, Liu X, Shen Z, Zhu H and Flaxman S
+
+Project Documentation: https://bart-bq.readthedocs.io/en/latest/
 
 ## Code directory ##
 
