@@ -1,10 +1,9 @@
-setwd("~/Documents/GitHub/BO-BART/src/meanPopulationStudy/")
+setwd(getwd())
 
 library(lhs)
 library(dbarts)
 library(data.tree)
 library(matrixStats)
-library(docstring)
 source("./bartMean.R")
 # set seed to enable reproduction
 set.seed(1223)
