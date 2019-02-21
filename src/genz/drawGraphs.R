@@ -43,7 +43,7 @@ for (i in 1:6){
 
         # Retrieve analytical integral values
         whichDimension <- which(dim == dimensionsList)
-        analyticalIntegrals <- read.csv("./genz/integrals.csv", header = FALSE)
+        analyticalIntegrals <- read.csv("../results/genz/integrals.csv", header = FALSE)
         real <- analyticalIntegrals[whichGenz, whichDimension]
 
         # 1. Open eps file
