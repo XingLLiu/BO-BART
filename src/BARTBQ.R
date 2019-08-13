@@ -205,7 +205,7 @@ sampleIntegrals <- function(model, dim)
   #'@return Real; Sum over a posterior draw
   
 {
-  nDraw <- dim(model$fit$state[[1]]@savedTreeFits)[3]
+  nDraw <- dim(model$fit$state[[1]]@treeFits)[2]
   drawNum <- seq(1, nDraw, length.out=nDraw)
   
   #Extra Variables
@@ -293,7 +293,7 @@ mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY)
   # prepare training data and parameters
   genz <- FUN #select genz function
   numNewTraining <- num_iterations
-  prediction <- BARTSequential(dim, trainX, trainY, numNewTraining, FUN = genz) 
+  prediction <- BARTBQSequential(dim, trainX, trainY, numNewTraining, FUN = genz) 
 
   return (prediction)
 }
