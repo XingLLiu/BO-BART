@@ -268,7 +268,7 @@ oscil <- function(xx)
   a <- rep(110/dim^(5/2), dim) 
   
   sum <- xx %*% a
-  y <- np.cos(2 * pi * u[1] + sum)
+  y <- cos(2 * pi * u[1] + sum)
   
   return(y)
   
