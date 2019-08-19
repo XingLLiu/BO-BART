@@ -11,6 +11,9 @@
 # Output files from R CMD build
 /*.tar.gz
 
+# csvs
+*.csv
+
 # Output files from R CMD check
 /*.Rcheck/
 
@@ -35,5 +38,9 @@ vignettes/*.pdf
 # Shiny token, see https://shiny.rstudio.com/articles/shinyapps.html
 rsconnect/
 .Rproj.user
-
+.Rproj
 .DS_Store
+
+# python env
+env/ 
+.pycache

@@ -5,7 +5,7 @@ library(lhs)
 library(dbarts)
 library(data.tree)
 library(matrixStats)
-
+library(doParallel)
 terminalProbability <- function(currentNode) 
   
   #'Terminal Node Probability
@@ -100,7 +100,6 @@ getTree <- function(sampler, chainNum, sampleNum, treeNum)
   
 {
   cutPoints <- dbarts:::createCutPoints(sampler)
-  
   if (sampler$control@keepTrees) {
     treeString <- sampler$state[[chainNum]]@savedTrees[treeNum, sampleNum]
     treeFits <- sampler$state[[chainNum]]@savedTreeFits[, treeNum, sampleNum]
@@ -205,7 +204,7 @@ sampleIntegrals <- function(model, dim)
   #'@return Real; Sum over a posterior draw
   
 {
-  nDraw <- dim(model$fit$state[[1]]@savedTreeFits)[3]
+  nDraw <- dim(model$fit$state[[1]]@treeFits)[2]
   drawNum <- seq(1, nDraw, length.out=nDraw)
   
   #Extra Variables
@@ -246,16 +245,16 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN)
     # first build BART and scale mean and standard deviation
     sink("/dev/null")
     model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
+    # model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=2000)
     sink()
     # obtain posterior samples
     integrals <- sampleIntegrals(model, dim)
     integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
     meanValue[i] <- mean(integrals)
-    standardDeviation[i] <- sqrt(sum((integrals - meanValue[i])^2) / (length(integrals) - 1))
+    standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
 
     # sequential design section, where we build the new training data
     candidateSet <- randomLHS(1000, dim)
-
     
     # predict the values
     fValues <- predict(model, candidateSet)

@@ -14,6 +14,7 @@ monteCarloIntegrationUniform <- function(FUN, numSamples, dim)
 	
 	for (i in 1:numSamples) {
 	  CandidateSet <- matrix(runif(i*dim), ncol = dim)
+
 	  functionSamples <- FUN(CandidateSet)
 	  meanValueMonteCarlo[i] <- mean(functionSamples)
 	  standardDeviationMonteCarlo[i] <- sqrt(var(functionSamples))

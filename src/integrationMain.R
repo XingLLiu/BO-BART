@@ -42,6 +42,7 @@ print("Testing with: %s" %--% genzFunctionName)
 trainX <- randomLHS(100, dim)
 trainY <- genz(trainX)
 
+
 # Bayesian Quadrature method
 # set number of new query points using sequential design
 
@@ -86,7 +87,7 @@ results <- data.frame(
         "epochs" = c(1:num_iterations),
         "BARTMean" = predictionBART$meanValueBART, "BARTsd" = predictionBART$standardDeviationBART,
         "MIMean" = predictionMonteCarlo$meanValueMonteCarlo, "MIsd" = predictionMonteCarlo$standardDeviationMonteCarlo,
-        "GPMean" = predictionGPBQ$meanValueGP, "GPsd" = predictionGPBQ$standardDeviationGP,
+        "GPMean" = predictionGPBQ$meanValueGP, "GPsd" = sqrt(predictionGPBQ$varianceGP),
         "actual" = rep(real, num_iterations),
         "runtimeBART" = rep(bartTime, num_iterations),
         "runtimeMI" = rep(MITime, num_iterations),
@@ -122,7 +123,7 @@ plot(x = log(c(2:num_iterations)), y = log(predictionMonteCarlo$standardDeviatio
      lty = 1,
      xaxs="i", yaxs="i")
 lines(x = log(c(2:num_iterations)), log(predictionBART$standardDeviationBART[-1]), type = 'l', col = "red", lty = 1)
-lines(x = log(c(2:num_iterations)), log(predictionGPBQ$standardDeviationGP[-1]), type = 'l', col = "green", lty = 1)
+lines(x = log(c(2:num_iterations)), log(sqrt(predictionGPBQ$varianceGP[-1])), type = 'l', col = "green", lty = 1)
 legend("topleft", legend=c("MC Integration", "BART BQ", "GP BQ"),
        col=c("blue", "red", "green"), cex=0.8, lty = c(1,1,1,1))
 # 3. Close the file
