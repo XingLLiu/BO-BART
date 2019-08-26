@@ -54,7 +54,7 @@
 
 @Article{CART,
   author = 	 "Hugh A. Chipman , Edward I. George & Robert E. McCulloch",
-  title = 	 "Bayesian CART Model Search",
+  title = 	 "Bayesian {CART} Model Search",
   journal =	 "Journal of the American Statistical Association",
   year =	 "1998",
   volume =	 "",
@@ -81,11 +81,25 @@
 %   pages =	 "97--109"
 % }
 
-@misc{Genz, 
-    author = 	 "Surjanovic, S. and Bingham, D.",
-    title =     "Virtual Library of Simulation Experiments: Test Functions and Datasets", 
-    howpublished =  "Retrieved January 6, 2019, from \url{http://www.sfu.ca/~ssurjano}" 
-}
+
+
+
+@inproceedings{Genz,
+    author = {Genz, Alan},
+    title = {Testing Multidimensional Integration Routines},
+    booktitle = {Proc. Of International Conference on Tools, Methods and Languages for Scientific and Engineering Computation},
+    year = {1984},
+    isbn = {0-444-87570-0},
+    location = {Paris, France},
+    pages = {81--94},
+    numpages = {14},
+    url = {http://dl.acm.org/citation.cfm?id=2837.2842},
+    acmid = {2842},
+    publisher = {Elsevier North-Holland, Inc.},
+    address = {New York, NY, USA},
+} 
+
+
 
 
 
@@ -144,17 +158,13 @@
 }
 
 @misc{ACS,
-    author = "ACS",
+    author = "US Census Bureau",
     year = "2017",
-    title = "2017 ACS PUMS data for Wyoming",
+    title = "{2017 American Community Survey PUMS data for Wyoming}",
     school = ""
     url = "https://www.census.gov/programs-surveys/acs/data/pums.html",
     institution = "American Community Survey (ACS)" 
 }
-
-
-https://sofifa.com/
-
 
 
 
@@ -165,7 +175,7 @@ https://sofifa.com/
     and Juliano, Benjoe A.
     and Renner, Ren{\'e} S.
     and Tan, C. J. Kenneth",
-    title="Parallel High-Dimensional Integration: Quasi-Monte Carlo versus Adaptive Cubature Rules",
+    title="Parallel High-Dimensional Integration: Quasi-{M}onte {C}arlo versus Adaptive Cubature Rules",
     booktitle="Computational Science --- ICCS 2001",
     year="2001",
     publisher="Springer Berlin Heidelberg",
@@ -178,7 +188,7 @@ https://sofifa.com/
 @ARTICLE{7352306, 
 author={B. Shahriari and K. Swersky and Z. Wang and R. P. Adams and N. de Freitas}, 
 journal={Proceedings of the IEEE}, 
-title={Taking the Human Out of the Loop: A Review of Bayesian Optimization}, 
+title={Taking the Human Out of the Loop: A Review of {B}ayesian Optimization}, 
 year={2016}, 
 volume={104}, 
 number={1}, 
@@ -192,7 +202,7 @@ month={Jan},}
 
 @article{doi:10.1002/cjs.11156,
 author = {Chipman, Hugh and Ranjan, Pritam and Wang, Weiwei},
-title = {Sequential design for computer experiments with a flexible Bayesian additive model},
+title = {Sequential design for computer experiments with a flexible {B}ayesian additive model},
 journal = {Canadian Journal of Statistics},
 volume = {40},
 number = {4},
@@ -205,81 +215,192 @@ abstract = {Abstract In computer experiments, a mathematical model implemented o
 year = {2012}
 }
 
+@article{rockova2017posterior,
+  title={Posterior concentration for {B}ayesian regression trees and their ensembles},
+  author={Rockova, Veronika and van der Pas, Stephanie},
+  journal={arXiv preprint arXiv:1708.08734},
+  year={2017}
+}
 
-%%%%%%%%%%%%%%%%%%%%Examples%%%%%%%%%%%%%%%%%%%%
+@ARTICLE{rockova2019theory,
+       author = {{Rockova}, Veronika and {Saha}, Enakshi},
+        title = "{On Theory for BART}",
+      journal = {AISTATS 2019},
+     keywords = {Statistics - Machine Learning, Computer Science - Machine Learning},
+         year = 2019,
+        month = Oct,
+          eid = {arXiv:1810.00787},
+archivePrefix = {arXiv},
+       eprint = {1810.00787},
+ primaryClass = {stat.ML},
+       adsurl = {https://ui.adsabs.harvard.edu/\#abs/2018arXiv181000787R},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
 
-% @inproceedings{langley00,
-%  author    = {P. Langley},
-%  title     = {Crafting Papers on Machine Learning},
-%  year      = {2000},
-%  pages     = {1207--1216},
-%  editor    = {Pat Langley},
-%  booktitle     = {Proceedings of the 17th International Conference
-%               on Machine Learning (ICML 2000)},
-%  address   = {Stanford, CA},
-%  publisher = {Morgan Kaufmann}
-% }
-
-% @TechReport{mitchell80,
-%   author = 	 "T. M. Mitchell",
-%   title = 	 "The Need for Biases in Learning Generalizations",
-%   institution =  "Computer Science Department, Rutgers University",
-%   year = 	 "1980",
-%   address =	 "New Brunswick, MA",
-% }
-
-% @phdthesis{kearns89,
-%   author = {M. J. Kearns},
-%   title =  {Computational Complexity of Machine Learning},
-%   school = {Department of Computer Science, Harvard University},
-%   year =   {1989}
-% }
-
-% @Book{MachineLearningI,
-%   editor = 	 "R. S. Michalski and J. G. Carbonell and T.
-% 		  M. Mitchell",
-%   title = 	 "Machine Learning: An Artificial Intelligence
-% 		  Approach, Vol. I",
-%   publisher = 	 "Tioga",
-%   year = 	 "1983",
-%   address =	 "Palo Alto, CA"
-% }
-
-% @Book{DudaHart2nd,
-%   author =       "R. O. Duda and P. E. Hart and D. G. Stork",
-%   title =        "Pattern Classification",
-%   publisher =    "John Wiley and Sons",
-%   edition =      "2nd",
-%   year =         "2000"
-% }
-
-% @misc{anonymous,
-%   title= {Suppressed for Anonymity},
-%   author= {Author, N. N.},
-%   year= {2019}
-% }
-
-% @InCollection{Newell81,
-%   author =       "A. Newell and P. S. Rosenbloom",
-%   title =        "Mechanisms of Skill Acquisition and the Law of
-%                   Practice", 
-%   booktitle =    "Cognitive Skills and Their Acquisition",
-%   pages =        "1--51",
-%   publisher =    "Lawrence Erlbaum Associates, Inc.",
-%   year =         "1981",
-%   editor =       "J. R. Anderson",
-%   chapter =      "1",
-%   address =      "Hillsdale, NJ"
-% }
+  @Manual{R,
+    title = {R: A Language and Environment for Statistical Computing},
+    author = {{R Core Team}},
+    organization = {R Foundation for Statistical Computing},
+    address = {Vienna, Austria},
+    year = {2018},
+    url = {https://www.R-project.org/},
+  }
+  
+  @book{Press:2007:NRE:1403886,
+ author = {Press, William H. and Teukolsky, Saul A. and Vetterling, William T. and Flannery, Brian P.},
+ title = {Numerical Recipes 3rd Edition: The Art of Scientific Computing.},
+ year = {2007},
+ isbn = {0521880688, 9780521880688},
+ edition = {3},
+ publisher = {Cambridge University Press},
+ pages = {397-410},
+ address = {New York, NY, USA},
+} 
 
 
-% @Article{Samuel59,
-%   author = 	 "A. L. Samuel",
-%   title = 	 "Some Studies in Machine Learning Using the Game of
-% 		  Checkers",
-%   journal =	 "IBM Journal of Research and Development",
-%   year =	 "1959",
-%   volume =	 "3",
-%   number =	 "3",
-%   pages =	 "211--229"
-% }
+@inproceedings{Rasmussen:2002:BMC:2968618.2968681,
+ author = {Rasmussen, Carl Edward and Ghahramani, Zoubin},
+ title = {Bayesian {M}onte {C}arlo},
+ booktitle = {Proceedings of the 15th International Conference on Neural Information Processing Systems},
+ series = {NIPS'02},
+ year = {2002},
+ pages = {505--512},
+ numpages = {8},
+ url = {http://dl.acm.org/citation.cfm?id=2968618.2968681},
+ acmid = {2968681},
+ publisher = {MIT Press},
+ address = {Cambridge, MA, USA},
+} 
+
+@article{10.2307/25464673,
+ ISSN = {00905364},
+ URL = {http://www.jstor.org/stable/25464673},
+abstract = {We derive rates of contraction of posterior distributions on nonparametric or semiparametric models based on {G}aussian processes. The rate of contraction is shown to depend on the position of the true parameter relative to the reproducing kernel Hilbert space of the Gaussian process and the small ball probabilities of the Gaussian process. We determine these quantities for a range of examples of Gaussian priors and in several statistical settings. For instance, we consider the rate of contraction of the posterior distribution based on sampling from a smooth density model when the prior models the log density as a (fractionally integrated) Brownian motion. We also consider regression with Gaussian errors and smooth classification under a logistic or probit link function combined with various priors.},
+ author = {A. W. van der Vaart and J. H. van Zanten},
+ journal = {The Annals of Statistics},
+ number = {3},
+ pages = {1435--1463},
+ publisher = {Institute of Mathematical Statistics},
+ title = {Rates of Contraction of Posterior Distributions Based on Gaussian Process Priors},
+ volume = {36},
+ year = {2008}
+}
+@book{Durrett:2010:PTE:1869916,
+ author = {Durrett, Rick},
+ title = {Probability: Theory and Examples},
+ year = {2010},
+ isbn = {0521765390, 9780521765398},
+ edition = {4th},
+ publisher = {Cambridge University Press},
+ address = {New York, NY, USA},
+} 
+
+
+@article{doi:10.1080/02664760802684177,
+author = { Gianluca   Baio  and  Marta   Blangiardo },
+title = {Bayesian hierarchical model for the prediction of football results},
+journal = {Journal of Applied Statistics},
+volume = {37},
+number = {2},
+pages = {253-264},
+year  = {2010},
+publisher = {Taylor & Francis},
+doi = {10.1080/02664760802684177},
+
+URL = { 
+        https://doi.org/10.1080/02664760802684177
+    
+},
+eprint = { 
+        https://doi.org/10.1080/02664760802684177
+    
+}
+
+}
+
+@article{doi:10.1146/annurev-statistics-010814-020133,
+author = {Davison, A.C. and Huser, R.},
+title = {Statistics of Extremes},
+journal = {Annual Review of Statistics and Its Application},
+volume = {2},
+number = {1},
+pages = {203-235},
+year = {2015},
+doi = {10.1146/annurev-statistics-010814-020133},
+
+URL = { 
+        https://doi.org/10.1146/annurev-statistics-010814-020133
+    
+},
+eprint = { 
+        https://doi.org/10.1146/annurev-statistics-010814-020133
+    
+}
+,
+    abstract = { Statistics of extremes concerns inference for rare events. Often the events have never yet been observed, and their probabilities must therefore be estimated by extrapolation of tail models fitted to available data. Because data concerning the event of interest may be very limited, efficient methods of inference play an important role. This article reviews this domain, emphasizing current research topics. We first sketch the classical theory of extremes for maxima and threshold exceedances of stationary series. We then review multivariate theory, distinguishing asymptotic independence and dependence models, followed by a description of models for spatial and spatiotemporal extreme events. Finally, we discuss inference and describe two applications. Animations illustrate some of the main ideas. }
+}
+
+@inproceedings{briol2015frank,
+  title={Frank-{W}olfe {B}ayesian quadrature: Probabilistic integration with theoretical guarantees},
+  author={Briol, Fran{\c{c}}ois-Xavier and Oates, Chris and Girolami, Mark and Osborne, Michael A},
+  booktitle={Advances in Neural Information Processing Systems},
+  pages={1162--1170},
+  year={2015}
+}
+
+@article{dorie2018package,
+  title={R Package ‘dbarts’},
+  author={Dorie, Vincent and Chipman, Hugh and McCulloch, Robert and Dorie, Maintainer Vincent},
+  url={https://cran.r-project.org/web/packages/dbarts/},
+  year={2018}
+}
+
+@book{gelman2006data,
+  title={Data analysis using regression and multilevel/hierarchical models},
+  author={Gelman, Andrew and Hill, Jennifer},
+  year={2006},
+  publisher={Cambridge university press}
+}
+
+
+@misc{wolframalpha,
+  title = {Wolfram Alpha: Computational Intelligence},
+  howpublished = {\url{https://www.wolframalpha.com/}},
+  note = {Accessed: 2018-01-23}
+}
+@article{linero2018bayesian,
+  title={Bayesian regression tree ensembles that adapt to smoothness and sparsity},
+  author={Linero, Antonio R and Yang, Yun},
+  journal={Journal of the Royal Statistical Society: Series B (Statistical Methodology)},
+  volume={80},
+  number={5},
+  pages={1087--1110},
+  year={2018},
+  publisher={Wiley Online Library}
+}
+@inproceedings{gunter2014sampling,
+  title={Sampling for inference in probabilistic models with fast Bayesian quadrature},
+  author={Gunter, Tom and Osborne, Michael A and Garnett, Roman and Hennig, Philipp and Roberts, Stephen J},
+  booktitle={Advances in neural information processing systems},
+  pages={2789--2797},
+  year={2014}
+}
+@article{oates2019bayesian,
+  title={Bayesian probabilistic numerical methods in time-dependent state estimation for industrial hydrocyclone equipment},
+  author={Oates, Chris J and Cockayne, Jon and Aykroyd, Robert G and Girolami, Mark},
+  journal={Journal of the American Statistical Association},
+  number={just-accepted},
+  pages={1--27},
+  year={2019},
+  publisher={Taylor \& Francis}
+}
+@article{ohagan1991bayes,
+  title={Bayes--hermite quadrature},
+  author={O'Hagan, Anthony},
+  journal={Journal of statistical planning and inference},
+  volume={29},
+  number={3},
+  pages={245--260},
+  year={1991},
+  publisher={Elsevier}
+}

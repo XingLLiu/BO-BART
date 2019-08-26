@@ -56,62 +56,95 @@
 %     \label{classification-performance}
 % \end{table}
 
-Our design is applicable to real-life problems, for example, surveying. 
+We now present a novel use of BQ-BART in the context of a different integration problem: survey sampling. We propose a new method called ``Bayesian Survey Design''. Classically, the gold standard in survey sampling is the simple random sample, i.e.~Monte Carlo. Given a set of survey respondents, estimating the population mean is equivalent to calculating the expectation of the integral of the response values (an unknown function) over the respondents who were sampled (the prior). Having phrased this problem as an integration problem, we propose the use of Bayesian Quadrature for survey design, as an alternative to the simple random sampling.
 
-Suppose we have a small set of census data with response and a list of information of potential candidates without response. Working with query design, we could avoid investigating response of every candidate but find the "best" ones to conduct the survey, hence decrease the cost of manual labour in the investigation. BART-BQ with sequential query design thus provides a good way to find the best candidates and then accurately compute the population metrics, such as mean income for our studies.
+We further consider using demographic variables to model the response variable. Bayesian hierarchical models are often used in this setting to analyse survey data, in order to stabilise estimates, make them more representative, and to borrow strength when making sub-population estimates for underrepresented subgroups or locations \cite{gelman2006data}. Suppose we have a small set of survey responses consisting of interest, income, and categorical demographic variables (race, age, sex, etc). In addition, we have a much larger set of individuals for whom demographic variables are known but for whom the response variable income is unknown. We can consider surveying any of these individuals to ask them their income. Monte Carlo sampling would choose them at random, regardless of their demographics. We consider the use of Sequential Bayesian Quadrature with BART to intelligently choose the next individual to survey. We hope that this will lead to lower variance estimates with smaller sample sizes, making survey sampling more efficient. A standard refinement of simple random sampling is block (also known as stratified) random sampling. By conditioning on a variable of interest (e.g.~race), we ensure more diversity in our samples and thus obtain lower variance estimates. Our approach holds the promise of automatically ensuring a diverse sample.
 
 \subsection{Exploratory Data Analysis}
 
-We obtained the 2017 ACS PUMS data on income in Wyoming \cite{ACS}, with attributes age, sex, race, education etc. We are going to predict the income of the observations. Figure~\ref{fig:income} shows the histogram of the distribution of income.
+We obtain the 2017 American Community Survey Public Use Microdata Sample (PUMS) from Wyoming \cite{ACS}, with attributes \texttt{Mobility}, \texttt{Employment}, \texttt{Sex}, \texttt{Education}, \texttt{Disability}, \texttt{Health insurance}, \texttt{Own child}, \texttt{Race}, and response \texttt{Total person income}. The goal is to predict the average income of the population. Our main interest is to estimate the average income of the working population and so we eliminate the observations with negative or zero income. Figure~\ref{fig:income} shows the histogram of distribution of income.
 
 \begin{figure}[tbh!]
     \centering
-    \includegraphics[width = 0.38\textwidth]{6.Real_Data_Sets/income.eps}
-    \caption{Histogram of total income of an individual, normalised during training process.}
+    \vspace*{-0.1in}
+    \includegraphics[width = 0.35\textwidth]{report/Writing/6.Real_Data_Sets/hist_pop.png}
+    \caption{Histogram of total personal income (thousands of US\$).}
     \label{fig:income}
+    \vspace*{0in}
 \end{figure}
 
-We could further divide the data by sex (Figure~\ref{fig:by_sex}) to obtain finer data which is often required in real-life problems.
+To enable experiments on a more refined model, and to test whether our approach is competitive with stratified random sampling, we categorise the population into two groups by education level: either below or higher than high school education.  
 
-\begin{figure}[tbh!]
-    \centering
-    \includegraphics[width = 0.38\textwidth]{6.Real_Data_Sets/by_sex.eps}
-    \caption{Histogram of total income by sex. The individual distributions have similar shape as in Figure~\ref{fig:income}, being normalised when training.}
-    \label{fig:by_sex}
-\end{figure}
+\subsection{Experimental Design}
 
-\subsection{Experiment Design}
-We are going to estimate the mean income of the whole population with a quarter of existing data and add $M$ "best candidates" to the survey by sequential design. We then stratify our data into male and female and then estimate the population mean for each category, using the same setup.
+We are first going to estimate the mean income of the whole population with some initial observations and add $M$ `best candidates' to the survey by Sequential Bayesian Quadrature with BART. Then to make the problem more complex, we stratify our data by education level and estimate the population mean for each category, using the same setup.
 
-The reason for this is be understood in the setting where we are first given a database of existing census information $\mathcal{X}\times\mathcal{Y}$, where $\mathcal{X}$ are the population attributes and $\mathcal{Y}$ are the income, and we have the ability to send surveyors to $M$ individuals in a subset of size $n$ of the population. We already know the attributes of the $n$ individuals but we have to survey to obtain their income information. We then select exactly the best $M$ individuals to survey such that we can best estimate the population mean with BART-BQ, using the surveyed income information. Algorithm~\ref{alg:RLSQ} describes the precise design of the survey.
+The details of our approach differ slightly from those explained in Algorithm \ref{alg:SQ}. Assume we are given a set of samples $\mathcal{D} = \{x_i,y_i\}_{i=1}^n$, where $x_i$ is a demographic covariate vector and $y_i$ is a real-valued label. We have a further set of candidates $\mathcal{C} = \{c_1, \ldots, c_L\}$ with known covariates but unknown responses. The goal of our design is to sequentially select $M$ individuals. Algorithm~\ref{alg:RLSQ} describes our sequential design approach. We use a discrete uniform prior and assign each candidate an equal $\frac{1}{L}$ chance to be selected. 
 \begin{algorithm}[tbh!]
   \caption{Sequential Design for Survey}
   \label{alg:RLSQ}
 \begin{algorithmic}
-  \STATE {\bfseries Input:} \\existing census information $\mathcal{X}\times\mathcal{Y} = \{(x_i, y_i)\}_{i=1}^n$,  \\candidate set $\mathcal{C} = \{c_1, \ldots, c_L\}$ \\
+  \STATE {\bfseries Input:} \\set of labeled samples $\mathcal{D} = \{(x_i, y_i)\}_{i=1}^n$,  \\candidate set $\mathcal{C} = \{c_1, \ldots, c_L\}$ \\
   $M$ number of new samples to collect
   \FOR{$M$ iterations}
-  \STATE fit BART of $K$ trees with $\mathcal{X}$ and $\mathcal{Y}$
-  \STATE find $f_{\mbox{BART}}^{(1)}(c), \ldots, f_{\mbox{BART}}^{(K)}(c)$ for all $c\in\mathcal{C}$
-  \STATE compute the empirical variance $\widehat{\mbox{Var}}[(f_{1}(c),..,f_{N}(c))]$
-  \STATE Find $\,c^* = \mbox{argmax}_{c} \widehat{\mbox{Var}}[(f_{1}(c),..,f_{N}(c))]$
+  \STATE fit BART with $\mathcal{D}$
+  \STATE find posterior predictive distribution $f_{\mbox{BART}}(c)$ for all $c\in\mathcal{C}$
+  \STATE find $\,c^* = \mbox{argmax}_{c} \mbox{Var}[f_{\mbox{BART}}(c)|\mathcal{D}]$
 	\label{eq:maxvar}
-  \STATE obtain the total income $y_c^*$ of the selected candidate
-  \STATE $\mathcal{D} \leftarrow \mathcal{D}\cup \{c^*\}$, $\mathcal{C} \leftarrow \mathcal{C}\setminus \{c^*\}$
-  \STATE $\mathcal{Y} \leftarrow \mathcal{Y}\cup \{y_c^*\}$
+  \STATE obtain the survey response $y_c^*$ for $c^*$
+  \STATE $\mathcal{D} \leftarrow \mathcal{D}\cup \{(c^*,y^*_c)\}$
+  \STATE $\mathcal{C} \leftarrow \mathcal{C}\setminus \{c^*\}$
 \ENDFOR
 \end{algorithmic}
 \end{algorithm}
 
-BART-BQ method introduced in section~\ref{BQ-BART} will give us the estimation of expected income with increasing accuracy and decreasing variance. In the real world, the stopping criterion could be limited by budget of conducting the survey, labour, geographical limitation, etc.
+In the real world, the size of new samples $M$ could be limited by the budget or time available for conducting the survey, or other constraints.
 
-Our existing competitors are simple random sample (Monte Carlo) and block random sampling. Block random sampling is a method of segmenting the data by specific attribute. For simplicity, we separate the data by sex. The principle is to sample the same ratio of male and female candidates from candidates and conduct the survey, to obtain sample mean and variance.
+Our BART model can be used to provide posterior predictive distributions for each of the remaining individuals whose income information is missing. Denote $f_P^k(x_i)$ as the prediction of individual $x_i$ given by the $k$th  draw from the posterior, we have the posterior estimated expected value of income 
+\begin{equation}
+\label{eq:mean}
+    E[Y|\mathcal{D}] = \frac{1}{K}\sum_{k=1}^K\frac{1}{N}\sum_{i=1}^N f_P^k(x_i),
+\end{equation}
+where $N$ is the number of individuals with unknown income and $K$ is the number of posterior draws.
 
-For this particular dataset, we use 25\% as training set and 25\% as the "approachable candidates". The remaining is left out of the survey design, as in real life they would be classified as not approachable.
+The posterior variance can similarly be calculated by
+\begin{equation}
+\label{eq:var}
+    Var[Y|\mathcal{D}] = \frac{1}{K}\sum_{j=1}^K\left(\frac{1}{N}\sum_{i=1}^N f_P^j(x_i) - E[Y|\mathcal{D}]\right)^2.
+\end{equation}
+
+We compare to simple random sampling (Monte Carlo) and block random sampling, stratifying by education level. 
 
 \subsection{Experimental Results}
 
+Our dataset had 4,076 individuals. We begin by observing 50 random individuals, leaving the rest as a set of candidates with known demographics and unknown responses. As will be mentioned in Section~\ref{Discussion}, BART requires a minor tuning process. To achieve the best performance, we build the model with 40 posterior draws, each with 50 trees and the parameters specified in the previous section.
 
+We compare the mean estimates from the different procedures, as well as the standard error of simple random sampling and block random sampling versus BART's posterior standard deviation calculated from Eq.~(\ref{eq:var}).
+
+Figure~\ref{fig:poptMean} shows that by collecting further income information from 1000 individuals selected using Sequential Bayesian Quadrature, BART's estimation of average income converges much faster, with lower standard error and higher accuracy than either Monte Carlo or block random sampling. After surveying only 500 individuals, BART estimates are close to the true value, whereas simple random sampling and block random sampling remain biased even after 1000 samples.
+
+\begin{figure}[tbh!]
+    \centering
+    \vspace*{-0.8in}
+    \includegraphics[width = 0.50\textwidth]{report/Writing/6.Real_Data_Sets/population.png}
+    \vspace*{-0.5in}
+    \caption{Estimation (left) and standard error (right) of average total income (thousands of US\$) with different sampling methods.}
+    \label{fig:poptMean}
+\end{figure}
+
+To test our method in a more difficult setting, we stratify by education level, using the exact same model, but make estimates only for the average income of people with education level beyond high school. The BART-BQ design outperforms simple random sampling in Figure~\ref{fig:high+} in terms of both posterior standard deviation and estimation. Interestingly, BART-BQ still converges after only 500 samples.
+
+\begin{figure}[tbh!]
+    \centering
+    \includegraphics[width = 0.50\textwidth]{report/Writing/6.Real_Data_Sets/high+.png}
+    \vspace*{-0.8in}
+    \caption{Estimation (left) and standard error (right) of average total income (thousands of US\$) of population with education level beyond high school, given by different sampling methods.}
+    \label{fig:high+}
+\end{figure}
+
+In the above experiments, all of the three methods provide estimates within a reasonable error margin, but BART-BQ's survey design achieves a convergence rate faster with relatively accurate estimates and lower standard error. The experiments support our proposal that when existing information and ability of obtaining further information are limited, BART-BQ with sequential design performs better than traditional random sampling methods, with little manual tuning of the method required.
+
+Moreover, in real life, we may be able to obtain a larger initial dataset, which will lead to further improvements in BART-BQ's performance.
 
 % \begin{table}[tbh!]
 % \caption{Naive regression methods with standard settings: (1) ntree = 500 in random forest; (2) use maximum likelihood method in LDA; (3) use sigmoid kernel for SVM. (4) ntree = 50 in BART. The square root of MSE is printed.}
