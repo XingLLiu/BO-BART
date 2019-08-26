@@ -20,13 +20,17 @@
 
 % The BART model, simply speaking, is a sum-of-tree model where each tree is constrained by a regularisation prior to be a weak learner. \cite{BART} When training the model, apart from the data set, we introduce sequential design of generating candidates from the known prior distribution, selecting the best candidates and add to the training set. Our integral $I_f$ could then be approximated by the sum-of-tree form of Eq.~\eqref{eq:single tree approximation}. See Section~\ref{BART} for further explanation.
 
-\subsection{Further Development}
+We have shown that BART-BQ provides convincing outcomes for estimating integrals. The highlight is that the method significantly resolves some of the key issues of the current state-of-the-art algorithms, GP-BQ and Monte Carlo integration. Performance in high dimensions is one big advantage of BART over the other methods, as we have discovered through our integration of Genz functions. The ease of tuning, compared to that of GP-BQ, is also a significant advantage.
 
-We have shown that BART-BQ provides convincing outcome on estimating integrals. The highlight is that the novel method significantly outperforms its competitors (GP-BQ and Monte Carlo Integration) on reducing variance and shows a 
+Given that BART is a non-parametric method, obtaining an effective BART model will still require choosing good parameters. For example, increasing number of trees and number of posterior draws will significantly decrease the variability of prediction but with a longer training time; a good burn-in period would also improve the overall performance of the model. The tuning procedure also is much simpler than that of the GP, where the choice of the kernel and its parameters are somewhat difficult to interpret mathematically. 
 
-\textcolor{red}{how to do regression + classification in predictive systems using BART BQ}
+There are now a few questions that need to be addressed in the future regarding BART-BQ. We have demonstrated its capability in both numerical integration of Genz functions and in inference through survey design. However, we still need to show mathematically that under certain regularity conditions, we are able to obtain good posterior concentration rates for the BART integral approximations to the true integral. The theory for the BART function has already been established \cite{rockova2019theory}, and so it remains to resolve it for the case when we apply a linear integration operator to our integrand of interest.
 
-\textcolor{red}{
-    Mixing times of MCMC in BART. Burn in analysis? Integrate into other complex hierarchichal models.
-}
+The next step would be to extend to Bayesian regression and classification problem. For the regression case, an integral of interest could be a mixture model where the integral is not analytically obtainable or we cannot evaluate the normalised posterior distribution. As for classification, an immediate problem to solve would be evaluating the predictive probability for a Gaussian process classification model \cite{Rasmussen:2005:GPM:1162254} but with different link functions. It would also be valuable to establish the regularity conditions and posterior concentration rates for such problems, laying out solid theoretical foundations for such applications.
+
+So far we have assumed to be working with $\mu$ being a probability measure, and so this fits naturally into the application to statistical models, with the probability density function being the Radon-Nikodym derivative with respect to the Lebesgue measure. However, it would also be desirable to extend BART-BQ to the case of other measures $\mu$ such that $\mu(\mathbb{R}^d) \neq 1$, which could be used to solve non-probabilistic quadrature problems.
+
+Furthermore, it would also be valuable to extend BART to model a further class of distributions. For example, there is a need to develop tree-based models that fit into the generalised additive model (GAM) framework, where we could be dealing with exponential family distributions or even extreme value models, which could be valuable in applications such as football prediction models \cite{doi:10.1080/02664760802684177} or rainfall modelling \cite{doi:10.1146/annurev-statistics-010814-020133}. 
+
+%Tuning if given computational material.
 
