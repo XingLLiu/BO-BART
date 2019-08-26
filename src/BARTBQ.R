@@ -5,9 +5,18 @@ library(lhs)
 library(dbarts)
 library(data.tree)
 library(matrixStats)
-
+library(doParallel)
 terminalProbability <- function(currentNode) 
-# probabiltity ending up in terminal node
+  
+  #'Terminal Node Probability
+  #' 
+  #'@description This function calculates the probability assigned to the 
+  #' input terminal node.
+  #' 
+  #'@param currentNode Node; Terminal node of the tree
+  #'
+  #'@return The probability assigned to the input terminal node.
+  
 {
   prob <- currentNode$probability
   
@@ -20,8 +29,18 @@ terminalProbability <- function(currentNode)
 }
 
 fillProbabilityForNode <- function(oneTree, cutPoints, cut) 
-# Drop data set into the tree and assign them to different nodes 
+  
+  #'Fill Non-Terminal Node Probability
+  #' 
+  #'@description This function calculates the prior probability of all the non-terminal tree nodes 
+  #'and fill that node with the prior probability.
+  #' 
+  #'@param currentNode Node; Non-terminal nodes in the tree
+  #'
+  #'@return The non-terminal tree nodes filled with prior probability.
+  
 {
+  
   if ( !is.null(oneTree$leftChild) ) {
     
     decisionRule <- cutPoints[[oneTree$splitVar]][oneTree$splitIndex]
@@ -46,8 +65,13 @@ fillProbabilityForNode <- function(oneTree, cutPoints, cut)
   return (oneTree)
 }
 
-terminalProbabilityStore <- function(Tree)
-# store probability of getting to terminal node 
+terminalProbabilityStore <- function(Tree) 
+  #'Fill Terminal Node Probability
+  #' 
+  #'@description This function store probabilities into all terminal nodes of the tree.
+  #'@param currentNode Node; Root node of a tree
+  #'
+  #'@return Root node with terminal-node probabilities stored.
 {
   terminalNodes = Traverse(Tree, filterFun = isLeaf)
   
@@ -60,10 +84,22 @@ terminalProbabilityStore <- function(Tree)
 }
 
 getTree <- function(sampler, chainNum, sampleNum, treeNum)
-# create tree
+  
+  #'Build tree
+  #' 
+  #'@description The function builds tree and fills attributes to each node of the tree
+  #' 
+  #'@param sampler List; Bart model
+  #'@param chainNum Integer; The index of the chain 
+  #'@param sampleNum Integer; The index of the posterior sample draw
+  #'@param treenNum Integer; The index of the tree sample extracted
+  #'
+  #'@return A tree sample in BART fitting at the position specifized
+  #'by chainNum, sampleNUm and treeNum, with attributeds filled into
+  #'each node of the tree
+  
 {
   cutPoints <- dbarts:::createCutPoints(sampler)
-  
   if (sampler$control@keepTrees) {
     treeString <- sampler$state[[chainNum]]@savedTrees[treeNum, sampleNum]
     treeFits <- sampler$state[[chainNum]]@savedTreeFits[, treeNum, sampleNum]
@@ -91,7 +127,19 @@ getTree <- function(sampler, chainNum, sampleNum, treeNum)
 }
 
 singleTreeSum <- function(treeNum, model, drawNum, dim) 
-# Sum over a single tree's terminal nodes
+  
+  #'Sum over Terminal Nodes
+  #' 
+  #'@description This function sums over the product of a tree terminal node's mu value
+  #'and probability. Tree's position is specified by treeNum and drawNum
+  #' 
+  #'@param treeNum Integer; The index of tree sample extracted
+  #'@param moodel List; The BART fitting model
+  #'@drawNum Integer; The index of the posterior draw
+  #'@param dim Integer; Dimension of inputs X
+  #'
+  #'@return Real; Sum over all nodes of a single tree
+  
 {
   cutPoints<-dbarts:::createCutPoints(model$fit)
   cut <- array(c(0, 1), c(2,dim))
@@ -118,10 +166,18 @@ singleTreeSum <- function(treeNum, model, drawNum, dim)
 }
 
 posteriorSum <- function(drawNum, model, dim)
-# Sum over all the trees in one posterior draws
-# input:
-#   drawNum: which draw of p trees
-#   model:  set of tree
+  
+  #'Sum over Trees
+  #' 
+  #'@description This function sums the output of singleTreeSum
+  #'over all the tree of the posterior draw specified by drawNum. 
+  #' 
+  #'@drawNum Integer; The index of the posterior draw
+  #'@param moodel List; The BART fitting model
+  #'@param dim Integer; Dimension of inputs X
+  #'
+  #'@return Real; Sum over a posterior draw
+  
 {
   nTree <- ncol(model$fit$state[[1]]@treeFits)
   treeNum <- seq(1, nTree, length.out=nTree)
@@ -136,15 +192,19 @@ posteriorSum <- function(drawNum, model, dim)
 }
 
 
-sampleIntegrals <- function(model, dim) 
-# sum over all posterior draws 
-# input: 
-#     model: BART model
-#
-# output:
-#     integrals: mean integral values for each tree as a vector
+sampleIntegrals <- function(model, dim)
+  
+  #'Sum over Posterior Draws
+  #' 
+  #'@description This function sums the values of posteriorSum over all posterior draws 
+  #' 
+  #'@param moodel List; The BART fitting model
+  #'@param dim Integer; Dimension of inputs X
+  #'
+  #'@return Real; Sum over a posterior draw
+  
 {
-  nDraw <- dim(model$fit$state[[1]]@savedTreeFits)[3]
+  nDraw <- dim(model$fit$state[[1]]@treeFits)[2]
   drawNum <- seq(1, nDraw, length.out=nDraw)
   
   #Extra Variables
@@ -153,21 +213,21 @@ sampleIntegrals <- function(model, dim)
   return (integrals)
 }
 
-BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, ifRegression=FALSE) 
-# compute integral for BART-BQ with
-# implementation of query sequential design to add
-# more training data to the original dataset
-# input:
-#   dim: dimension
-#   trainX: covariates of training data
-#   trainY: response of training data
-#   numNewTraining: number of new training points to be added
-#   FUN: function that we are integrating over
-#   ifRegression: if TRUE then sample from normal; if FALSE then sample from Uniform(0, 1);
-#                 FALSE by default to perform integral Genz tests
-#
-# output:
-#   list of mean integral value, standard deviation of integral value and new traiing set
+BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN)
+  
+  #'BART-BQ with Sequential Design
+  #' 
+  #'@description This function approxiamtes the integration of target function using
+  #'BART and Sequential Design.
+  #' 
+  #'@param dim Integer; Dimension of inputs X
+  #'@param trainX Matrix; covariates of training data
+  #'@param trainY Numeric Arraay; response of training data
+  #'@param numNewTraining Integer; number of new training points to be added
+  #'@param FUN Function; function that we are integrating over
+  #'
+  #'@return List; list of mean integral value, standard deviation of integral value and new traiing set
+
 {
   
   print( c("Adding number of new training data:", numNewTraining ) )
@@ -185,16 +245,16 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, ifRegress
     # first build BART and scale mean and standard deviation
     sink("/dev/null")
     model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
+    # model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=2000)
     sink()
     # obtain posterior samples
     integrals <- sampleIntegrals(model, dim)
     integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
     meanValue[i] <- mean(integrals)
-    standardDeviation[i] <- sqrt(sum((integrals - meanValue[i])^2) / (length(integrals) - 1))
+    standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
 
     # sequential design section, where we build the new training data
     candidateSet <- randomLHS(1000, dim)
-
     
     # predict the values
     fValues <- predict(model, candidateSet)
@@ -214,15 +274,20 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, ifRegress
 }
 
 mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY) 
-# main method
-# input:
-#   dim
-#   num_iterations:
-#   FUN:
-#   trainX: covariates of training set
-#   trainY: regressors of training set
-#
-# returns prediction as a list
+  
+  #'BART-BQ with Sequential Design
+  #' 
+  #'@description This function approxiamtes the integration of target function using
+  #'BART and Sequential Design.
+  #' 
+  #'@param dim Integer; Dimension of inputs X
+  #'@param num_iterations Integer; Number of new data points
+  #'@param FUN Function; Integral Function
+  #'@param trainX Matrix; covariates of training data
+  #'@param trainY Numeric Arraay; response of training data
+  #'
+  #'@return List; list of mean integral value, standard deviation of integral value and new traiing set
+  
 {
   # prepare training data and parameters
   genz <- FUN #select genz function
