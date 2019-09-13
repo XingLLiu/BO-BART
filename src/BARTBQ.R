@@ -101,8 +101,8 @@ getTree <- function(sampler, chainNum, sampleNum, treeNum)
 {
   cutPoints <- dbarts:::createCutPoints(sampler)
   if (sampler$control@keepTrees) {
-    treeString <- sampler$state[[chainNum]]@trees[treeNum]
-    treeFits <- sampler$state[[chainNum]]@treeFits[,treeNum]
+    treeString <- sampler$state[[chainNum]]@savedTrees[treeNum, sampleNum]
+    treeFits <- sampler$state[[chainNum]]@savedTreeFits[, treeNum, sampleNum]
   }
   else {
     treeString <- sampler$state[[chainNum]]@trees[treeNum]
@@ -206,7 +206,6 @@ sampleIntegrals <- function(model, dim)
 {
   nDraw <- dim(model$fit$state[[1]]@treeFits)[2]
   drawNum <- seq(1, nDraw, length.out=nDraw)
-#   print(c("drawnum:", drawNum))
   
   #Extra Variables
   var <- list(model, dim)
