@@ -24,7 +24,7 @@ for (k in 1:length(dimensions)){
     integrals[4, k] <- gaussianIntegral(dim)
     integrals[5, k] <- oscillatoryIntegral(dim)
     integrals[6, k] <- productPeakIntegral(dim)
-    # Discontinuous integrand only defined for dim >= 2
+    # Discontinuous integrand is only defined for dim >= 2
     if (dim > 1){
         integrals[3, k] <- discIntegral(dim)
     }
