@@ -102,8 +102,14 @@ getTree <- function(sampler, chainNum, sampleNum, treeNum)
   cutPoints <- dbarts:::createCutPoints(sampler)
   
   if (sampler$control@keepTrees) {
-    treeString <- sampler$state[[chainNum]]@savedTrees[treeNum, sampleNum]
-    treeFits <- sampler$state[[chainNum]]@savedTreeFits[, treeNum, sampleNum]
+    # if (sampleNum > 99){
+        # print(c(treeNum, sampleNum))
+        # print(dim(sampler$state[[chainNum]]@savedTrees))
+    # }
+    # treeString <- sampler$state[[chainNum]]@savedTrees[treeNum, sampleNum]
+    # treeFits <- sampler$state[[chainNum]]@savedTreeFits[, treeNum, sampleNum]
+    treeString <- sampler$state[[chainNum]]@trees[treeNum]
+    treeFits <- sampler$state[[chainNum]]@treeFits[,treeNum]
   }
   else {
     treeString <- sampler$state[[chainNum]]@trees[treeNum]
@@ -205,8 +211,9 @@ sampleIntegrals <- function(model, dim)
   #'@return Real; Sum over a posterior draw
   
 {
-  nDraw <- dim(model$fit$state[[1]]@treeFits)[2]
+  nDraw <- dim(model$fit$state[[1]]@treeFits)[1]
   drawNum <- seq(1, nDraw, length.out=nDraw)
+#   print(c("drawnum:", drawNum))
   
   #Extra Variables
   var <- list(model, dim)
@@ -244,6 +251,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN)
     # find the min and max range of y
     ymin <- min(trainData[, (dim + 1)]); ymax <- max(trainData[, (dim + 1)])
     # first build BART and scale mean and standard deviation
+    # print(c("Dim:", dim, dim(trainData)))
     sink("/dev/null")
     # model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
     model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=2000)
@@ -267,6 +275,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN)
     index <- sample(which(var==max(var)), 1)
     value <- FUN(t(candidateSet[index,]))
     trainData <- rbind(trainData, c(candidateSet[index,], value))
+    # print(c("After dim:", dim, dim(trainData)))
   
   }
 

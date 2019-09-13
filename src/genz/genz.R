@@ -1,3 +1,7 @@
+##########################################################################
+# Genz test functions. Input must be of type Matrix
+##########################################################################
+
 library(matrixStats)  
 library(MASS)
 cont <- function(xx)
@@ -268,7 +272,7 @@ oscil <- function(xx)
   a <- rep(110/dim^(5/2), dim) 
   
   sum <- xx %*% a
-  y <- np.cos(2 * pi * u[1] + sum)
+  y <- cos(2 * pi * u[1] + sum)
   
   return(y)
   
@@ -319,7 +323,6 @@ prpeak <- function(xx)
   
   dim <- ncol(xx)
   u <- rep(0.5, dim)
-  #a <- rep(600/dim^3, dim) 
   a <- rep(600/dim^3, dim)
   
   sum <- a^(-2) + (xx - u)^2
@@ -328,5 +331,22 @@ prpeak <- function(xx)
   return(y)
 }
 
+
+
+
+testFunc <- function(xx)
+{
+  if (is.matrix(xx) == FALSE) { 
+    xx <- matrix(xx, nrow = 1)  
+  }
+  
+  dim <- ncol(xx)
+  u <- rep(0.5, dim)
+  a <- rep(600/dim^3, dim)
+  
+  y <- xx^2
+  
+  return(y)
+}
 
 

@@ -29,20 +29,7 @@ for (k in 1:length(dimensions)){
         integrals[3, k] <- discIntegral(dim)
     }
 
-    ###
-    cat("dim:", dim, "\n")
-    print(integrals[, k])
-    integralsCubature[1, k] <- hcubature(cont, rep(0, dim), rep(1, dim), tol = 0.01)$integral
-    integralsCubature[2, k] <- hcubature(copeak, rep(0, dim), rep(1, dim), tol = 0.01)$integral
-    integralsCubature[4, k] <- hcubature(gaussian, rep(0, dim), rep(1, dim), tol = 0.01)$integral
-    integralsCubature[5, k] <- hcubature(oscil, rep(0, dim), rep(1, dim), tol = 0.01)$integral
-    integralsCubature[6, k] <- hcubature(prpeak, rep(0, dim), rep(1, dim), tol = 0.01)$integral
-    if (dim > 1){
-        integralsCubature[3, k] <- hcubature(disc, rep(0, dim), rep(1, dim), tol = 0.01)$integral
-    }
-    print(integralsCubature[, k])
-    ###
-
+    cat("dim:", dim, "completed. \n")
 
 }
 

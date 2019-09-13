@@ -103,11 +103,11 @@ auxiliaryFunction <- function(x, dim)
     if (dim %% 4 == 1){
         funcVal <- sin(x)
     } else if (dim %% 4 == 2){
-        funcVal <- -np.cos(x)
+        funcVal <- -cos(x)
     } else if (dim %% 4 == 3){
         funcVal <- -sin(x)
     } else {
-        funcVal <- np.cos(x)
+        funcVal <- cos(x)
     }
   return(funcVal)
 }
