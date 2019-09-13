@@ -8,8 +8,30 @@
 \usepackage{microtype}
 \usepackage{graphicx}
 \usepackage{subfigure}
+\usepackage{dsfont}
 \usepackage{booktabs} % for professional tables
+\usepackage{etoolbox}
+
+% EPS
+\usepackage{epstopdf}
+\usepackage{epsfig}
+
+%plot
+\usepackage{tikz}
+\tikzset{
+  treenode/.style = {shape=rectangle, draw, align=center},
+  root/.style     = {treenode},
+  env/.style      = {treenode},
+  dummy/.style    = {circle,draw}
+}
+
+% BART subscript in maths mode
+\newcommand{\bart}{\mbox{\tiny BART}}
+
+% -------------------------------------
 \usepackage{import}
+\usepackage{csvsimple} % for importing csv for tables
+\usepackage{caption} % for caption of tabular
 %tablular x table environment
 \usepackage{tabularx}
 % hyperref makes hyperlinks in the resulting PDF.
@@ -17,6 +39,7 @@
 % please comment out the following usepackage line and replace
 % \usepackage{icml2018} with \usepackage[nohyperref]{icml2018} above.
 \usepackage{hyperref}
+\usepackage{bbm}
 
 % Attempt to make hyperref and algorithmic work together better:
 \newcommand{\theHalgorithm}{\arabic{algorithm}}
@@ -32,12 +55,12 @@
 
 % The \icmltitle you define below is probably too long as a header.
 % Therefore, a short form for the running title is supplied here:
-\icmltitlerunning{BART for BO}
+\icmltitlerunning{BART for BQ}
 
 \begin{document}
 
 \twocolumn[
-\icmltitle{Bayesian Additive Regression Trees (BART) for Bayesian Quadrature}
+\icmltitle{Bayesian Additive Regression Trees for Bayesian Quadrature}
 
 % It is OKAY to include author information, even for blind
 % submissions: the style file will automatically remove it for you
@@ -54,17 +77,16 @@
 % in order of appearance and this is the preferred way.
 \icmlsetsymbol{equal}{*}
 \begin{icmlauthorlist}
-\icmlauthor{Seth Flaxman}{equal,to}
-\icmlauthor{Zhichao Shen}{equal,to,goo}
-\icmlauthor{Ruya Kang}{goo}
-\icmlauthor{Harrison Zhu}{ed}
-\icmlauthor{Jérôme Liu}{ed}
+\icmlauthor{Ruya Kang}{equal}
+\icmlauthor{Jérôme Liu}{equal}
+\icmlauthor{Zhichao Shen}{equal}
+\icmlauthor{Harrison Zhu}{equal}
+\icmlauthor{Seth Flaxman}{equal}
 \end{icmlauthorlist}
 
-\icmlaffiliation{to}{Department of Mathematics, Imperial College London, London, United Kingdom}
+\icmlaffiliation{equal}{Department of Mathematics, Imperial College London, London, United Kingdom}
 
-\icmlcorrespondingauthor{Cieua Vvvvv}{c.vvvvv@googol.com}
-\icmlcorrespondingauthor{Eee Pppp}{ep@eden.co.uk}
+\icmlcorrespondingauthor{Seth Flaxman}{s.flaxman@imperial.ac.uk}
 
 % You may provide any keywords that you
 % find helpful for describing your paper; these are used to populate
@@ -86,7 +108,7 @@
 \printAffiliationsAndNotice{\icmlEqualContribution} % otherwise use the standard text.
 
 \begin{abstract}
-Bayesian Quadrature (BQ) is an important tool for solving statistical and scientific problems with an integral at their heart. We propose a new approach to BQ based on Bayesian Additive Regression Trees (BART). We show how BART is a natural function choice for BQ, lending itself to an elegant formulation of BQ with a simple but effective sequential design approach. On a set of benchmark tests, our model outperforms both GP-BQ and Monte Carlo integration, with \textcolor{red}{better performance in high dimensions ($>$ 10)}. We also demonstrate our method in the context of survey design, where our method provides an alternative to both a simple random sample (Monte Carlo) and \textcolor{red}{a more sophisticated block (stratified) random sampling design}.
+Bayesian Quadrature (BQ) is an important tool for solving statistical and scientific problems with an integral at their heart. We propose a new approach to BQ based on Bayesian Additive Regression Trees (BART). BART is easy to tune, automatically handles a mixture of discrete and continuous variables, and has attractive theoretical results \cite{rockova2019theory}. We show how BART lends itself to an elegant formulation of BQ, with a simple but effective sequential sampling approach. We first present an algorithm that performs BQ with BART on a set of benchmark tests, known as the Genz functions. Our model outperforms both Gaussian processes for BQ and Monte Carlo integration in high dimensional situations ($d > 10)$ and non-smooth functions. The second algorithm that we present performs Bayesian survey design with BART, providing an effective alternative to both a simple random sample (Monte Carlo) and a more sophisticated block (stratified) random sampling design.
 
 %This paper provides a method of choosing desirable posterior distribution for Bayesian Quadrature using Bayesian Additive Regression Trees (BART). Based on the existing BART, we extend the tree model to an additive design BART, which allows the existence of an ensemble of weak models instead of a single strong model. We show how BART makes inference on the underlying function of given data set{\color{red}s} and how this contributes to Bayesian Quadrature. 
 % It appears that our model outperforms Gaussian Process and Monte Carlo integration in terms of the efficiency in Bayesian Optimisation and estimating costly functions, even in higher dimension ($>$ 10).
@@ -111,15 +133,12 @@ Bayesian Quadrature (BQ) is an important tool for solving statistical and scient
 
 %%%%%%%%%%%%%%%%%%%%
 
-\section{Bayesian Quadrature with BART}
+\section{Methodological Contribution}
 \label{BQ-BART}
 
 \import{sections/}{report/Writing/3.BQ_with_BART/BQ-BART.tex}
 
 %%%%%%%%%%%%%%%%%%%%
-
-\subsection{Querying Sequential Design}
-\label{Sequential Design}
 
 \import{sections/}{report/Writing/4.Sequential_Design/SQ.tex}
 
@@ -132,7 +151,7 @@ Bayesian Quadrature (BQ) is an important tool for solving statistical and scient
 
 %%%%%%%%%%%%%%%%%%%%
 
-\section{Survey Design}
+\section{Bayesian Survey Design}
 \label{Real Data}
 
 \import{sections/}{report/Writing/6.Real_Data_Sets/Real_Data.tex}
@@ -144,14 +163,13 @@ Bayesian Quadrature (BQ) is an important tool for solving statistical and scient
 
 \import{sections/}{report/Writing/7.Discussion/Discussion.tex}
 
-\bibliography{report/Writing/ref.bib}
+% %%%%%%%%%%%%%%%%%%%%
+% \section{Appendix}
+% \import{sections/}{report/Writing/Appendix/Appendix.tex}
 
-%%%%%%%%%%%%%%%%%%%%
-\onecolumn
-\section*{Appendix}
+% \import{sections/}{report/Writing/Appendix/Appendix_GenzIntegral.tex}
 
-\import{sections/}{report/Writing/Appendix/Appendix.tex}
-\import{sections/}{report/Writing/Appendix/Appendix_GenzIntegral.tex}
+
 
 %%%%%%%%%%Not my content%%%%%%%%%%
 % \subsection{Submitting Papers}
@@ -606,14 +624,11 @@ Bayesian Quadrature (BQ) is an important tool for solving statistical and scient
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%
-\onecolumn
-\section*{Appendix}
-
-\import{sections/}{report/Writing/Appendix/Appendix.tex}
-\newpage
 % \nocite{langley00}
 % \bibliographystyle{report/icml2018.sty}
 \bibliographystyle{report/icml2018}
+\bibliography{report/Writing/ref.bib}
+
 \end{document}
 
 
