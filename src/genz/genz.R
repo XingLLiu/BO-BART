@@ -1,8 +1,8 @@
-##########################################################################
+# ================================================================
 # Genz test functions. Input must be of type Matrix
-##########################################################################
+# ================================================================
 
-library(matrixStats)  
+library(matrixStats)
 library(MASS)
 cont <- function(xx)
 {
@@ -327,24 +327,6 @@ prpeak <- function(xx)
   
   sum <- a^(-2) + (xx - u)^2
   y <- rowProds(1/sum)
-  
-  return(y)
-}
-
-
-
-
-testFunc <- function(xx)
-{
-  if (is.matrix(xx) == FALSE) { 
-    xx <- matrix(xx, nrow = 1)  
-  }
-  
-  dim <- ncol(xx)
-  u <- rep(0.5, dim)
-  a <- rep(600/dim^3, dim)
-  
-  y <- xx^2
   
   return(y)
 }

@@ -1,18 +1,27 @@
+# ================================================================
 # Rejection method to sample from Genz functions
+# ================================================================
+# # compute M
+# M <- (optimize(phi, c(0, 10), maximum = TRUE, x0 = x0, gamma = gamma))$objective
 
-# compute M
-M <- (optimize(phi, c(0, 10), maximum = TRUE, x0 = x0, gamma = gamma))$objective
 
-
-
-# Rejection sampling.
-# Input :
-#         N = [int] number of realizations to sample.
-#         M = [float] sup(f^*) over the support.
-#         f_func = [function] Genz function to sample from.
 
 
 rejection_samp <- function(N = NA, lower_lim = NA, upper_lim = NA, M = NA, f_func = NA){
+    ##########################################################################
+    # Rejection sampling.
+
+    # Input :
+    #         N = [int] number of realizations to sample.
+    #         lower_lim = [double] lower limit of the support of f_func.
+    #         upper_lim = [double] upper limit of the support of f_func.
+    #         M = [float] sup(f^*) over the support.
+    #         f_func = [function] Genz function to sample from.
+
+    # Output:
+    #         x_sample = [vector] sampled realizations from f_func.
+    ##########################################################################
+
     # initialize
     x_sample <- matrix(NA, nrow = N, ncol = 1)
     n <- 0   # looping index
@@ -38,6 +47,14 @@ rejection_samp <- function(N = NA, lower_lim = NA, upper_lim = NA, M = NA, f_fun
 
 
 
+
+
+# ================================================================
+# Example (1d product peak)
+# ================================================================
+library(matrixStats)
+library(lhs)
+# Function to be sampled from
 f_func <- function(xx){
 
     if (is.matrix(xx) == FALSE) { 
@@ -58,3 +75,20 @@ f_func <- function(xx){
         return(0)
     }
 }
+
+# Rejection sampling
+N <- 10^4
+M <- 360000
+sample_rej <- rejection_samp(N, lower_lim = 0, upper_lim = 1, M = M, prpeak)
+
+# Random LHS sampling
+xx <- randomLHS(N, 1)
+sample_rand <- prpeak(matrix(sort(xx), length(xx), 1))
+
+x_vec <- 0:N/N
+hist(sample_rej, probability = TRUE, breaks = seq(0, 1, l = 500), col = "slategrey",
+    main = "Different sampling methods")
+lines(x_vec, 1/3600 * prpeak(matrix(x_vec, length(x_vec), 1)), col = "red")
+points(sort(xx), 1/3600 * sample_rand, col = "blue", cex = 0.2)
+legend("topright", legend = c("rejection sampling", "true function", "random sampling"),
+       col=c("black", "red", "blue"), cex = 0.8, lty = c(1, 1, 1))
