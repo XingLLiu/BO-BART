@@ -1,12 +1,12 @@
 \subsection*{Analytical Formulae of the Genz Integrals}
-In our experiment, we tested the BQ with BART algorithm on six Genz integrand families \cite{Genz}, whose integral over $[0, 1]^{d}$ can be readily obtained analytically. Here, we provide the analytical formulae for two Genz families whose derivations require a little more effort than the others, namely the Corner Peak and the Oscillatory integrands. Derivations for the rest are straightforward.  
+In our experiment, we tested the BQ with BART algorithm on six Genz integrand families \cite{Genz}, whose integral over $[0, 1]^{d}$ can be readily obtained analytically. Here, we provide the analytical formulae for two Genz families whose derivations require a little more effort than the others, namely the Corner Peak and the Oscillatory integrands. Derivations for the rest are straightforward. Note however that the Gaussian peak family is essentially a Gaussian kernel and does not have an analytically tractable integral; one can use the \texttt{pmvnorm} function in the R package \texttt{mvtnorm} to obtain the numerical values.
 
 \subsubsection*{Oscillatory Integrand Family}
-For a given dimension $d \in \mathbb{N}$, we are interested in deriving the $d$-dimensional integral 
+For a given dimension $d \in \pmb{N}$, we are interested in deriving the $d$-dimensional integral 
 \begin{align}
-    I_d = \int_{\mathbf{x} \in [0, 1]^{d}} f(\mathbf{x}) \ dx_1 ... dx_d , 
+    I_d = \int_{\pmb{x} \in [0, 1]^{d}} f(\pmb{x}) d\pmb{x} , 
 \end{align}
-where $u$, $a \in \mathbb{R}$ are function parameters, $\mathbf{x} = (x_1, \ ..., \ x_d)^{T}$ and 
+where $u$, $a \in \mathbb{R}$ are function parameters, $\pmb{x} = (x_1, \ ..., \ x_d)^{T}$ and 
 \begin{align}
     f(\mathbf{x}) = \cos(2\pi u + a\sum_{i = 1}^{d}x_{i}).
 \end{align}
@@ -41,4 +41,5 @@ where $a \in \mathbb{R}$ is a parameter. Again using induction, we obtained the 
 % \begin{align}
 %     f(\mathbf{x}) = (1 + \sum\limits_{i = 1}^{d}a_{i}x_{i})^{- (d + 1)}.
 % \end{align}
+
 
