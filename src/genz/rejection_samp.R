@@ -77,18 +77,18 @@ f_func <- function(xx){
 }
 
 # Rejection sampling
-N <- 10^4
-M <- 360000
-sample_rej <- rejection_samp(N, lower_lim = 0, upper_lim = 1, M = M, prpeak)
+# N <- 10^4
+# M <- 360000
+# sample_rej <- rejection_samp(N, lower_lim = 0, upper_lim = 1, M = M, prpeak)
 
-# Random LHS sampling
-xx <- randomLHS(N, 1)
-sample_rand <- prpeak(matrix(sort(xx), length(xx), 1))
+# # Random LHS sampling
+# xx <- randomLHS(N, 1)
+# sample_rand <- prpeak(matrix(sort(xx), length(xx), 1))
 
-x_vec <- 0:N/N
-hist(sample_rej, probability = TRUE, breaks = seq(0, 1, l = 500), col = "slategrey",
-    main = "Different sampling methods")
-lines(x_vec, 1/3600 * prpeak(matrix(x_vec, length(x_vec), 1)), col = "red")
-points(sort(xx), 1/3600 * sample_rand, col = "blue", cex = 0.2)
-legend("topright", legend = c("rejection sampling", "true function", "random sampling"),
-       col=c("black", "red", "blue"), cex = 0.8, lty = c(1, 1, 1))
+# x_vec <- 0:N/N
+# hist(sample_rej, probability = TRUE, breaks = seq(0, 1, l = 500), col = "slategrey",
+#     main = "Different sampling methods")
+# lines(x_vec, 1/3600 * prpeak(matrix(x_vec, length(x_vec), 1)), col = "red")
+# points(sort(xx), 1/3600 * sample_rand, col = "blue", cex = 0.2)
+# legend("topright", legend = c("rejection sampling", "true function", "random sampling"),
+#        col=c("black", "red", "blue"), cex = 0.8, lty = c(1, 1, 1))
