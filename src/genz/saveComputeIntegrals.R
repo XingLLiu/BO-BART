@@ -24,25 +24,12 @@ for (k in 1:length(dimensions)){
     integrals[4, k] <- gaussianIntegral(dim)
     integrals[5, k] <- oscillatoryIntegral(dim)
     integrals[6, k] <- productPeakIntegral(dim)
-    # Discontinuous integrand only defined for dim >= 2
+    # Discontinuous integrand is only defined for dim >= 2
     if (dim > 1){
         integrals[3, k] <- discIntegral(dim)
     }
 
-    ###
-    cat("dim:", dim, "\n")
-    print(integrals[, k])
-    #integralsCubature[1, k] <- hcubature(cont, rep(0, dim), rep(1, dim), tol = 0.01)$integral
-    #integralsCubature[2, k] <- hcubature(copeak, rep(0, dim), rep(1, dim), tol = 0.01)$integral
-    #integralsCubature[4, k] <- hcubature(gaussian, rep(0, dim), rep(1, dim), tol = 0.01)$integral
-    #integralsCubature[5, k] <- hcubature(oscil, rep(0, dim), rep(1, dim), tol = 0.01)$integral
-    #integralsCubature[6, k] <- hcubature(prpeak, rep(0, dim), rep(1, dim), tol = 0.01)$integral
-    #if (dim > 1){
-    #    integralsCubature[3, k] <- hcubature(disc, rep(0, dim), rep(1, dim), tol = 0.01)$integral
-    #}
-    #print(integralsCubature[, k])
-    ###
-
+    cat("dim:", dim, "completed. \n")
 
 }
 

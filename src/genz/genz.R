@@ -1,4 +1,8 @@
-library(matrixStats)  
+# ================================================================
+# Genz test functions. Input must be of type Matrix
+# ================================================================
+
+library(matrixStats)
 library(MASS)
 cont <- function(xx)
 {
@@ -319,7 +323,6 @@ prpeak <- function(xx)
   
   dim <- ncol(xx)
   u <- rep(0.5, dim)
-  #a <- rep(600/dim^3, dim) 
   a <- rep(600/dim^3, dim)
   
   sum <- a^(-2) + (xx - u)^2
@@ -327,6 +330,5 @@ prpeak <- function(xx)
   
   return(y)
 }
-
 
 
