@@ -93,7 +93,7 @@ results <- data.frame(
 print("Begin Plots")
 
 # 1. Open jpeg file
-jpeg("../report/Figures/mixedGenz.jpg" %--% c(whichGenz, genzFunctionName, dim), width = 700, height = 583)
+jpeg("../Figures/mixedGenz.jpg" %--% c(whichGenz, genzFunctionName, dim), width = 700, height = 583)
 # 2. Create the plot
 par(mfrow = c(1,2), pty = "s")
 plot(x = c(1:num_iterations), y = predictionMonteCarlo$meanValueMonteCarlo,
