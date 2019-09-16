@@ -44,6 +44,3 @@ rsconnect/
 # python env
 env/ 
 .pycache
-
-# R library
-lib
