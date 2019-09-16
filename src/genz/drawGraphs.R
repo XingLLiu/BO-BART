@@ -33,7 +33,7 @@ for (i in 1:6){
 
         # Set path for estimated integral values
         fileName <- paste('results', toString(whichGenz), 'dim', toString(dim), '.csv', sep='')
-        filePath <- paste('../results/genz', toString(whichGenz), fileName, sep='/')
+        filePath <- paste('../../results/genz', toString(whichGenz), fileName, sep='/')
 
         # Retrieve estimated integral values
         integrals <- read.csv(filePath, header=TRUE, sep=",", stringsAsFactors = FALSE)
@@ -43,13 +43,13 @@ for (i in 1:6){
 
         # Retrieve analytical integral values
         whichDimension <- which(dim == dimensionsList)
-        analyticalIntegrals <- read.csv("../results/genz/integrals.csv", header = FALSE)
+        analyticalIntegrals <- read.csv("../../results/genz/integrals.csv", header = FALSE)
         real <- analyticalIntegrals[whichGenz, whichDimension]
 
         # 1. Open eps file
         # plotName <- paste("convergenceMean", toString(whichGenz), toString(dim), "Dimensions", sep = "")
         plotName <- paste("convergenceMean", toString(whichGenz), toString(dim), "Dimensions", ".eps", sep = "")
-        plotPath <- gsub(paste("../report/Figures/", toString(whichGenz), "/", plotName, sep=""), pattern = "csv", replacement="jpg")
+        plotPath <- gsub(paste("../../Figures/", toString(whichGenz), "/", plotName, sep=""), pattern = "csv", replacement="jpg")
         postscript(plotPath, width = 2800, height = 1794)
 
         # 2. Create the plot
