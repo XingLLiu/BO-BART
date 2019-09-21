@@ -26,7 +26,7 @@ if (num_iterations == 1) { stop("NEED MORE THAN 1 ITERATION") }
 print(c(dim, num_iterations, whichGenz))
 source("./genz/genz.R") # genz function to test
 
-if (whichGenz < 1 | whichGenz > 6) { stop("undefined genz function. Change 3rd argument to 1-6") }
+if (whichGenz < 1 | whichGenz > 7) { stop("undefined genz function. Change 3rd argument to 1-7") }
 if (whichGenz == 3 & dim == 1) { stop("incorrect dimension. Discrete Genz function only defined for dimension >= 2") } 
 
 if (whichGenz == 1) { genz <- cont; genzFunctionName <-  deparse(substitute(cont)) }
@@ -35,11 +35,14 @@ if (whichGenz == 3) { genz <- disc; genzFunctionName <-  deparse(substitute(disc
 if (whichGenz == 4) { genz <- gaussian; genzFunctionName <-  deparse(substitute(gaussian)) }
 if (whichGenz == 5) { genz <- oscil; genzFunctionName <-  deparse(substitute(oscil)) }
 if (whichGenz == 6) { genz <- prpeak; genzFunctionName <-  deparse(substitute(prpeak)) }
+if (whichGenz == 7) { genz <- step; genzFunctionName <-  deparse(substitute(step)) }
 
 print("Testing with: %s" %--% genzFunctionName)
 
 # prepare training dataset
 trainX <- randomLHS(100, dim)
+source("./genz/rejection_samp.R")
+trainX <- rejection_samp(N = 100, lower_lim = 0, upper_lim = 1, M = 360000, f_func = genz)
 trainY <- genz(trainX)
 
 
@@ -51,6 +54,7 @@ t0 <- proc.time()
 predictionBART <- mainBARTBQ(dim, num_iterations, FUN = genz, trainX, trainY)
 t1 <- proc.time()
 bartTime <- (t1 - t0)[[1]]
+
 # Bayesian Quadrature with Monte Carlo integration method
 print("Begin Monte Carlo Integration")
 source("./monteCarloIntegration.R")
