@@ -1,10 +1,8 @@
 # !/usr/bin/env R
-setwd(getwd())
-# uncomment the following when running the code for the first time to load real integral values
-# source("./genz/saveComputeIntegrals.R")
 
 # Load required packages
 source("./packages/requiredPackages.R")
+installPackages()
 requiredPackages()
 
 # define string formatting
@@ -98,7 +96,7 @@ write.csv(results, file = "../results/genz/%s/results%sdim%s.csv" %--% c(whichGe
 print("Begin Plots")
 
 # 1. Open jpeg file
-jpeg("../report/Figures/%s/convergenceMean%s%sDimensions.jpg" %--% c(whichGenz, genzFunctionName, dim), width = 700, height = 583)
+jpeg("../Figures/%s/convergenceMean%s%sDimensions.jpg" %--% c(whichGenz, genzFunctionName, dim), width = 700, height = 583)
 # 2. Create the plot
 par(mfrow = c(1,2), pty = "s")
 plot(x = c(1:num_iterations), y = predictionMonteCarlo$meanValueMonteCarlo,
