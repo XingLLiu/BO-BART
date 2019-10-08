@@ -51,7 +51,7 @@ for (i in 1:6){
 
         # Set path for estimated integral values
         fileName <- paste('results', toString(whichGenz), 'dim', toString(dim), '.csv', sep='')
-        filePath <- paste('../results/genz', toString(whichGenz), fileName, sep='/')
+        filePath <- paste('../../results/genz', toString(whichGenz), fileName, sep='/')
 
         # Retrieve estimated integral values
         integrals <- read.csv(filePath, header=TRUE, sep=",", stringsAsFactors = FALSE)
@@ -61,7 +61,7 @@ for (i in 1:6){
 
         # Retrieve analytical integral values
         whichDimension <- which(dim == dimensionsList)
-        analyticalIntegrals <- read.csv("./genz/integrals.csv", header = FALSE)
+        analyticalIntegrals <- read.csv("./integrals.csv", header = FALSE)
         real <- analyticalIntegrals[whichGenz, whichDimension]
 
         # Compute abs error
@@ -84,6 +84,6 @@ for (i in 1:6){
     cat(genzFunctionName, "done", '\n')
 }
 
-write.csv(bestMethod, file = "../results/genz/bestMethods.csv")
-write.csv(resultsAll, file = "../results/genz/allEstimates.csv")
-write.csv(rmseValues, file = "../results/genz/rmseValues.csv")
+write.csv(bestMethod, file = "../../results/genz/bestMethods.csv")
+write.csv(resultsAll, file = "../../results/genz/allEstimates.csv")
+write.csv(rmseValues, file = "../../results/genz/rmseValues.csv")

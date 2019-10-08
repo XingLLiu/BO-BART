@@ -45,9 +45,17 @@ Project Documentation: https://bart-bq.readthedocs.io/en/latest/
 
 ## To run the genz integrals approximations:
 
-1) Install the dependencies in `R`. Make sure you are using **R 3.5.0** or higher.
+0) Make sure you have `here` and `yaml` install as an R library. Now, go to `config` and make a `config_local.yml` file by copying `config.yml` and put in the root path directory of the BO-BART project. 
 
-2) In the terminal, `cd` to `src`
+1) Make sure you are using **R 3.5.0** or higher.
+
+Now, enter the following to compute the baseline genz integrals:
+```
+cd src
+Rscript setup.R
+```
+
+2) In the terminal, `cd ..` to the `src` folder
 
 3) Run
 
