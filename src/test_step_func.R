@@ -35,7 +35,7 @@ print("Testing with: %s" %--% genzFunctionName)
 # prepare training dataset
 trainX <- randomLHS(100, dim)
 source("./genz/rejection_samp.R")
-# trainX <- rejection_samp(N = 100, lower_lim = 0, upper_lim = 1, M = 360000, f_func = genz)
+trainX <- rejection_samp(N = 100, lower_lim = 0, upper_lim = 1, M = 1, f_func = genz)
 trainY <- genz(trainX)
 
 
@@ -73,7 +73,8 @@ real <- mean(predictionMonteCarlo$meanValueMonteCarlo)
 
 
 # 1. Open jpeg file
-jpeg("../report/Figures/%s/convergenceMean%s%sDimensions.jpg" %--% c(whichGenz, genzFunctionName, dim), width = 700, height = 583)
+# jpeg("../report/Figures/%s/convergenceMean%s%sDimensions.jpg" %--% c(whichGenz, genzFunctionName, dim), width = 700, height = 583)
+jpeg("../report/Figures/%s/convergenceMean%s%sDimensionsRej.jpg" %--% c(whichGenz, genzFunctionName, dim), width = 700, height = 583)
 # 2. Create the plot
 par(mfrow = c(1,2), pty = "s")
 plot(x = c(1:num_iterations), y = predictionMonteCarlo$meanValueMonteCarlo,
