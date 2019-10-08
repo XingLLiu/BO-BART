@@ -1,8 +1,6 @@
-dbarts
-lhs
 MASS
 cubature
-mvtnorm
+lhs
 data.tree
 matrixStats
-kernlab 
+mvtnorm

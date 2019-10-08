@@ -1,10 +1,8 @@
 # !/usr/bin/env R
-setwd(getwd())
-# uncomment the following when running the code for the first time to load real integral values
-# source("./genz/saveComputeIntegrals.R")
 
 # Load required packages
 source("./packages/requiredPackages.R")
+installPackages()
 requiredPackages()
 
 # define string formatting

@@ -6,8 +6,8 @@
 # and choose a according to the rescaling scheme (see paper).
 # The range of integration is from 0 to 1.
 
-source("./genz/analyticalIntegrals.R")
-source("./genz/genz.R")
+source("./analyticalIntegrals.R")
+source("./genz.R")
 library("cubature")
 
 numGenz <- 6
@@ -34,5 +34,5 @@ for (k in 1:length(dimensions)){
 }
 
 # Write results to file
-write.table(integrals, file = "./genz/integrals.csv", sep=",", row.names=FALSE, col.names=FALSE)
+write.table(integrals, file = "./integrals.csv", sep=",", row.names=FALSE, col.names=FALSE)
 
