@@ -43,4 +43,9 @@ rsconnect/
 
 # python env
 env/ 
+.env
 .pycache
+
+
+# vscode
+.vscode
