@@ -23,6 +23,7 @@ requiredPackages()
 args <- as.double(commandArgs(TRUE))
 dim <- args[1]
 num_iterations <- args[2]
+jump <- 2
 whichGenz <- 7
 
 if (num_iterations == 1) { stop("NEED MORE THAN 1 ITERATION") }
@@ -30,15 +31,13 @@ if (num_iterations == 1) { stop("NEED MORE THAN 1 ITERATION") }
 print(c(dim, num_iterations, whichGenz))
 source("./genz/genz.R") # genz function to test
 
-if (whichGenz < 1 | whichGenz > 7) { stop("undefined genz function. Change 3rd argument to 1-7") }
-
 if (whichGenz == 7) { genz <- step; genzFunctionName <-  deparse(substitute(step)) }
 
 print("Testing with: %s" %--% genzFunctionName)
 
 # prepare training dataset
 trainX <- randomLHS(100, dim)
-trainY <- genz(trainX)
+trainY <- genz(trainX, jump = jump)
 
 
 # Bayesian Quadrature method
