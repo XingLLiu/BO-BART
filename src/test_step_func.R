@@ -75,8 +75,7 @@ real <- mean(predictionMonteCarlo$meanValueMonteCarlo)
 
 
 # 1. Open jpeg file
-# jpeg("../report/Figures/%s/convergenceMean%s%sDimensions.jpg" %--% c(whichGenz, genzFunctionName, dim), width = 700, height = 583)
-jpeg("../report/Figures/%s/convergenceMean%s%sDimensionsRej.jpg" %--% c(whichGenz, genzFunctionName, dim), width = 700, height = 583)
+jpeg("../report/Figures/%s/convergenceMean%s%sDimensionsStep.jpg" %--% c(whichGenz, genzFunctionName, dim), width = 700, height = 583)
 # 2. Create the plot
 par(mfrow = c(1,2), pty = "s")
 plot(x = c(1:num_iterations), y = predictionMonteCarlo$meanValueMonteCarlo,

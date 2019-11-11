@@ -332,7 +332,7 @@ prpeak <- function(xx)
 }
 
 
-step <- function(xx)
+step <- function(xx, regularizer=1e-5)
 {
   if (is.matrix(xx) == FALSE) { 
     xx <- matrix(xx, nrow = 1)  
@@ -343,10 +343,10 @@ step <- function(xx)
   y <- matrix(NA, nrow = dim(xx)[1])
   for (i in 1:dim(xx)[1]){
       if (sum(xx[i, ] < 0.3) == dim){
-          y[i, ] <- 0
+          y[i, ] <- regularizer
       }
       else{
-          y[i, ] <- 1
+          y[i, ] <- 1 - regularizer
       }
   }
 
