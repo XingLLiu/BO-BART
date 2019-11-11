@@ -1,7 +1,6 @@
 # Load required packages
 requiredPackages <- function()
 {
-    library(here)
     library(MASS)
     library(cubature)
     library(lhs)

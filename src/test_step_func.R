@@ -1,3 +1,7 @@
+# --------------------------------
+# To run: R
+# --------------------------------
+
 # !/usr/bin/env R
 setwd(getwd())
 # uncomment the following when running the code for the first time to load real integral values
@@ -34,8 +38,6 @@ print("Testing with: %s" %--% genzFunctionName)
 
 # prepare training dataset
 trainX <- randomLHS(100, dim)
-source("./genz/rejection_samp.R")
-trainX <- rejection_samp(N = 100, lower_lim = 0, upper_lim = 1, M = 1, f_func = genz)
 trainY <- genz(trainX)
 
 
