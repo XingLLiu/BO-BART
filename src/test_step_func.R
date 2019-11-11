@@ -1,5 +1,5 @@
 # --------------------------------
-# To run: R
+# To run: Rscript test_step_func.R dim num_of_iters
 # --------------------------------
 
 # !/usr/bin/env R
@@ -23,7 +23,7 @@ requiredPackages()
 args <- as.double(commandArgs(TRUE))
 dim <- args[1]
 num_iterations <- args[2]
-whichGenz <- args[3]
+whichGenz <- 7
 
 if (num_iterations == 1) { stop("NEED MORE THAN 1 ITERATION") }
 
