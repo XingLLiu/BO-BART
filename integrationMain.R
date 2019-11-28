@@ -25,7 +25,7 @@ dim <- args[1]
 num_iterations <- args[2]
 whichGenz <- args[3]
 
-# # for testing
+# for testing
 # dim <- 2
 # num_iterations <- 2
 # whichGenz <- 2
@@ -50,7 +50,6 @@ print("Testing with: %s" %--% genzFunctionName)
 # prepare training dataset
 trainX <- randomLHS(100, dim)
 trainY <- genz(trainX)
-
 
 # Bayesian Quadrature method
 # set number of new query points using sequential design
@@ -110,16 +109,15 @@ write.csv(results, file = "results/genz/%s/results%sdim%s.csv" %--% c(
 )
 
 print("Begin Plots")
-
 # 1. Open jpeg file
-jpeg(
-     "Figures/%s/convergenceMean%s%sDimensions.jpg" %--% c(
+pdf(
+     "Figures/%s/convergenceMean%s%sDimensions.pdf" %--% c(
           whichGenz, 
           genzFunctionName, 
           dim
      ), 
-     width = 700, 
-     height = 583
+     width = 10, 
+     height = 11
 )
 # 2. Create the plot
 par(mfrow = c(1,2), pty = "s")
