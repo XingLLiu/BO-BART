@@ -1,9 +1,15 @@
 # !/usr/bin/env R
-
 # Load required packages
-source("./packages/requiredPackages.R")
-installPackages()
-requiredPackages()
+library(yaml)
+library(MASS)
+library(cubature)
+library(lhs)
+library(data.tree)
+library(dbarts)
+library(matrixStats)
+library(mvtnorm)
+library(doParallel)
+library(kernlab)
 
 # define string formatting
 `%--%` <- function(x, y) 
@@ -19,10 +25,15 @@ dim <- args[1]
 num_iterations <- args[2]
 whichGenz <- args[3]
 
+# # for testing
+# dim <- 2
+# num_iterations <- 2
+# whichGenz <- 2
+
 if (num_iterations == 1) { stop("NEED MORE THAN 1 ITERATION") }
 
 print(c(dim, num_iterations, whichGenz))
-source("./genz/genz.R") # genz function to test
+source("src/genz/genz.R") # genz function to test
 
 if (whichGenz < 1 | whichGenz > 6) { stop("undefined genz function. Change 3rd argument to 1-6") }
 if (whichGenz == 3 & dim == 1) { stop("incorrect dimension. Discrete Genz function only defined for dimension >= 2") } 
@@ -43,15 +54,14 @@ trainY <- genz(trainX)
 
 # Bayesian Quadrature method
 # set number of new query points using sequential design
-
-source("./BARTBQ.R")
+source("src/BARTBQ.R")
 t0 <- proc.time()
 predictionBART <- mainBARTBQ(dim, num_iterations, FUN = genz, trainX, trainY)
 t1 <- proc.time()
 bartTime <- (t1 - t0)[[1]]
 # Bayesian Quadrature with Monte Carlo integration method
 print("Begin Monte Carlo Integration")
-source("./monteCarloIntegration.R")
+source("src/monteCarloIntegration.R")
 t0 <- proc.time()
 predictionMonteCarlo <- monteCarloIntegrationUniform(FUN = genz, numSamples=num_iterations, dim)
 t1 <- proc.time()
@@ -60,7 +70,7 @@ MITime <- (t1 - t0)[[1]]
 
 # Bayesian Quadrature with Gaussian Process
 print("Begin Gaussian Process Integration")
-source("./GPBQ.R")
+source("src/GPBQ.R")
 
 t0 <- proc.time()
 predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = genz)  
@@ -70,7 +80,7 @@ GPTime <- (t1 - t0)[[1]]
 # read in analytical integrals
 dimensionsList <- c(1,2,3,5,10,20)
 whichDimension <- which(dim == dimensionsList)
-analyticalIntegrals <- read.csv("./genz/integrals.csv", header = FALSE)
+analyticalIntegrals <- read.csv("results/genz/integrals.csv", header = FALSE)
 real <- analyticalIntegrals[whichGenz, whichDimension]
 
 # Bayesian Quadrature methods: with BART, Monte Carlo Integration and Gaussian Process respectively
@@ -80,7 +90,7 @@ print(c("BART integral:", predictionBART$meanValueBART[num_iterations]))
 print(c("MI integral:", predictionMonteCarlo$meanValueMonteCarlo[num_iterations]))
 print(c("GP integral:", predictionGPBQ$meanValueGP[num_iterations]))
 
-print("Writing full results to ../results/genz%s" %--% c(whichGenz))
+print("Writing full results to results/genz%s" %--% c(whichGenz))
 results <- data.frame(
         "epochs" = c(1:num_iterations),
         "BARTMean" = predictionBART$meanValueBART, "BARTsd" = predictionBART$standardDeviationBART,
@@ -91,12 +101,26 @@ results <- data.frame(
         "runtimeMI" = rep(MITime, num_iterations),
         "runtimeGP" = rep(GPTime, num_iterations)
 )
-write.csv(results, file = "../results/genz/%s/results%sdim%s.csv" %--% c(whichGenz, whichGenz, dim),row.names=FALSE)
+write.csv(results, file = "results/genz/%s/results%sdim%s.csv" %--% c(
+          whichGenz, 
+          whichGenz, 
+          dim
+     ),
+     row.names=FALSE
+)
 
 print("Begin Plots")
 
 # 1. Open jpeg file
-jpeg("../Figures/%s/convergenceMean%s%sDimensions.jpg" %--% c(whichGenz, genzFunctionName, dim), width = 700, height = 583)
+jpeg(
+     "Figures/%s/convergenceMean%s%sDimensions.jpg" %--% c(
+          whichGenz, 
+          genzFunctionName, 
+          dim
+     ), 
+     width = 700, 
+     height = 583
+)
 # 2. Create the plot
 par(mfrow = c(1,2), pty = "s")
 plot(x = c(1:num_iterations), y = predictionMonteCarlo$meanValueMonteCarlo,
