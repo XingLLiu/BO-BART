@@ -25,10 +25,14 @@ dim <- args[1]
 num_iterations <- args[2]
 whichGenz <- args[3]
 
-# for testing
-# dim <- 2
-# num_iterations <- 2
-# whichGenz <- 2
+# turn on/off sequential design
+if (args[4] == 1 | is.na(args[4])) {
+  sequential <- TRUE
+  print("Sequantial design set to TRUE.")
+} else {
+  sequential <- FALSE
+  print("Sequantial design set to FALSE.")
+}
 
 if (num_iterations == 1) { stop("NEED MORE THAN 1 ITERATION") }
 
@@ -50,8 +54,6 @@ print("Testing with: %s" %--% genzFunctionName)
 
 # prepare training dataset
 trainX <- randomLHS(100, dim)
-# source("./genz/rejection_samp.R")
-# trainX <- rejection_samp(N = 100, lower_lim = 0, upper_lim = 1, M = 360000, f_func = genz)
 trainY <- genz(trainX)
 
 # Bayesian Quadrature method
@@ -114,22 +116,19 @@ write.csv(results, file = "results/genz/%s/results%sdim%s.csv" %--% c(
 
 print("Begin Plots")
 # 1. Open jpeg file
-pdf(
-     "Figures/%s/convergenceMean%s%sDimensions.pdf" %--% c(
-          whichGenz, 
-          genzFunctionName, 
-          dim
-     ), 
-     width = 10, 
-     height = 11
-)
+if (!sequential){
+  figName <- "Figures/%s/%s%sDimNoSequential.pdf" %--% c(whichGenz, genzFunctionName, dim)
+} else {
+  figName <- "Figures/%s/%s%sDim.pdf" %--% c(whichGenz, genzFunctionName, dim)
+}
+pdf(figName, width = 10, height = 11)
 # 2. Create the plot
 par(mfrow = c(1,2), pty = "s")
 plot(x = c(1:num_iterations), y = predictionMonteCarlo$meanValueMonteCarlo,
      pch = 16, type = "l",
      xlab = "Number of epochs N", ylab = "Integral approximation", col = "blue",
      main = "Convergence of methods: mean vs N \nusing %s with %s epochs in %s dim" %--% c(genzFunctionName, num_iterations, dim),
-     ylim = c(-real, real + real), 
+     ylim = c(-real, 3 * real), 
      lty = 1,
      xaxs="i", yaxs="i"
      )
@@ -153,6 +152,6 @@ legend("topleft", legend=c("MC Integration", "BART BQ", "GP BQ"),
 # 3. Close the file
 dev.off()
 
-print("Please check {ROOT}/report/Figures for plots")
+print("Please check {ROOT}/figures/%s for plots" %--% figName)
 
 

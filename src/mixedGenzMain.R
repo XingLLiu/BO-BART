@@ -1,5 +1,5 @@
 # !/usr/bin/env R
-# uncomment below and fix it according when in department cluster.
+# uncomment below and fix it accordingly when used in department cluster.
 # setwd("/scratchcomp01/xl6116/BO-BART/src/")
 # 
 # uncomment the following when running the code for the first time to load real integral values
@@ -43,7 +43,7 @@ trainY <- genz(trainX)
 
 source("./BARTBQ.R")
 t0 <- proc.time()
-predictionBART <- mainBART(dim, num_iterations, FUN = genz, trainX, trainY)
+predictionBART <- mainBARTBQ(dim, num_iterations, FUN = genz, trainX, trainY)
 t1 <- proc.time()
 bartTime <- (t1 - t0)[[1]]
 # Bayesian Quadrature with Monte Carlo integration method
@@ -86,14 +86,14 @@ results <- data.frame(
         "actual" = rep(real, num_iterations),
         "runtimeBART" = rep(bartTime, num_iterations),
         "runtimeMI" = rep(MITime, num_iterations),
-        # "runtimeGP" = rep(GPTime, num_iterations)
+        "runtimeGP" = rep(GPTime, num_iterations)
 )
 # write.csv(results, file = "../results/genz/%s/results%sdim%s.csv" %--% c(whichGenz, whichGenz, dim),row.names=FALSE)
 
 print("Begin Plots")
 
 # 1. Open jpeg file
-jpeg("../Figures/mixedGenz.jpg" %--% c(whichGenz, genzFunctionName, dim), width = 700, height = 583)
+jpeg("../figures/mixedGenz.jpg" %--% c(whichGenz, genzFunctionName, dim), width = 700, height = 583)
 # 2. Create the plot
 par(mfrow = c(1,2), pty = "s")
 plot(x = c(1:num_iterations), y = predictionMonteCarlo$meanValueMonteCarlo,
@@ -125,6 +125,6 @@ legend("topleft", legend=c("MC Integration", "BART BQ", "GP BQ"),
 dev.off()
 
 
-print("Please check {ROOT}/report/Figures for plots")
+print("Please check {ROOT}/figures for plots")
 
 

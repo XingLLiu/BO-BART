@@ -1,5 +1,6 @@
 # --------------------------------
-# To run: Rscript test_step_func.R dim num_of_iters
+# To run: input two command-line arguements
+# Rscript test_step_func.R dim num_of_iters
 # --------------------------------
 
 # !/usr/bin/env R

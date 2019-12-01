@@ -213,7 +213,7 @@ sampleIntegrals <- function(model, dim)
   return (integrals)
 }
 
-BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN)
+BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, sequential)
   
   #'BART-BQ with Sequential Design
   #' 
@@ -225,6 +225,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN)
   #'@param trainY Numeric Arraay; response of training data
   #'@param numNewTraining Integer; number of new training points to be added
   #'@param FUN Function; function that we are integrating over
+  #'@param sequential boolean; whether or not to use sequential design
   #'
   #'@return List; list of mean integral value, standard deviation of integral value and new traiing set
 
@@ -256,7 +257,8 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN)
     standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
 
     # sequential design section, where we build the new training data
-    candidateSet <- randomLHS(1000, dim)
+    candidateSetNum <- 100
+    candidateSet <- randomLHS(candidateSetNum, dim)
     
     # predict the values
     fValues <- predict(model, candidateSet)
@@ -264,8 +266,13 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN)
     probability = 1 #uniform probability
     #expectedValue <- colMeans(fValues*probability)
     
-    var <- colVars(fValues)
-    index <- sample(which(var==max(var)), 1)
+    if (sequential){
+      var <- colVars(fValues)
+      index <- sample(which(var==max(var)), 1)
+    }
+    else {
+      index <- sample(1:candidateSetNum, 1)
+    }
     value <- FUN(t(candidateSet[index,]))
     trainData <- rbind(trainData, c(candidateSet[index,], value))
   
@@ -275,7 +282,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN)
                "trainData" = trainData))
 }
 
-mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY) 
+mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY, sequential=TRUE) 
   
   #'BART-BQ with Sequential Design
   #' 
@@ -294,7 +301,7 @@ mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY)
   # prepare training data and parameters
   genz <- FUN #select genz function
   numNewTraining <- num_iterations
-  prediction <- BARTBQSequential(dim, trainX, trainY, numNewTraining, FUN = genz) 
+  prediction <- BARTBQSequential(dim, trainX, trainY, numNewTraining, FUN = genz, sequential) 
 
   return (prediction)
 }
