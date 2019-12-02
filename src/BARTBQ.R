@@ -240,7 +240,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, sequentia
   # generate extra training data using the scheme (see pdf)
   for (i in 1:numNewTraining) {
     
-    print(c("BART: Epoch=", i))
+    print(paste("BART: Epoch =", i))
     # find the min and max range of y
     ymin <- min(trainData[, (dim + 1)]); ymax <- max(trainData[, (dim + 1)])
     # first build BART and scale mean and standard deviation

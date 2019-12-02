@@ -80,7 +80,7 @@ computeGPBQ <- function(dim, epochs, N=100, FUN, lengthscale=1, sequential=TRUE)
   # train
   for (p in 1:epochs) {
    
-    print(c("epoch", p))
+    print(paste("GPBQ: Epoch =", p))
     candidateSetNum <- 100
     candidateSet <- randomLHS(candidateSetNum,dim)
     

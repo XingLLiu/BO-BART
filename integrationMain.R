@@ -26,6 +26,7 @@ num_iterations <- args[2]
 whichGenz <- args[3]
 
 # turn on/off sequential design
+cat("\nBegin testing:\n")
 if (args[4] == 1 | is.na(args[4])) {
   sequential <- TRUE
   print("Sequantial design set to TRUE.")
@@ -152,6 +153,6 @@ legend("topleft", legend=c("MC Integration", "BART BQ", "GP BQ"),
 # 3. Close the file
 dev.off()
 
-print("Please check {ROOT}/figures/%s for plots" %--% figName)
+print("Please check {ROOT}/Figures/%s for plots" %--% figName)
 
 

@@ -125,6 +125,6 @@ legend("topleft", legend=c("MC Integration", "BART BQ", "GP BQ"),
 dev.off()
 
 
-print("Please check {ROOT}/figures for plots")
+print("Please check {ROOT}/Figures for plots")
 
 
