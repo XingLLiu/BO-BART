@@ -25,17 +25,22 @@ dim <- args[1]
 num_iterations <- args[2]
 whichGenz <- args[3]
 
-# for testing
-# dim <- 2
-# num_iterations <- 2
-# whichGenz <- 2
+# turn on/off sequential design
+cat("\nBegin testing:\n")
+if (args[4] == 1 | is.na(args[4])) {
+  sequential <- TRUE
+  print("Sequantial design set to TRUE.")
+} else {
+  sequential <- FALSE
+  print("Sequantial design set to FALSE.")
+}
 
 if (num_iterations == 1) { stop("NEED MORE THAN 1 ITERATION") }
 
 print(c(dim, num_iterations, whichGenz))
 source("src/genz/genz.R") # genz function to test
 
-if (whichGenz < 1 | whichGenz > 6) { stop("undefined genz function. Change 3rd argument to 1-6") }
+if (whichGenz < 1 | whichGenz > 7) { stop("undefined genz function. Change 3rd argument to 1-7") }
 if (whichGenz == 3 & dim == 1) { stop("incorrect dimension. Discrete Genz function only defined for dimension >= 2") } 
 
 if (whichGenz == 1) { genz <- cont; genzFunctionName <-  deparse(substitute(cont)) }
@@ -44,6 +49,7 @@ if (whichGenz == 3) { genz <- disc; genzFunctionName <-  deparse(substitute(disc
 if (whichGenz == 4) { genz <- gaussian; genzFunctionName <-  deparse(substitute(gaussian)) }
 if (whichGenz == 5) { genz <- oscil; genzFunctionName <-  deparse(substitute(oscil)) }
 if (whichGenz == 6) { genz <- prpeak; genzFunctionName <-  deparse(substitute(prpeak)) }
+# if (whichGenz == 7) { genz <- step; genzFunctionName <-  deparse(substitute(step)) }
 
 print("Testing with: %s" %--% genzFunctionName)
 
@@ -58,6 +64,7 @@ t0 <- proc.time()
 predictionBART <- mainBARTBQ(dim, num_iterations, FUN = genz, trainX, trainY)
 t1 <- proc.time()
 bartTime <- (t1 - t0)[[1]]
+
 # Bayesian Quadrature with Monte Carlo integration method
 print("Begin Monte Carlo Integration")
 source("src/monteCarloIntegration.R")
@@ -110,22 +117,19 @@ write.csv(results, file = "results/genz/%s/results%sdim%s.csv" %--% c(
 
 print("Begin Plots")
 # 1. Open jpeg file
-pdf(
-     "Figures/%s/convergenceMean%s%sDimensions.pdf" %--% c(
-          whichGenz, 
-          genzFunctionName, 
-          dim
-     ), 
-     width = 10, 
-     height = 11
-)
+if (!sequential){
+  figName <- "Figures/%s/%s%sDimNoSequential.pdf" %--% c(whichGenz, genzFunctionName, dim)
+} else {
+  figName <- "Figures/%s/%s%sDim.pdf" %--% c(whichGenz, genzFunctionName, dim)
+}
+pdf(figName, width = 10, height = 11)
 # 2. Create the plot
 par(mfrow = c(1,2), pty = "s")
 plot(x = c(1:num_iterations), y = predictionMonteCarlo$meanValueMonteCarlo,
      pch = 16, type = "l",
      xlab = "Number of epochs N", ylab = "Integral approximation", col = "blue",
      main = "Convergence of methods: mean vs N \nusing %s with %s epochs in %s dim" %--% c(genzFunctionName, num_iterations, dim),
-     ylim = c(-real, real + real), 
+     ylim = c(-real, 3 * real), 
      lty = 1,
      xaxs="i", yaxs="i"
      )
@@ -149,6 +153,6 @@ legend("topleft", legend=c("MC Integration", "BART BQ", "GP BQ"),
 # 3. Close the file
 dev.off()
 
-print("Please check {ROOT}/report/Figures for plots")
+print("Please check {ROOT}/Figures/%s for plots" %--% figName)
 
 

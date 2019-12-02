@@ -52,43 +52,46 @@ rejection_samp <- function(N = NA, lower_lim = NA, upper_lim = NA, M = NA, f_fun
 # ================================================================
 # Example (1d product peak)
 # ================================================================
-library(matrixStats)
-library(lhs)
-# Function to be sampled from
-f_func <- function(xx){
+main <- function(){
+        
+    library(matrixStats)
+    library(lhs)
+    # Function to be sampled from
+    f_func <- function(xx){
 
-    if (is.matrix(xx) == FALSE) { 
-    xx <- matrix(xx, nrow = 1)  
+        if (is.matrix(xx) == FALSE) { 
+        xx <- matrix(xx, nrow = 1)  
+        }
+
+        dim <- ncol(xx)
+        u <- rep(0.5, dim)
+        a <- rep(600/dim^3, dim)
+
+        sum <- a^(-2) + (xx - u)^2
+        y <- rowProds(1/sum)
+
+        if (xx <= 1 & xx >= 0){
+            return(y)
+        }
+        else{
+            return(0)
+        }
     }
 
-    dim <- ncol(xx)
-    u <- rep(0.5, dim)
-    a <- rep(600/dim^3, dim)
+    # Rejection sampling
+    N <- 10^4
+    M <- 360000
+    sample_rej <- rejection_samp(N, lower_lim = 0, upper_lim = 1, M = M, prpeak)
 
-    sum <- a^(-2) + (xx - u)^2
-    y <- rowProds(1/sum)
+    # Random LHS sampling
+    xx <- randomLHS(N, 1)
+    sample_rand <- prpeak(matrix(sort(xx), length(xx), 1))
 
-    if (xx <= 1 & xx >= 0){
-        return(y)
-    }
-    else{
-        return(0)
-    }
+    x_vec <- 0:N/N
+    hist(sample_rej, probability = TRUE, breaks = seq(0, 1, l = 500), col = "slategrey",
+        main = "Different sampling methods")
+    lines(x_vec, 1/3600 * prpeak(matrix(x_vec, length(x_vec), 1)), col = "red")
+    points(sort(xx), 1/3600 * sample_rand, col = "blue", cex = 0.2)
+    legend("topright", legend = c("rejection sampling", "true function", "random sampling"),
+        col=c("black", "red", "blue"), cex = 0.8, lty = c(1, 1, 1))
 }
-
-# Rejection sampling
-# N <- 10^4
-# M <- 360000
-# sample_rej <- rejection_samp(N, lower_lim = 0, upper_lim = 1, M = M, prpeak)
-
-# # Random LHS sampling
-# xx <- randomLHS(N, 1)
-# sample_rand <- prpeak(matrix(sort(xx), length(xx), 1))
-
-# x_vec <- 0:N/N
-# hist(sample_rej, probability = TRUE, breaks = seq(0, 1, l = 500), col = "slategrey",
-#     main = "Different sampling methods")
-# lines(x_vec, 1/3600 * prpeak(matrix(x_vec, length(x_vec), 1)), col = "red")
-# points(sort(xx), 1/3600 * sample_rand, col = "blue", cex = 0.2)
-# legend("topright", legend = c("rejection sampling", "true function", "random sampling"),
-#        col=c("black", "red", "blue"), cex = 0.8, lty = c(1, 1, 1))

@@ -28,7 +28,7 @@ gaussianKernel <- function(xPrime, X, lengthscale = 1)
 
 rescale <- function(x) {x * attr(x, 'scaled:scale') + attr(x, 'scaled:center')}
 
-computeGPBQ <- function(dim, epochs, N=100, FUN, lengthscale=1) 
+computeGPBQ <- function(dim, epochs, N=100, FUN, lengthscale=1, sequential=TRUE) 
   
   #'Gaussian Process with Bayesian Quadrature
   #' 
@@ -80,13 +80,14 @@ computeGPBQ <- function(dim, epochs, N=100, FUN, lengthscale=1)
   # train
   for (p in 1:epochs) {
    
-    print(c("epoch", p))
-    candidateSet <- randomLHS(100,dim)
+    print(paste("GPBQ: Epoch =", p))
+    candidateSetNum <- 100
+    candidateSet <- randomLHS(candidateSetNum,dim)
     
     candidate_Var <- c()
     
     candidate_p <- c()
-    for(i in 1:100) {
+    for(i in 1:candidateSetNum) {
       candidate_p[i] <- pmvnorm(rep(0, dim), rep(1, dim) , mean = candidateSet[i,], sigma = diag(lengthscale^2, dim))[[1]] * (2*pi*lengthscale^2)^(dim/2) 
       # add in extra term obtained by integration
     }
@@ -94,7 +95,7 @@ computeGPBQ <- function(dim, epochs, N=100, FUN, lengthscale=1)
     K_prime <- diag(N+p)
     
     K_prime[1:(N+p-1), 1:(N+p-1)] <- K
-    for (i in 1:100) {
+    for (i in 1:candidateSetNum) {
 
       kernel_new_entries <- kernelMatrix(rbfdot(.5/lengthscale^2), matrix(candidateSet[i,], nrow = 1), X)
 
@@ -104,10 +105,17 @@ computeGPBQ <- function(dim, epochs, N=100, FUN, lengthscale=1)
       
       z[N+p] <- candidate_p[i]
       
-      candidate_Var[i] <- t(z)%*%solve(K_prime + diag(jitter,nrow(K_prime)), z) # where is the integral here
+      if (sequential){
+        candidate_Var[i] <- t(z)%*%solve(K_prime + diag(jitter,nrow(K_prime)), z) # where is the integral here
+      }
     }
     
-    index <- which(candidate_Var == max(candidate_Var))[1]
+    if (sequential){
+      index <- which(candidate_Var == max(candidate_Var))[1]
+    }
+    else {
+      index <- sample(1:candidateSetNum, 1)
+    }
     
     kernel_new_entry <- kernelMatrix(rbfdot(.5/lengthscale^2), matrix(candidateSet[index,], nrow=1), X)
     

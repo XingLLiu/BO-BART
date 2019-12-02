@@ -332,3 +332,40 @@ prpeak <- function(xx)
 }
 
 
+step <- function(xx, regularizer=1e-5, jump=1)
+{
+  if (is.matrix(xx) == FALSE) { 
+    xx <- matrix(xx, nrow = 1)  
+  }
+  
+  dim <- ncol(xx)
+  
+  y <- matrix(NA, nrow = dim(xx)[1])
+  # One jump
+  if (jump == 1){
+    for (i in 1:dim(xx)[1]){
+      if (sum(xx[i, ] < 0.3) == dim){
+          y[i, ] <- regularizer
+      }
+      else{
+          y[i, ] <- 1 - regularizer
+      }
+    }
+  }
+  # Two jumps
+  else if (jump == 2){
+    for (i in 1:dim(xx)[1]){
+      if (sum(xx[i, ] < 0.3) == dim){
+          y[i, ] <- regularizer
+      }
+      else if ( sum(xx[i, ] < 0.6 & xx[i, ] >= 0.3) == dim ){
+          y[i, ] <- 0.5
+      }
+      else{
+          y[i, ] <- 1 - regularizer
+      }
+    }
+  }
+
+  return(y)
+}
