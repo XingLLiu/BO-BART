@@ -24,8 +24,10 @@ args <- as.double(commandArgs(TRUE))
 dim <- args[1]
 num_iterations <- args[2]
 whichGenz <- args[3]
-
+cat("Sequential: ", args[4])
 # turn on/off sequential design
+# 1 denotes TRUE to sequential
+# 0 denotes FALSE to sequential
 cat("\nBegin testing:\n")
 if (args[4] == 1 | is.na(args[4])) {
   sequential <- TRUE
@@ -61,7 +63,7 @@ trainY <- genz(trainX)
 # set number of new query points using sequential design
 source("src/BARTBQ.R")
 t0 <- proc.time()
-predictionBART <- mainBARTBQ(dim, num_iterations, FUN = genz, trainX, trainY)
+predictionBART <- mainBARTBQ(dim, num_iterations, FUN = genz, trainX, trainY, sequential)
 t1 <- proc.time()
 bartTime <- (t1 - t0)[[1]]
 
@@ -79,7 +81,8 @@ print("Begin Gaussian Process Integration")
 source("src/GPBQ.R")
 
 t0 <- proc.time()
-predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = genz)  
+# need to add in function to optimise the hyperparameters
+predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = genz, lengthscale=1,sequential)  
 t1 <- proc.time()
 GPTime <- (t1 - t0)[[1]]
 
@@ -107,21 +110,27 @@ results <- data.frame(
         "runtimeMI" = rep(MITime, num_iterations),
         "runtimeGP" = rep(GPTime, num_iterations)
 )
-write.csv(results, file = "results/genz/%s/results%sdim%s.csv" %--% c(
+
+if (!sequential){
+  csvName <- "results/genz/%s/results%sdim%sNoSequential.csv" %--% c(
           whichGenz, 
           whichGenz, 
           dim
-     ),
-     row.names=FALSE
-)
+     )
+  figName <- "Figures/%s/%s%sDimNoSequential.pdf" %--% c(whichGenz, genzFunctionName, dim)
+} else {
+  csvName <- "results/genz/%s/results%sdim%s.csv" %--% c(
+          whichGenz, 
+          whichGenz, 
+          dim
+     )
+  figName <- "Figures/%s/%s%sDim.pdf" %--% c(whichGenz, genzFunctionName, dim)
+}
+
+write.csv(results, file = csvName, row.names=FALSE)
 
 print("Begin Plots")
 # 1. Open jpeg file
-if (!sequential){
-  figName <- "Figures/%s/%s%sDimNoSequential.pdf" %--% c(whichGenz, genzFunctionName, dim)
-} else {
-  figName <- "Figures/%s/%s%sDim.pdf" %--% c(whichGenz, genzFunctionName, dim)
-}
 pdf(figName, width = 10, height = 11)
 # 2. Create the plot
 par(mfrow = c(1,2), pty = "s")
