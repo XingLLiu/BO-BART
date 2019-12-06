@@ -86,7 +86,7 @@ print("Begin Gaussian Process Integration")
 source("src/GPBQ.R")
 
 t0 <- proc.time()
-predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = genz, lengthscale=1, sequential)  
+predictionGPBQ <- computeGPBQ(trainX, trainY, dim, epochs = num_iterations-1, N=100, FUN = genz, lengthscale=1,sequential)  
 t1 <- proc.time()
 GPTime <- (t1 - t0)[[1]]
 
@@ -94,14 +94,44 @@ dimensionsList <- c(1,2,3,5,10,20)
 whichDimension <- which(dim == dimensionsList)
 real <- mean(predictionMonteCarlo$meanValueMonteCarlo)
 
+# Bayesian Quadrature methods: with BART, Monte Carlo Integration and Gaussian Process respectively
+print("Final Results:")
+print(c("Actual integral:", real))
+print(c("BART integral:", predictionBART$meanValueBART[num_iterations]))
+print(c("MI integral:", predictionMonteCarlo$meanValueMonteCarlo[num_iterations]))
+print(c("GP integral:", predictionGPBQ$meanValueGP[num_iterations]))
 
 
-# 1. Open jpeg file
-# if (!sequential){
+print("Writing full results to results/genz%s" %--% c(whichGenz))
+results <- data.frame(
+        "epochs" = c(1:num_iterations),
+        "BARTMean" = predictionBART$meanValueBART, "BARTsd" = predictionBART$standardDeviationBART,
+        "MIMean" = predictionMonteCarlo$meanValueMonteCarlo, "MIsd" = predictionMonteCarlo$standardDeviationMonteCarlo,
+        "GPMean" = predictionGPBQ$meanValueGP, "GPsd" = sqrt(predictionGPBQ$varianceGP),
+        "actual" = rep(real, num_iterations),
+        "runtimeBART" = rep(bartTime, num_iterations),
+        "runtimeMI" = rep(MITime, num_iterations),
+        "runtimeGP" = rep(GPTime, num_iterations)
+)
+
+if (!sequential){
+  csvName <- "results/genz/%s/results%sdim%sNoSequential.csv" %--% c(
+          whichGenz, 
+          whichGenz, 
+          dim
+     )
   figName <- "Figures/%s/%s%sDimNoSequential.pdf" %--% c(whichGenz, genzFunctionName, dim)
-# } else {
-  # figName <- "Figures/%s/%s%sDim.pdf" %--% c(whichGenz, genzFunctionName, dim)
-# }
+} else {
+  csvName <- "results/genz/%s/results%sdim%s.csv" %--% c(
+          whichGenz, 
+          whichGenz, 
+          dim
+     )
+  figName <- "Figures/%s/%s%sDim.pdf" %--% c(whichGenz, genzFunctionName, dim)
+}
+
+write.csv(results, file = csvName, row.names=FALSE)
+
 # 2. Create the plot
 pdf(figName, width = 10, height = 11)
 par(mfrow = c(1,2), pty = "s")

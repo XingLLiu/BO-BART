@@ -45,22 +45,20 @@ Project Documentation: https://bart-bq.readthedocs.io/en/latest/
 
 ## To run the genz integrals approximations:
 
-0) Make sure you have `here` and `yaml` install as an R library. Now, go to `config` and make a `config_local.yml` file by copying `config.yml` and put in the root path directory of the BO-BART project. 
-
-1) Make sure you are using **R 3.5.0** or higher.
-
-Now, enter the following to compute the baseline genz integrals:
-```
-cd src
-Rscript setup.R
-```
-
-2) In the terminal, `cd ..` to the `src` folder
-
-3) Run
+1) Install all the necessary packages
 
 ```
-Rscript integrationMain.R dimension num_iterations genz_function_number
+install.packages(c("yaml", "MASS", "cubature", "lhs", "data.tree", "matrixStats", "mvtnorm", "doParallel", "kernlab"))
+```
+and also 
+```
+packageurl <- "https://cran.r-project.org/src/contrib/Archive/dbarts/dbarts_0.9-8.tar.gz"
+install.packages(packageurl, repos=NULL, type="source")
+```
+
+2) To simulate, run the test scripts. For example:
+```
+Rscript integrationMain.R dimension num_iterations genz_function_number sequential_flag
 
 ```
 where `genz_function_number` is following the indexing in https://www.sfu.ca/~ssurjano/integration.html. 

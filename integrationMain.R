@@ -82,7 +82,7 @@ source("src/GPBQ.R")
 
 t0 <- proc.time()
 # need to add in function to optimise the hyperparameters
-predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = genz, lengthscale=1,sequential)  
+predictionGPBQ <- computeGPBQ(trainX, trainY, dim, epochs = num_iterations-1, N=100, FUN = genz, lengthscale=1,sequential)  
 t1 <- proc.time()
 GPTime <- (t1 - t0)[[1]]
 
