@@ -1,13 +1,18 @@
 import gpytorch 
-from torch import Tensor
+from torch import Tensor, linspace, sin, randn
 from torch.optim import Adam
-
+import math
 # We will use the simplest form of GP model, exact inference
 class ExactGPModel(gpytorch.models.ExactGP):
-    def __init__(self, train_x, train_y, likelihood):
+    def __init__(self, train_x, train_y, likelihood, kernel="rbf"):
         super(ExactGPModel, self).__init__(train_x, train_y, likelihood)
-        self.mean_module = gpytorch.means.ConstantMean()
-        self.covar_module = gpytorch.kernels.RBFKernel()
+        self.mean_module = gpytorch.means.ZeroMean()
+        if kernel == "rbf":
+            self.covar_module = gpytorch.kernels.RBFKernel()
+        elif kernel == "matern":
+            self.covar_module = gpytorch.kernels.MaternKernel()
+        else:
+            raise NotImplementedError()
 
     def forward(self, x):
         mean_x = self.mean_module(x)
@@ -15,15 +20,15 @@ class ExactGPModel(gpytorch.models.ExactGP):
         return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
 
 
-def optimise_gp(train_x, train_y, epochs):
+def optimise_gp(train_x, train_y, kernel, epochs):
     # initialize likelihood and model
     train_x = Tensor(train_x)
-    train_y = Tensor(train_y)
+    train_y = Tensor(train_y).reshape(train_y.shape[0])
+    print(train_x.shape, train_y.shape)
     likelihood = gpytorch.likelihoods.GaussianLikelihood()
-    model = ExactGPModel(train_x, train_y, likelihood)
+    model = ExactGPModel(train_x, train_y, likelihood, kernel)
     model.train()
     likelihood.train()
-
     # Use the adam optimizer
     optimizer = Adam([
         {'params': model.parameters()},  # Includes GaussianLikelihood parameters
@@ -32,7 +37,7 @@ def optimise_gp(train_x, train_y, epochs):
     # "Loss" for GPs - the marginal log likelihood
     mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
 
-    for i in range(epochs):
+    for i in range(int(epochs)):
         # Zero gradients from previous iteration
         optimizer.zero_grad()
         # Output from model
@@ -42,9 +47,18 @@ def optimise_gp(train_x, train_y, epochs):
         loss.backward()
         print('Iter %d/%d - Loss: %.3f   lengthscale: %.3f   noise: %.3f' % (
             i + 1, epochs, loss.item(),
-            model.covar_module.base_kernel.lengthscale.item(),
+            model.covar_module.lengthscale.item(),
             model.likelihood.noise.item()
         ))
         optimizer.step()
-    return model.covar_module.base_kernel.lengthscale.item()
+    return model.covar_module.lengthscale.item()
     
+def test():
+    train_x = linspace(0, 1, 100)
+    # True function is sin(2*pi*x) with Gaussian noise
+    train_y = sin(train_x * (2 * math.pi)) + randn(train_x.size()) * 0.2
+    print(train_x.shape, train_y.shape)
+    print(optimise_gp(train_x, train_y, 1))
+
+# if __name__ == "__main__":
+#     test()

@@ -1,14 +1,10 @@
 # !/usr/bin/env R
 # Load required packages
-library(MASS)
-library(cubature)
-library(lhs)
-library(data.tree)
-library(dbarts)
-library(matrixStats)
-library(mvtnorm)
-library(doParallel)
-library(kernlab)
+library(yaml)
+library(here)
+root_dir <- read_yaml(here("config", "config_local.yml"))$root_dir
+source(file.path(root_dir, "src/packages/requiredPackages.R"))
+requiredPackages()
 
 # define string formatting
 `%--%` <- function(x, y) 
@@ -23,25 +19,19 @@ args <- as.double(commandArgs(TRUE))
 dim <- args[1]
 num_iterations <- args[2]
 whichGenz <- args[3]
-cat("Sequential: ", args[4])
-# turn on/off sequential design
-# 1 denotes TRUE to sequential
-# 0 denotes FALSE to sequential
-cat("\nBegin testing:\n")
-if (args[4] == 1 | is.na(args[4])) {
-  sequential <- TRUE
-  print("Sequantial design set to TRUE.")
-} else {
-  sequential <- FALSE
-  print("Sequantial design set to FALSE.")
-}
+
+# # for testing
+# dim <- 2
+# num_iterations <- 2
+# whichGenz <- 2
+
 
 if (num_iterations == 1) { stop("NEED MORE THAN 1 ITERATION") }
 
 print(c(dim, num_iterations, whichGenz))
-source("src/genz/genz.R") # genz function to test
+source(file.path(root_dir, "src/genz/genz.R")) # genz function to test
 
-if (whichGenz < 1 | whichGenz > 7) { stop("undefined genz function. Change 3rd argument to 1-7") }
+if (whichGenz < 1 | whichGenz > 6) { stop("undefined genz function. Change 3rd argument to 1-6") }
 if (whichGenz == 3 & dim == 1) { stop("incorrect dimension. Discrete Genz function only defined for dimension >= 2") } 
 
 if (whichGenz == 1) { genz <- cont; genzFunctionName <-  deparse(substitute(cont)) }
@@ -50,7 +40,6 @@ if (whichGenz == 3) { genz <- disc; genzFunctionName <-  deparse(substitute(disc
 if (whichGenz == 4) { genz <- gaussian; genzFunctionName <-  deparse(substitute(gaussian)) }
 if (whichGenz == 5) { genz <- oscil; genzFunctionName <-  deparse(substitute(oscil)) }
 if (whichGenz == 6) { genz <- prpeak; genzFunctionName <-  deparse(substitute(prpeak)) }
-# if (whichGenz == 7) { genz <- step; genzFunctionName <-  deparse(substitute(step)) }
 
 print("Testing with: %s" %--% genzFunctionName)
 
@@ -58,18 +47,18 @@ print("Testing with: %s" %--% genzFunctionName)
 trainX <- randomLHS(100, dim)
 trainY <- genz(trainX)
 
+
 # Bayesian Quadrature method
 # set number of new query points using sequential design
-source("src/BARTBQ.R")
+
+source(file.path(root_dir, "src/BARTBQ.R"))
 t0 <- proc.time()
-predictionBART <- mainBARTBQ(dim, num_iterations, FUN = genz, trainX, trainY, sequential)
+predictionBART <- mainBARTBQ(dim, num_iterations, FUN = genz, trainX, trainY)
 t1 <- proc.time()
 bartTime <- (t1 - t0)[[1]]
-
 # Bayesian Quadrature with Monte Carlo integration method
 print("Begin Monte Carlo Integration")
-source("src/monteCarloIntegration.R")
-
+source(file.path(root_dir, "src/monteCarloIntegration.R"))
 t0 <- proc.time()
 predictionMonteCarlo <- monteCarloIntegrationUniform(FUN = genz, numSamples=num_iterations, dim)
 t1 <- proc.time()
@@ -78,21 +67,17 @@ MITime <- (t1 - t0)[[1]]
 
 # Bayesian Quadrature with Gaussian Process
 print("Begin Gaussian Process Integration")
-library(reticulate)
-source("src/optimise_gp.R")
-lengthscale <- optimise_gp_r(trainX, trainY, kernel="rbf", epochs=500)
+source(file.path(root_dir, "src/GPBQ.R"))
 
-source("src/GPBQ.R")
 t0 <- proc.time()
-# need to add in function to optimise the hyperparameters
-predictionGPBQ <- computeGPBQ(trainX, trainY, dim, epochs = num_iterations-1, N=100, FUN = genz, lengthscale,sequential)  
+predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = genz)  
 t1 <- proc.time()
 GPTime <- (t1 - t0)[[1]]
 
 # read in analytical integrals
 dimensionsList <- c(1,2,3,5,10,20)
 whichDimension <- which(dim == dimensionsList)
-analyticalIntegrals <- read.csv("results/genz/integrals.csv", header = FALSE)
+analyticalIntegrals <- read.csv(file.path(root_dir, "results/genz/integrals.csv"), header = FALSE)
 real <- analyticalIntegrals[whichGenz, whichDimension]
 
 # Bayesian Quadrature methods: with BART, Monte Carlo Integration and Gaussian Process respectively
@@ -113,35 +98,35 @@ results <- data.frame(
         "runtimeMI" = rep(MITime, num_iterations),
         "runtimeGP" = rep(GPTime, num_iterations)
 )
-
-if (!sequential){
-  csvName <- "results/genz/%s/results%sdim%sNoSequential.csv" %--% c(
+write.csv(results, file = file.path(
+     root_dir, 
+     "results/genz/%s/results%sdim%s.csv" %--% c(
           whichGenz, 
           whichGenz, 
           dim
-     )
-  figName <- "Figures/%s/%s%sDimNoSequential.pdf" %--% c(whichGenz, genzFunctionName, dim)
-} else {
-  csvName <- "results/genz/%s/results%sdim%s.csv" %--% c(
-          whichGenz, 
-          whichGenz, 
-          dim
-     )
-  figName <- "Figures/%s/%s%sDim.pdf" %--% c(whichGenz, genzFunctionName, dim)
-}
-
-write.csv(results, file = csvName, row.names=FALSE)
+     )),
+     row.names=FALSE
+)
 
 print("Begin Plots")
+
 # 1. Open jpeg file
-pdf(figName, width = 10, height = 11)
+jpeg(
+     file.path(root_dir, "Figures/%s/convergenceMean%s%sDimensions.jpg" %--% c(
+          whichGenz, 
+          genzFunctionName, 
+          dim
+     )), 
+     width = 700, 
+     height = 583
+)
 # 2. Create the plot
 par(mfrow = c(1,2), pty = "s")
 plot(x = c(1:num_iterations), y = predictionMonteCarlo$meanValueMonteCarlo,
      pch = 16, type = "l",
      xlab = "Number of epochs N", ylab = "Integral approximation", col = "blue",
      main = "Convergence of methods: mean vs N \nusing %s with %s epochs in %s dim" %--% c(genzFunctionName, num_iterations, dim),
-     ylim = c(-real, 3 * real), 
+     ylim = c(-real, real + real), 
      lty = 1,
      xaxs="i", yaxs="i"
      )
@@ -165,6 +150,6 @@ legend("topleft", legend=c("MC Integration", "BART BQ", "GP BQ"),
 # 3. Close the file
 dev.off()
 
-print("Please check {ROOT}/Figures/%s for plots" %--% figName)
+print("Please check {ROOT}/report/Figures for plots")
 
 

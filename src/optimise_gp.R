@@ -1,9 +1,26 @@
 library(reticulate)
 
 
-optimise_gp <- function(trainX, trainY, init_lengthscale) 
+optimise_gp_r <- function(trainX, trainY, kernel, epochs)
+#'
+#'
+#'kernel == "rbf" or "matern"
+#'
+#'
 {
+  use_virtualenv("r-BOBART")
   source_python("python/gp_tune.py")
-  test(trainX)
+  lengthscale <- optimise_gp(trainX, trainY, kernel, epochs)
+  return (lengthscale)
 }
-#virtualenv_create()
+
+install_python_env <- function()
+{
+  # create a new environment 
+  
+  virtualenv_create("r-BOBART")
+  virtualenv_install("r-BOBART", "gpytorch")
+  virtualenv_install("r-BOBART", "torch")
+  # import SciPy (it will be automatically discovered in "r-reticulate")
+  use_virtualenv("r-BOBART")
+}
