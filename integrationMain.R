@@ -51,6 +51,7 @@ if (whichGenz == 4) { genz <- gaussian; genzFunctionName <-  deparse(substitute(
 if (whichGenz == 5) { genz <- oscil; genzFunctionName <-  deparse(substitute(oscil)) }
 if (whichGenz == 6) { genz <- prpeak; genzFunctionName <-  deparse(substitute(prpeak)) }
 # if (whichGenz == 7) { genz <- step; genzFunctionName <-  deparse(substitute(step)) }
+if (whichGenz == 7) { genz <- mix; genzFunctionName <-  deparse(substitute(mix)) }
 
 print("Testing with: %s" %--% genzFunctionName)
 
