@@ -86,7 +86,7 @@ print("Begin Gaussian Process Integration")
 source("src/GPBQ.R")
 
 t0 <- proc.time()
-predictionGPBQ <- computeGPBQ(trainX, trainY, dim, epochs = num_iterations-1, N=100, FUN = genz, lengthscale=1,sequential)  
+predictionGPBQ <- computeGPBQ(trainX, trainY, dim, epochs = num_iterations-1, FUN = genz, lengthscale=1,sequential)  
 t1 <- proc.time()
 GPTime <- (t1 - t0)[[1]]
 
@@ -163,6 +163,6 @@ legend("bottomleft", legend=c("MC Integration", "BART BQ", "GP BQ"),
        col=c("blue", "red", "green"), cex=0.8, lty = c(1,1,1,1))
 
 # 3. Close the file
-dev.off()
+invisible(dev.off())
 
-print("Please check {ROOT}/Figures for plots")
+print("Please check {ROOT}/%s for plots" %--% figName)

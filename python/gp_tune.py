@@ -2,6 +2,8 @@ import gpytorch
 from torch import Tensor, linspace, sin, randn
 from torch.optim import Adam
 import math
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
 # We will use the simplest form of GP model, exact inference
 class ExactGPModel(gpytorch.models.ExactGP):
     def __init__(self, train_x, train_y, likelihood, kernel="rbf"):

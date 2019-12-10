@@ -28,7 +28,7 @@ gaussianKernel <- function(xPrime, X, lengthscale = 1)
 
 rescale <- function(x) {x * attr(x, 'scaled:scale') + attr(x, 'scaled:center')}
 
-computeGPBQ <- function(X, Y_unscaled, dim, epochs, N=100, FUN, lengthscale=1, sequential=TRUE) 
+computeGPBQ <- function(X, Y_unscaled, dim, epochs, FUN, lengthscale=1, sequential) 
   
   #'Gaussian Process with Bayesian Quadrature
   #' 
@@ -37,7 +37,6 @@ computeGPBQ <- function(X, Y_unscaled, dim, epochs, N=100, FUN, lengthscale=1, s
   #' 
   #'@param dim Integer; Dimension of input X 
   #'@param epochs Integer; Number of new data points
-  #'@param N Integerl; Number of data points in the initial train set
   #'@param FUN Function; The function to be integrated
   #'@param lengthscale Integer; The parameter in standard kernel
   #'
@@ -49,6 +48,7 @@ computeGPBQ <- function(X, Y_unscaled, dim, epochs, N=100, FUN, lengthscale=1, s
   meanValueGP <- c()
   varianceGP <- c()
    
+  N <- dim(X)[1]
   Y <- scale(Y_unscaled)
 
   K <- matrix(0,nrow=N,ncol=N)

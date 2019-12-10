@@ -282,7 +282,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, sequentia
                "trainData" = trainData))
 }
 
-mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY, sequential=TRUE) 
+mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY, sequential) 
   
   #'BART-BQ with Sequential Design
   #' 
