@@ -2,6 +2,7 @@ monteCarloIntegrationUniform <- function(FUN, numSamples, dim)
   #'Crude Monte Carlo Approximation
   #' 
   #'@description The function approximates the integral of interest using curde monte carlo
+  #'There is no sequential sampling/adaptive Bayesian quadrature as there are no posterior samples
   #' 
   #'@param FUN Function; The function to be integrated 
   #'@param numSamples Integer; The number of samples used in calculate mean

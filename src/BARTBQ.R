@@ -294,6 +294,8 @@ mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY, sequential=TRUE
   #'@param FUN Function; Integral Function
   #'@param trainX Matrix; covariates of training data
   #'@param trainY Numeric Arraay; response of training data
+  #'@param sequential Boolean: whether to use sequential design or not. If FALSE, we simply just increase
+  #'the number of design points
   #'
   #'@return List; list of mean integral value, standard deviation of integral value and new traiing set
   

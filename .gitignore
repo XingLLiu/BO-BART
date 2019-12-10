@@ -49,3 +49,9 @@ env/
 
 # vscode
 .vscode
+
+# results
+*.png
+*.pdf
+*.eps
+*.jpg

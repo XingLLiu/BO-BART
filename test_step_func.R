@@ -1,16 +1,26 @@
 # --------------------------------
 # To run: input two command-line arguements
-# Rscript test_step_func.R dim num_of_iters
+# Rscript test_step_func.R dim num_of_iters sequential
 # --------------------------------
 
 # !/usr/bin/env R
-setwd(getwd())
+# setwd(getwd())
 # uncomment the following when running the code for the first time to load real integral values
 # source("./genz/saveComputeIntegrals.R")
 
 # Load required packages
-source("./packages/requiredPackages.R")
-requiredPackages()
+# source("src/packages/requiredPackages.R")
+# requiredPackages()
+library(yaml)
+library(MASS)
+library(cubature)
+library(lhs)
+library(data.tree)
+library(dbarts)
+library(matrixStats)
+library(mvtnorm)
+library(doParallel)
+library(kernlab)
 
 # define string formatting
 `%--%` <- function(x, y) 
@@ -27,10 +37,22 @@ num_iterations <- args[2]
 jump <- 2
 whichGenz <- 7
 
+# turn on/off sequential design
+# 1 denotes TRUE to sequential
+# 0 denotes FALSE to sequential
+cat("\nBegin testing:\n")
+if (args[3] == 1 | is.na(args[3])) {
+  sequential <- TRUE
+  print("Sequantial design set to TRUE.")
+} else {
+  sequential <- FALSE
+  print("Sequantial design set to FALSE.")
+}
+
 if (num_iterations == 1) { stop("NEED MORE THAN 1 ITERATION") }
 
 print(c(dim, num_iterations, whichGenz))
-source("./genz/genz.R") # genz function to test
+source("src/genz/genz.R") # genz function to test
 
 if (whichGenz == 7) { genz <- step; genzFunctionName <-  deparse(substitute(step)) }
 
@@ -44,15 +66,15 @@ trainY <- genz(trainX, jump = jump)
 # Bayesian Quadrature method
 # set number of new query points using sequential design
 
-source("./BARTBQ.R")
+source("src/BARTBQ.R")
 t0 <- proc.time()
-predictionBART <- mainBARTBQ(dim, num_iterations, FUN = genz, trainX, trainY)
+predictionBART <- mainBARTBQ(dim, num_iterations, FUN = genz, trainX, trainY, sequential)
 t1 <- proc.time()
 bartTime <- (t1 - t0)[[1]]
 
 # Bayesian Quadrature with Monte Carlo integration method
 print("Begin Monte Carlo Integration")
-source("./monteCarloIntegration.R")
+source("src/monteCarloIntegration.R")
 t0 <- proc.time()
 predictionMonteCarlo <- monteCarloIntegrationUniform(FUN = genz, numSamples=num_iterations, dim)
 t1 <- proc.time()
@@ -61,10 +83,10 @@ MITime <- (t1 - t0)[[1]]
 
 # Bayesian Quadrature with Gaussian Process
 print("Begin Gaussian Process Integration")
-source("./GPBQ.R")
+source("src/GPBQ.R")
 
 t0 <- proc.time()
-predictionGPBQ <- computeGPBQ(dim, epochs = num_iterations-1, N=10, FUN = genz)  
+predictionGPBQ <- computeGPBQ(trainX, trainY, dim, epochs = num_iterations-1, N=100, FUN = genz, lengthscale=1,sequential)  
 t1 <- proc.time()
 GPTime <- (t1 - t0)[[1]]
 
@@ -72,11 +94,46 @@ dimensionsList <- c(1,2,3,5,10,20)
 whichDimension <- which(dim == dimensionsList)
 real <- mean(predictionMonteCarlo$meanValueMonteCarlo)
 
+# Bayesian Quadrature methods: with BART, Monte Carlo Integration and Gaussian Process respectively
+print("Final Results:")
+print(c("Actual integral:", real))
+print(c("BART integral:", predictionBART$meanValueBART[num_iterations]))
+print(c("MI integral:", predictionMonteCarlo$meanValueMonteCarlo[num_iterations]))
+print(c("GP integral:", predictionGPBQ$meanValueGP[num_iterations]))
 
 
-# 1. Open jpeg file
-jpeg("../report/Figures/%s/convergenceMean%s%sDimensionsStep.jpg" %--% c(whichGenz, genzFunctionName, dim), width = 700, height = 583)
+print("Writing full results to results/genz%s" %--% c(whichGenz))
+results <- data.frame(
+        "epochs" = c(1:num_iterations),
+        "BARTMean" = predictionBART$meanValueBART, "BARTsd" = predictionBART$standardDeviationBART,
+        "MIMean" = predictionMonteCarlo$meanValueMonteCarlo, "MIsd" = predictionMonteCarlo$standardDeviationMonteCarlo,
+        "GPMean" = predictionGPBQ$meanValueGP, "GPsd" = sqrt(predictionGPBQ$varianceGP),
+        "actual" = rep(real, num_iterations),
+        "runtimeBART" = rep(bartTime, num_iterations),
+        "runtimeMI" = rep(MITime, num_iterations),
+        "runtimeGP" = rep(GPTime, num_iterations)
+)
+
+if (!sequential){
+  csvName <- "results/genz/%s/results%sdim%sNoSequential.csv" %--% c(
+          whichGenz, 
+          whichGenz, 
+          dim
+     )
+  figName <- "Figures/%s/%s%sDimNoSequential.pdf" %--% c(whichGenz, genzFunctionName, dim)
+} else {
+  csvName <- "results/genz/%s/results%sdim%s.csv" %--% c(
+          whichGenz, 
+          whichGenz, 
+          dim
+     )
+  figName <- "Figures/%s/%s%sDim.pdf" %--% c(whichGenz, genzFunctionName, dim)
+}
+
+write.csv(results, file = csvName, row.names=FALSE)
+
 # 2. Create the plot
+pdf(figName, width = 10, height = 11)
 par(mfrow = c(1,2), pty = "s")
 plot(x = c(1:num_iterations), y = predictionMonteCarlo$meanValueMonteCarlo,
      pch = 16, type = "l",
@@ -108,4 +165,4 @@ legend("bottomleft", legend=c("MC Integration", "BART BQ", "GP BQ"),
 # 3. Close the file
 dev.off()
 
-print("Please check {ROOT}/report/Figures for plots")
+print("Please check {ROOT}/Figures for plots")
