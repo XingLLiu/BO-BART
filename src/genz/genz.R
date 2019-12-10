@@ -371,33 +371,41 @@ step <- function(xx, regularizer=1e-5, jump=1)
 }
 
 mix <- function(xx){
-
+  
   ##########################################################################
   #
   # MIXTURE GENZ FUNCTION
   #
   # yi = cont(xi) for xi <= 0.5, copeak(xi) otherwise
+  # y = sum(yi)
   #
   ##########################################################################
-
-
+  
+  
   
   if (is.matrix(xx) == FALSE) { 
     xx <- matrix(xx, nrow = 1)  
   }
-
+  
   dim <- ncol(xx)
   
+  yval <- function(x, dim){
+    
+    indices_0 <- which(x <= 0.5)
+    indices_1 <- which(x > 0.5)
+    
+    y0 <- sum(apply(as.matrix(x[indices_0]), 1, cont))
+    y1 <- sum(apply(as.matrix(x[indices_1]), 1, cont))
+    
+    y <- y0+y1
+    
+    return(y)
+  }
   # Compute Genz function values
-  indices_0 <- which(xx <= 0.5)
-  indices_1 <- which(xx > 0.5)
-
-  y0 <- as.numeric(cont(xx[indices_0, ]))
-  y1 <- as.numeric(copeak(xx[indices_1, ]))
-
-  y <- rep(0, nrow(xx))
-  y[indices_0] <- y0
-  y[indices_1] <- y1
-
-  return(y)
+  y <- apply(xx, 1, yval)
+  
+  return(as.matrix(y))
 }
+
+xx <- randomLHS(100, 20)
+y <- mix(xx)
