@@ -56,7 +56,7 @@ print("Testing with: %s" %--% genzFunctionName)
 # prepare training dataset
 trainX <- randomLHS(500, dim)
 if (whichGenz == 7) {
-  trainY <- genz(trainX, 2)
+  trainY <- genz(trainX)
 } else {
   trainY <- genz(trainX)
 }
