@@ -69,16 +69,31 @@ posterior_model <- BART_posterior(dim, trainX, trainY, num_iterations, FUN = gen
 t1 <- proc.time()
 bartTime <- (t1 - t0)[[1]]
 
-x_plot <- runif(1e5)
+x_plot <- randomLHS(5e5, dim)
 y_pred <- colMeans(predict(posterior_model,x_plot))
 plot(trainX, trainY)
 points(x_plot, y_pred, col = "red", cex=0.2)
 
 if (!sequential){
   figName <- "Figures/%s/drawBART%s%sDimNoSequential.pdf" %--% c(whichGenz, genzFunctionName, dim)
+  csvName <- "Figures/%s/drawBART%s%sDimNoSequential.csv" %--% c(whichGenz, genzFunctionName, dim)
+  groundTruthName <- "Figures/%s/trainDrawBart%s%sDimNoSequential.csv" %--% c(whichGenz, genzFunctionName, dim)
 } else {
   figName <- "Figures/%s/drawBART%s%sDim.pdf" %--% c(whichGenz, genzFunctionName, dim)
+  csvName <- "Figures/%s/drawBART%s%sDim.csv" %--% c(whichGenz, genzFunctionName, dim)
+  groundTruthName <- "Figures/%s/trainDrawBart%s%sDim.csv" %--% c(whichGenz, genzFunctionName, dim)
 }
+
+results <- data.frame(
+  "x_plot" = x_plot,
+  "y_pred" = y_pred
+)
+groundTruth <- data.frame(
+  "trainX" = trainX,
+  "trainY" = trainY
+)
+write.csv(results, file = csvName, row.names=FALSE)
+write.csv(groundTruth, file = groundTruthName, row.names=FALSE)
 
 print("Begin Plots")
 # 1. Open jpeg file
