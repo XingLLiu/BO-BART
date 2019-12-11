@@ -97,8 +97,8 @@ analyticalIntegrals <- read.csv("results/genz/integrals.csv", header = FALSE)
 real <- analyticalIntegrals[whichGenz, whichDimension]
 
 # analytical integrals for mixture genz
-if (whichGenz == 7 & dim ==1){ real <- 0.01333333}
-if (whichGenz == 7 & dim ==20){ real <- 0.01333333*20}
+if (whichGenz == 7 & dim ==1){ real <- 0.006669431}
+if (whichGenz == 7 & dim ==20){ real <- 0.006669431*20}
 
 
 # Bayesian Quadrature methods: with BART, Monte Carlo Integration and Gaussian Process respectively
