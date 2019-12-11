@@ -40,7 +40,7 @@ if (num_iterations == 1) { stop("NEED MORE THAN 1 ITERATION") }
 print(c(dim, num_iterations, whichGenz))
 source("src/genz/genz.R") # genz function to test
 
-if (whichGenz < 1 | whichGenz > 7) { stop("undefined genz function. Change 3rd argument to 1-7") }
+if (whichGenz < 1 | whichGenz > 8) { stop("undefined genz function. Change 3rd argument to 1-8") }
 if (whichGenz == 3 & dim == 1) { stop("incorrect dimension. Discrete Genz function only defined for dimension >= 2") } 
 
 if (whichGenz == 1) { genz <- cont; genzFunctionName <-  deparse(substitute(cont)) }
@@ -50,6 +50,7 @@ if (whichGenz == 4) { genz <- gaussian; genzFunctionName <-  deparse(substitute(
 if (whichGenz == 5) { genz <- oscil; genzFunctionName <-  deparse(substitute(oscil)) }
 if (whichGenz == 6) { genz <- prpeak; genzFunctionName <-  deparse(substitute(prpeak)) }
 if (whichGenz == 7) { genz <- step; genzFunctionName <-  deparse(substitute(step)) }
+if (whichGenz == 8) { genz <- mix; genzFunctionName <-  deparse(substitute(mix)) }
 
 print("Testing with: %s" %--% genzFunctionName)
 
@@ -74,7 +75,7 @@ y_pred <- colMeans(predict(posterior_model,x_plot))
 plot(trainX, trainY)
 points(x_plot, y_pred, col = "red", cex=0.2)
 
-if (!sequential){
+ if (!sequential){
   figName <- "Figures/%s/drawBART%s%sDimNoSequential.pdf" %--% c(whichGenz, genzFunctionName, dim)
   csvName <- "Figures/%s/drawBART%s%sDimNoSequential.csv" %--% c(whichGenz, genzFunctionName, dim)
   groundTruthName <- "Figures/%s/trainDrawBart%s%sDimNoSequential.csv" %--% c(whichGenz, genzFunctionName, dim)
