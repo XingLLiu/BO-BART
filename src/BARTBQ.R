@@ -282,6 +282,66 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, sequentia
                "trainData" = trainData))
 }
 
+BART_posterior <- function(dim, trainX, trainY, numNewTraining, FUN, sequential)
+  
+  #'BART-BQ with Sequential Design
+  #' 
+  #'@description This function approxiamtes the integration of target function using
+  #'BART and Sequential Design.
+  #' 
+  #'@param dim Integer; Dimension of inputs X
+  #'@param trainX Matrix; covariates of training data
+  #'@param trainY Numeric Arraay; response of training data
+  #'@param numNewTraining Integer; number of new training points to be added
+  #'@param FUN Function; function that we are integrating over
+#'@param sequential boolean; whether or not to use sequential design
+#'
+#'@return List; list of mean integral value, standard deviation of integral value and new traiing set
+
+{
+  
+  print( c("Adding number of new training data:", numNewTraining ) )
+  # outputs
+  meanValue <- rep(0, numNewTraining)
+  standardDeviation <- rep(0, numNewTraining)
+  trainData <- data.frame(trainX, trainY)
+  
+  # generate extra training data using the scheme (see pdf)
+  for (i in 1:numNewTraining) {
+    print(paste("BART: Epoch =", i))
+    # find the min and max range of y
+    ymin <- min(trainData[, (dim + 1)]); ymax <- max(trainData[, (dim + 1)])
+    # first build BART and scale mean and standard deviation
+    sink("/dev/null")
+    model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
+    sink()
+    # obtain posterior samples
+    integrals <- sampleIntegrals(model, dim)
+    integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
+    
+    # sequential design section, where we build the new training data
+    candidateSetNum <- 100
+    candidateSet <- randomLHS(candidateSetNum, dim)
+    
+    # predict the values
+    fValues <- predict(model, candidateSet)
+    
+    probability = 1 #uniform probability
+    #expectedValue <- colMeans(fValues*probability)
+    
+    if (sequential){
+      var <- colVars(fValues)
+      index <- sample(which(var==max(var)), 1)
+    }
+    else {
+      index <- sample(1:candidateSetNum, 1)
+    }
+    value <- FUN(t(candidateSet[index,]))
+    trainData <- rbind(trainData, c(candidateSet[index,], value))
+  }
+  return (model)
+}
+
 mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY, sequential=TRUE) 
   
   #'BART-BQ with Sequential Design
