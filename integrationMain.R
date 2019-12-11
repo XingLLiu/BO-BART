@@ -98,8 +98,8 @@ real <- analyticalIntegrals[whichGenz, whichDimension]
 
 # analytical integrals for mixture genz
 if (whichGenz == 7 & dim ==1){ real <- 0.006669431}
-if (whichGenz == 7 & dim ==20){ real <- 0.006669431*20}
-
+if (whichGenz == 7 & dim ==2){ real <- 0.006669431*2}
+if (whichGenz == 7 & dim ==3){ real <- 0.006669431*3}
 
 # Bayesian Quadrature methods: with BART, Monte Carlo Integration and Gaussian Process respectively
 print("Final Results:")
