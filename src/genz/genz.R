@@ -395,7 +395,7 @@ mix <- function(xx){
     indices_1 <- which(x > 0.5)
     
     y0 <- sum(apply(as.matrix(x[indices_0]), 1, cont))
-    y1 <- sum(apply(as.matrix(x[indices_1]), 1, cont))
+    y1 <- sum(apply(as.matrix(x[indices_1]), 1, copeak))
     
     y <- y0+y1
     
@@ -407,5 +407,3 @@ mix <- function(xx){
   return(as.matrix(y))
 }
 
-xx <- randomLHS(100, 20)
-y <- mix(xx)
