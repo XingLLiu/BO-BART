@@ -23,7 +23,8 @@ class ExactGPModel(gpytorch.models.ExactGP):
 def optimise_gp(train_x, train_y, kernel, epochs):
     # initialize likelihood and model
     train_x = Tensor(train_x)
-    train_y = Tensor(train_y).reshape(train_y.shape[0])
+    train_y = Tensor(train_y)
+    train_y = train_y.reshape(train_y.shape[0])
     print(train_x.shape, train_y.shape)
     likelihood = gpytorch.likelihoods.GaussianLikelihood()
     model = ExactGPModel(train_x, train_y, likelihood, kernel)
