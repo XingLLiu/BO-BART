@@ -376,7 +376,7 @@ mix <- function(xx){
   #
   # MIXTURE GENZ FUNCTION
   #
-  # yi = cont(xi) for xi <= 0.5, copeak(xi) otherwise
+  # yi = copeak(xi) for xi <= 0.5, cont(xi) otherwise
   # y = sum(yi)
   #
   ##########################################################################
@@ -394,7 +394,7 @@ mix <- function(xx){
     indices_0 <- which(x <= 0.5)
     indices_1 <- which(x > 0.5)
     
-    y0 <- sum(apply(as.matrix(x[indices_0]), 1, cont))
+    y0 <- sum(apply(as.matrix(x[indices_0]), 1, copeak))
     y1 <- sum(apply(as.matrix(x[indices_1]), 1, cont))
     
     y <- y0+y1
@@ -406,6 +406,3 @@ mix <- function(xx){
   
   return(as.matrix(y))
 }
-
-xx <- randomLHS(100, 20)
-y <- mix(xx)
