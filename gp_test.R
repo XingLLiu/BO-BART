@@ -55,7 +55,7 @@ if (whichGenz == 6) { genz <- prpeak; genzFunctionName <-  deparse(substitute(pr
 print("Testing with: %s" %--% genzFunctionName)
 
 # prepare training dataset
-trainX <- randomLHS(100, dim)
+trainX <- replicate(dim, runif(100))
 trainY <- genz(trainX)
 
 # Bayesian Quadrature with Monte Carlo integration method
