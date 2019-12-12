@@ -376,7 +376,7 @@ mix <- function(xx){
   #
   # MIXTURE GENZ FUNCTION
   #
-  # yi = cont(xi) for xi <= 0.5, copeak(xi) otherwise
+  # yi = copeak(xi) for xi <= 0.5, cont(xi) otherwise
   # y = sum(yi)
   #
   ##########################################################################
