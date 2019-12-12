@@ -59,7 +59,7 @@ if (whichGenz == 7) { genz <- step; genzFunctionName <-  deparse(substitute(step
 print("Testing with: %s" %--% genzFunctionName)
 
 # prepare training dataset
-trainX <- randomLHS(100, dim)
+trainX <- replicate(dim, runif(100))
 trainY <- genz(trainX, jump = jump)
 
 

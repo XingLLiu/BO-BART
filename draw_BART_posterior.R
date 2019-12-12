@@ -55,7 +55,7 @@ if (whichGenz == 8) { genz <- mix; genzFunctionName <-  deparse(substitute(mix))
 print("Testing with: %s" %--% genzFunctionName)
 
 # prepare training dataset
-trainX <- randomLHS(500, dim)
+trainX <- replicate(dim, runif(500))
 if (whichGenz == 7) {
   trainY <- genz(trainX)
 } else {
@@ -70,7 +70,7 @@ posterior_model <- BART_posterior(dim, trainX, trainY, num_iterations, FUN = gen
 t1 <- proc.time()
 bartTime <- (t1 - t0)[[1]]
 
-x_plot <- randomLHS(5e5, dim)
+x_plot <- replicate(dim, runif(500))
 y_pred <- colMeans(predict(posterior_model,x_plot))
 plot(trainX, trainY)
 points(x_plot, y_pred, col = "red", cex=0.2)
