@@ -1,3 +1,5 @@
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 import gpytorch 
 from torch import Tensor, linspace, sin, randn
 from torch.optim import Adam

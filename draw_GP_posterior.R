@@ -1,11 +1,12 @@
 # !/usr/bin/env R
 # Load required packages
 library(MASS)
+library(cubature)
 library(lhs)
-library(data.tree)
-library(dbarts)
 library(matrixStats)
 library(mvtnorm)
+library(doParallel)
+library(kernlab)
 
 # define string formatting
 `%--%` <- function(x, y) 
@@ -56,38 +57,52 @@ print("Testing with: %s" %--% genzFunctionName)
 
 # prepare training dataset
 trainX <- randomLHS(500, dim)
-if (whichGenz == 7) {
-  trainY <- genz(trainX)
-} else {
-  trainY <- genz(trainX)
-}
+trainY <- genz(trainX)
+# plot(trainX, trainY)
 
-# Bayesian Quadrature method
-# set number of new query points using sequential design
-source("src/BARTBQ.R")
+# Bayesian Quadrature with Gaussian Process
+print("Begin Gaussian Process Integration")
+library(reticulate)
+source("src/optimise_gp.R")
+lengthscale <- optimise_gp_r(trainX, trainY, kernel="rbf", epochs=500)
+
+source("src/GPBQ.R")
 t0 <- proc.time()
-posterior_model <- BART_posterior(dim, trainX, trainY, num_iterations, FUN = genz, sequential)
+# need to add in function to optimise the hyperparameters
+GPResults <- computeGPBQ(trainX, trainY, dim, epochs = num_iterations-1, N=500, FUN = genz, lengthscale,sequential)  
 t1 <- proc.time()
-bartTime <- (t1 - t0)[[1]]
+GPTime <- (t1 - t0)[[1]]
 
-x_plot <- randomLHS(5e5, dim)
-y_pred <- colMeans(predict(posterior_model,x_plot))
-plot(trainX, trainY)
-points(x_plot, y_pred, col = "red", cex=0.2)
+K <- GPResults$K
+X <- GPResults$X
+Y <- GPResults$Y
+x_plot <- randomLHS(1000, dim)
+k_xstar_x <- kernelMatrix(rbfdot(.5/lengthscale^2), matrix(x_plot, ncol=1), X)
+k_xstar_xstar <- kernelMatrix(rbfdot(.5/lengthscale^2), 
+                              matrix(x_plot, ncol=1), 
+                              matrix(x_plot, ncol=1))
+jitter = 1e-6
+K_inv <- solve(K + diag(jitter, nrow(K)))
 
- if (!sequential){
-  figName <- "Figures/%s/drawBART%s%sDimNoSequential.pdf" %--% c(whichGenz, genzFunctionName, dim)
-  csvName <- "Figures/%s/drawBART%s%sDimNoSequential.csv" %--% c(whichGenz, genzFunctionName, dim)
-  groundTruthName <- "Figures/%s/trainDrawBart%s%sDimNoSequential.csv" %--% c(whichGenz, genzFunctionName, dim)
+gp_post_mean <- k_xstar_x %*% K_inv %*% Y
+gp_post_cov <- k_xstar_xstar - k_xstar_x %*% K_inv %*% t(k_xstar_x)
+
+plot(trainX, trainY, ylim=c(-0.5, 1))
+points(x_plot, gp_post_mean, col = "red", cex=0.2)
+
+if (!sequential){
+  figName <- "Figures/%s/drawGP%s%sDimNoSequential.pdf" %--% c(whichGenz, genzFunctionName, dim)
+  csvName <- "Figures/%s/drawGP%s%sDimNoSequential.csv" %--% c(whichGenz, genzFunctionName, dim)
+  groundTruthName <- "Figures/%s/trainDrawGP%s%sDimNoSequential.csv" %--% c(whichGenz, genzFunctionName, dim)
 } else {
-  figName <- "Figures/%s/drawBART%s%sDim.pdf" %--% c(whichGenz, genzFunctionName, dim)
-  csvName <- "Figures/%s/drawBART%s%sDim.csv" %--% c(whichGenz, genzFunctionName, dim)
-  groundTruthName <- "Figures/%s/trainDrawBart%s%sDim.csv" %--% c(whichGenz, genzFunctionName, dim)
+  figName <- "Figures/%s/drawGP%s%sDim.pdf" %--% c(whichGenz, genzFunctionName, dim)
+  csvName <- "Figures/%s/drawGP%s%sDim.csv" %--% c(whichGenz, genzFunctionName, dim)
+  groundTruthName <- "Figures/%s/trainDrawGP%s%sDim.csv" %--% c(whichGenz, genzFunctionName, dim)
 }
 
 results <- data.frame(
   "x_plot" = x_plot,
-  "y_pred" = y_pred
+  "y_pred" = gp_post_mean
 )
 groundTruth <- data.frame(
   "trainX" = trainX,
@@ -102,7 +117,7 @@ pdf(figName, width = 10, height = 11)
 # 2. Create the plot
 par(mfrow = c(1,2), pty = "s")
 plot(trainX, trainY)
-points(x_plot, y_pred, col = "red", cex=0.2)
+points(x_plot, gp_post_mean, col = "red", cex=0.2)
 
 legend("topleft", legend=c("BART BQ", "GP BQ", "Actual"),
        col=c("red", "green", "black"), cex=0.8, lty = c(1,1,1,1))
