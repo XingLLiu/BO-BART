@@ -41,7 +41,7 @@ if (num_iterations == 1) { stop("NEED MORE THAN 1 ITERATION") }
 print(c(dim, num_iterations, whichGenz))
 source("src/genz/genz.R") # genz function to test
 
-if (whichGenz < 1 | whichGenz > 7) { stop("undefined genz function. Change 3rd argument to 1-7") }
+if (whichGenz < 1 | whichGenz > 8) { stop("undefined genz function. Change 3rd argument to 1-8") }
 if (whichGenz == 3 & dim == 1) { stop("incorrect dimension. Discrete Genz function only defined for dimension >= 2") } 
 
 if (whichGenz == 1) { genz <- cont; genzFunctionName <-  deparse(substitute(cont)) }
@@ -50,8 +50,8 @@ if (whichGenz == 3) { genz <- disc; genzFunctionName <-  deparse(substitute(disc
 if (whichGenz == 4) { genz <- gaussian; genzFunctionName <-  deparse(substitute(gaussian)) }
 if (whichGenz == 5) { genz <- oscil; genzFunctionName <-  deparse(substitute(oscil)) }
 if (whichGenz == 6) { genz <- prpeak; genzFunctionName <-  deparse(substitute(prpeak)) }
-# if (whichGenz == 7) { genz <- step; genzFunctionName <-  deparse(substitute(step)) }
-if (whichGenz == 7) { genz <- mix; genzFunctionName <-  deparse(substitute(mix)) }
+if (whichGenz == 7) { genz <- step; genzFunctionName <-  deparse(substitute(step)) }
+if (whichGenz == 8) { genz <- mix; genzFunctionName <-  deparse(substitute(mix)) }
 
 print("Testing with: %s" %--% genzFunctionName)
 
@@ -97,9 +97,9 @@ analyticalIntegrals <- read.csv("results/genz/integrals.csv", header = FALSE)
 real <- analyticalIntegrals[whichGenz, whichDimension]
 
 # analytical integrals for mixture genz
-if (whichGenz == 7 & dim ==1){ real <- 0.006669431}
-if (whichGenz == 7 & dim ==2){ real <- 0.006669431*2}
-if (whichGenz == 7 & dim ==3){ real <- 0.006669431*3}
+if (whichGenz == 8 & dim ==1){ real <- 0.008327796}
+if (whichGenz == 8 & dim ==2){ real <- 0.008327796*2}
+if (whichGenz == 8 & dim ==3){ real <- 0.008327796*3}
 
 # Bayesian Quadrature methods: with BART, Monte Carlo Integration and Gaussian Process respectively
 print("Final Results:")

@@ -391,11 +391,11 @@ mix <- function(xx){
   
   yval <- function(x, dim){
     
-    indices_0 <- which(x <= 0.5)
-    indices_1 <- which(x > 0.5)
+    indices_0 <- which(x < 0.5)
+    indices_1 <- which(x >= 0.5)
     
-    y0 <- sum(apply(as.matrix(x[indices_0]), 1, cont))
-    y1 <- sum(apply(as.matrix(x[indices_1]), 1, copeak))
+    y0 <- sum(apply(as.matrix(x[indices_0]), 1, copeak))
+    y1 <- sum(apply(as.matrix(x[indices_1]), 1, cont))
     
     y <- y0+y1
     
