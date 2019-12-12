@@ -96,8 +96,9 @@ GPTime <- (t1 - t0)[[1]]
 dimensionsList <- c(1,2,3,5,10,20)
 whichDimension <- which(dim == dimensionsList)
 real <- mean(predictionMonteCarlo$meanValueMonteCarlo)
-
+############
 plot(predictionGPBQ$meanValueGP, ylim = c(-0.01, 1.01))
+############
 
 # Bayesian Quadrature methods: with BART, Monte Carlo Integration and Gaussian Process respectively
 print("Final Results:")
