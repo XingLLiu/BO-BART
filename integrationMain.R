@@ -56,7 +56,7 @@ if (whichGenz == 8) { genz <- mix; genzFunctionName <-  deparse(substitute(mix))
 print("Testing with: %s" %--% genzFunctionName)
 
 # prepare training dataset
-trainX <- randomLHS(100, dim)
+trainX <- replicate(dim, runif(100))
 trainY <- genz(trainX)
 # plot(trainX, trainY)
 
@@ -98,9 +98,9 @@ analyticalIntegrals <- read.csv("results/genz/integrals.csv", header = FALSE)
 real <- analyticalIntegrals[whichGenz, whichDimension]
 
 # analytical integrals for mixture genz
-if (whichGenz == 8 & dim ==1){ real <- 0.006669431}
-if (whichGenz == 8 & dim ==2){ real <- 0.006669431*2}
-if (whichGenz == 8 & dim ==3){ real <- 0.006669431*3}
+if (whichGenz == 8 & dim ==1){ real <- 0.008327796}
+if (whichGenz == 8 & dim ==2){ real <- 0.008327796*2}
+if (whichGenz == 8 & dim ==3){ real <- 0.008327796*3}
 
 # Bayesian Quadrature methods: with BART, Monte Carlo Integration and Gaussian Process respectively
 print("Final Results:")

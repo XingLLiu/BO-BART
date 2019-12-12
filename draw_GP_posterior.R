@@ -56,7 +56,7 @@ if (whichGenz == 8) { genz <- mix; genzFunctionName <-  deparse(substitute(mix))
 print("Testing with: %s" %--% genzFunctionName)
 
 # prepare training dataset
-trainX <- randomLHS(500, dim)
+trainX <- replicate(dim, runif(500))
 trainY <- genz(trainX)
 # plot(trainX, trainY)
 
@@ -76,7 +76,7 @@ GPTime <- (t1 - t0)[[1]]
 K <- GPResults$K
 X <- GPResults$X
 Y <- GPResults$Y
-x_plot <- randomLHS(1000, dim)
+x_plot <- replicate(dim, runif(1000))
 k_xstar_x <- kernelMatrix(rbfdot(.5/lengthscale^2), matrix(x_plot, ncol=1), X)
 k_xstar_xstar <- kernelMatrix(rbfdot(.5/lengthscale^2), 
                               matrix(x_plot, ncol=1), 

@@ -64,7 +64,7 @@ computeGPBQ <- function(X, Y_unscaled, dim, epochs, FUN, lengthscale=1, sequenti
   k = function(arg) {
     return(exp(-.5 * sum((arg[1]-arg[2])^2)/lengthscale^2))
   }
-  int.points <- randomLHS(500000, 2)
+  int.points <- replicate(2, runif(500000))
   vv = vapply(1:nrow(int.points), function(i) k(int.points[i,]),0)
   var.firstterm = mean(vv)^dim
   
@@ -80,7 +80,7 @@ computeGPBQ <- function(X, Y_unscaled, dim, epochs, FUN, lengthscale=1, sequenti
    
     print(paste("GPBQ: Epoch =", p))
     candidateSetNum <- 100
-    candidateSet <- randomLHS(candidateSetNum,dim)
+	candidateSet <- replicate(dim, runif(candidateSetNum))
     
     candidate_Var <- c()
     
