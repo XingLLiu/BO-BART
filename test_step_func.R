@@ -83,8 +83,11 @@ MITime <- (t1 - t0)[[1]]
 
 # Bayesian Quadrature with Gaussian Process
 print("Begin Gaussian Process Integration")
-source("src/GPBQ.R")
+library(reticulate)
+source("src/optimise_gp.R")
+lengthscale <- optimise_gp_r(trainX, trainY, kernel="rbf", epochs=500)
 
+source("src/GPBQ.R")
 t0 <- proc.time()
 predictionGPBQ <- computeGPBQ(trainX, trainY, dim, epochs = num_iterations-1, FUN = genz, lengthscale=1,sequential)  
 t1 <- proc.time()
@@ -93,6 +96,8 @@ GPTime <- (t1 - t0)[[1]]
 dimensionsList <- c(1,2,3,5,10,20)
 whichDimension <- which(dim == dimensionsList)
 real <- mean(predictionMonteCarlo$meanValueMonteCarlo)
+
+plot(predictionGPBQ$meanValueGP, ylim = c(-0.01, 1.01))
 
 # Bayesian Quadrature methods: with BART, Monte Carlo Integration and Gaussian Process respectively
 print("Final Results:")

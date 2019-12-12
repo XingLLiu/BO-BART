@@ -50,11 +50,12 @@ def optimise_gp(train_x, train_y, kernel, epochs):
         # Calc loss and backprop gradients
         loss = -mll(output, train_y)
         loss.backward()
-        print('Iter %d/%d - Loss: %.3f   lengthscale: %.3f   noise: %.3f' % (
-            i + 1, epochs, loss.item(),
-            model.covar_module.lengthscale.item(),
-            model.likelihood.noise.item()
-        ))
+        if (i + 1) % 50 == 0:
+            print('Iter %d/%d - Loss: %.3f   lengthscale: %.3f   noise: %.3f' % (
+                i + 1, epochs, loss.item(),
+                model.covar_module.lengthscale.item(),
+                model.likelihood.noise.item()
+            ))
         optimizer.step()
     return model.covar_module.lengthscale.item()
     

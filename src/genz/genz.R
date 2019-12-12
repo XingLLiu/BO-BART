@@ -334,6 +334,20 @@ prpeak <- function(xx)
 
 step <- function(xx, regularizer=1e-5, jump=1)
 {
+  ##########################################################################
+  #
+  # STEP FUNCTION
+  #
+  ##########################################################################
+  #
+  # INPUTS:
+  #
+  # xx = c(x1, x2, ..., xd)
+  # u  = c(u1, u2, ..., ud) (optional), with default value
+  #      c(0.5, 0.5, ..., 0.5)
+  # a  = 600/dim^3, where dim = number of column of xx
+  #
+  ##########################################################################
   if (is.matrix(xx) == FALSE) { 
     xx <- matrix(xx, nrow = 1)  
   }
