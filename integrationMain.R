@@ -58,6 +58,7 @@ print("Testing with: %s" %--% genzFunctionName)
 # prepare training dataset
 trainX <- randomLHS(100, dim)
 trainY <- genz(trainX)
+# plot(trainX, trainY)
 
 # Bayesian Quadrature method
 # set number of new query points using sequential design
