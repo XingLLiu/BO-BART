@@ -56,7 +56,7 @@ if (whichGenz == 8) { genz <- mix; genzFunctionName <-  deparse(substitute(mix))
 print("Testing with: %s" %--% genzFunctionName)
 
 # prepare training dataset
-trainX <- randomLHS(100, dim)
+trainX <- replicate(dim, runif(100))
 trainY <- genz(trainX)
 # plot(trainX, trainY)
 
