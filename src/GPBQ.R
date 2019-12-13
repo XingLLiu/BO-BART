@@ -3,33 +3,29 @@
 library(mvtnorm)
 library(MASS)
 library(kernlab)
-gaussianKernel <- function(xPrime, X, lengthscale = 1) 
-  
-  #'Standard Kernel Function in GP
-  #' 
-  #'@description This function calculates the covariance of xPrime with respect
-  #'to each row of X
-  #' 
-  #'@param xprime Numeric Array; 
-  #'@param X Matrix
-  #'@param lengthscale Real; parameter in standard kernel
-  #'
-  #'@return K; Covariance matrix between xprime and X
-  
-{
-  K <- c()
-  
-  for (i in 1:nrow(X)) {
-    K[i] <- exp( -0.5 * sum((xPrime - X[i,]))^2 / lengthscale^2)
+maternKernelWrapper <- function(lengthscale = 1, sigma = 1) {
+  maternKernel <- function(x, y) 
+    #'Matern 3/2 Kernel Function in GP
+    #' 
+    #'@description This function calculates the covariance k(x,y)
+    #' 
+    #'@param x
+    #'@param y
+    #'@param lengthscale Real; parameter in standard kernel
+    #'@param sigma Real; parameter in standard kernel
+    #'
+    #'@return K; Covariance matrix between xprime and X
+  {
+    d <- sqrt(sum((x - y)^2))
+    k <- sigma^2 * (1 + sqrt(3) * d / lengthscale) * exp(- sqrt(3) * d / lengthscale)
+    return (k)
   }
-
-  return (K)
+  return (maternKernel)
 }
 
 rescale <- function(x) {x * attr(x, 'scaled:scale') + attr(x, 'scaled:center')}
 
-computeGPBQ <- function(X, Y_unscaled, dim, epochs, FUN, lengthscale=1, sequential) 
-  
+computeGPBQ <- function(X, Y_unscaled, dim, epochs, kernel="rbf", FUN, lengthscale=1, sequential=TRUE) 
   #'Gaussian Process with Bayesian Quadrature
   #' 
   #'@description This function calculates the approxiamtion of integration using
@@ -54,12 +50,14 @@ computeGPBQ <- function(X, Y_unscaled, dim, epochs, FUN, lengthscale=1, sequenti
   K <- matrix(0,nrow=N,ncol=N)
   jitter = 1e-6
 
-  # compute kernel matrix for starting dataset
-  #for (i in 1:N) {
-  #  K[i,] <- gaussianKernel(X[i,], X)
-  #}
-  K = kernelMatrix(rbfdot(.5/lengthscale^2), X)
+  if (kernel == "rbf") {
+    kernel <- rbfdot(.5/lengthscale^2)
+  }
+  else if (kernel == "matern32") {
+     kernel <- maternKernelWrapper(lengthscale)
+  }  
   
+  K = kernelMatrix(kernel, X)
   # compute the variance
   k = function(arg) {
     return(exp(-.5 * sum((arg[1]-arg[2])^2)/lengthscale^2))
@@ -95,7 +93,7 @@ computeGPBQ <- function(X, Y_unscaled, dim, epochs, FUN, lengthscale=1, sequenti
     K_prime[1:(N+p-1), 1:(N+p-1)] <- K
     for (i in 1:candidateSetNum) {
 
-      kernel_new_entries <- kernelMatrix(rbfdot(.5/lengthscale^2), matrix(candidateSet[i,], nrow = 1), X)
+      kernel_new_entries <- kernelMatrix(kernel, matrix(candidateSet[i,], nrow = 1), X)
 
 
       K_prime[1:(N+p-1),(N+p)] <- kernel_new_entries
@@ -115,7 +113,7 @@ computeGPBQ <- function(X, Y_unscaled, dim, epochs, FUN, lengthscale=1, sequenti
       index <- sample(1:candidateSetNum, 1)
     }
     
-    kernel_new_entry <- kernelMatrix(rbfdot(.5/lengthscale^2), matrix(candidateSet[index,], nrow=1), X)
+    kernel_new_entry <- kernelMatrix(kernel, matrix(candidateSet[index,], nrow=1), X)
     
     K_prime[N+p,1:(N+p-1)] <- kernel_new_entry
     K_prime[1:(N+p-1),N+p] <- kernel_new_entry
