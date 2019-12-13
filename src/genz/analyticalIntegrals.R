@@ -159,19 +159,3 @@ productPeakIntegral <- function(dim, u=0.5)
   
   return(result)
 }
-
-
-stepIntegral <- function(dim, k)
-  
-  # Description: Calculate the integral of step function with k jumps in [0,1]^dim
-  # Input:
-  #        dim: dimension of integrand
-  #        k: number of jumps
-  # 
-  #Output:
-  #        integral: integral of the Product Peak integrand in the domain [0,1]^dim 
-  
-{
-  result <- 0.5 * k * (3 + k) / (k + 1)^2
-  return(result)
-}
