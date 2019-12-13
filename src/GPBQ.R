@@ -25,8 +25,7 @@ maternKernelWrapper <- function(lengthscale = 1, sigma = 1) {
 
 rescale <- function(x) {x * attr(x, 'scaled:scale') + attr(x, 'scaled:center')}
 
-computeGPBQ <- function(X, Y_unscaled, dim, epochs, kernel="rbf", N=100, FUN, lengthscale=1, sequential=TRUE) 
-  
+computeGPBQ <- function(X, Y_unscaled, dim, epochs, kernel="rbf", FUN, lengthscale=1, sequential=TRUE) 
   #'Gaussian Process with Bayesian Quadrature
   #' 
   #'@description This function calculates the approxiamtion of integration using
@@ -34,7 +33,6 @@ computeGPBQ <- function(X, Y_unscaled, dim, epochs, kernel="rbf", N=100, FUN, le
   #' 
   #'@param dim Integer; Dimension of input X 
   #'@param epochs Integer; Number of new data points
-  #'@param N Integerl; Number of data points in the initial train set
   #'@param FUN Function; The function to be integrated
   #'@param lengthscale Integer; The parameter in standard kernel
   #'
@@ -46,6 +44,7 @@ computeGPBQ <- function(X, Y_unscaled, dim, epochs, kernel="rbf", N=100, FUN, le
   meanValueGP <- c()
   varianceGP <- c()
    
+  N <- dim(X)[1]
   Y <- scale(Y_unscaled)
 
   K <- matrix(0,nrow=N,ncol=N)

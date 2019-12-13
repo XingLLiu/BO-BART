@@ -87,17 +87,19 @@ print("Begin Gaussian Process Integration")
 library(reticulate)
 source("src/optimise_gp.R")
 lengthscale <- optimise_gp_r(trainX, trainY, kernel = whichKernel, epochs=500)
-
 source("src/GPBQ.R")
 t0 <- proc.time()
 # need to add in function to optimise the hyperparameters
-predictionGPBQ <- computeGPBQ(trainX, trainY, dim, epochs = num_iterations-1, kernel = whichKernel, N=100, FUN = genz, lengthscale,sequential)  
+predictionGPBQ <- computeGPBQ(trainX, trainY, dim, epochs = num_iterations-1, kernel = whichKernel, FUN = genz, lengthscale,sequential)  
 t1 <- proc.time()
 GPTime <- (t1 - t0)[[1]]
 
 dimensionsList <- c(1,2,3,5,10,20)
 whichDimension <- which(dim == dimensionsList)
 real <- mean(predictionMonteCarlo$meanValueMonteCarlo)
+############
+plot(predictionGPBQ$meanValueGP, ylim = c(-0.01, 1.01))
+############
 
 # Bayesian Quadrature methods: with BART, Monte Carlo Integration and Gaussian Process respectively
 print("Final Results:")
@@ -168,6 +170,6 @@ legend("bottomleft", legend=c("MC Integration", "BART BQ", "GP BQ"),
        col=c("blue", "red", "green"), cex=0.8, lty = c(1,1,1,1))
 
 # 3. Close the file
-dev.off()
+invisible(dev.off())
 
-print("Please check {ROOT}/Figures for plots")
+print("Please check {ROOT}/%s for plots" %--% figName)

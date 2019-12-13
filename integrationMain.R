@@ -88,7 +88,7 @@ lengthscale <- optimise_gp_r(trainX, trainY, kernel = whichKernel, epochs=500)
 source("src/GPBQ.R")
 t0 <- proc.time()
 # need to add in function to optimise the hyperparameters
-predictionGPBQ <- computeGPBQ(trainX, trainY, dim, epochs = num_iterations-1, kernel = whichKernel, N=100, FUN = genz, lengthscale,sequential)  
+predictionGPBQ <- computeGPBQ(trainX, trainY, dim, epochs = num_iterations-1, kernel = whichKernel, FUN = genz, lengthscale,sequential)  
 t1 <- proc.time()
 GPTime <- (t1 - t0)[[1]]
 
@@ -171,8 +171,8 @@ lines(x = log(c(2:num_iterations)), log(sqrt(predictionGPBQ$varianceGP[-1])), ty
 legend("topleft", legend=c("MC Integration", "BART BQ", "GP BQ"),
        col=c("blue", "red", "green"), cex=0.8, lty = c(1,1,1,1))
 # 3. Close the file
-dev.off()
+invisible(dev.off())
 
-print("Please check {ROOT}/Figures/%s for plots" %--% figName)
+print("Please check {ROOT}/%s for plots" %--% figName)
 
 

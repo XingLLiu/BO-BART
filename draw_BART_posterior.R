@@ -71,11 +71,19 @@ t1 <- proc.time()
 bartTime <- (t1 - t0)[[1]]
 
 x_plot <- replicate(dim, runif(500))
-y_pred <- colMeans(predict(posterior_model,x_plot))
-plot(trainX, trainY)
-points(x_plot, y_pred, col = "red", cex=0.2)
+x_order <- order(x_plot)
+y_pred <- predict(posterior_model,x_plot)
+y_pred_mean <- colMeans(y_pred)
+y_pred_sd <- sqrt(colVars(y_pred))
 
- if (!sequential){
+plot(trainX, trainY)
+polygon(c(x_plot[x_order], rev(x_plot[x_order])),
+        c(y_pred_mean[x_order] - y_pred_sd[x_order], rev(y_pred_mean[x_order] + y_pred_sd[x_order])),
+        col = rgb(0, 0, 1, 0.6),
+        border = FALSE)
+points(x_plot, y_pred_mean, col = "red", cex=0.2)
+
+if (!sequential){
   figName <- "Figures/%s/drawBART%s%sDimNoSequential.pdf" %--% c(whichGenz, genzFunctionName, dim)
   csvName <- "Figures/%s/drawBART%s%sDimNoSequential.csv" %--% c(whichGenz, genzFunctionName, dim)
   groundTruthName <- "Figures/%s/trainDrawBart%s%sDimNoSequential.csv" %--% c(whichGenz, genzFunctionName, dim)
@@ -110,6 +118,6 @@ legend("topleft", legend=c("BART BQ", "GP BQ", "Actual"),
 # 3. Close the file
 dev.off()
 
-print("Please check {ROOT}/Figures/%s for plots" %--% figName)
+print("Please check {ROOT}/%s for plots" %--% figName)
 
 

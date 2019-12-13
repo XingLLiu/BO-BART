@@ -69,7 +69,7 @@ lengthscale <- optimise_gp_r(trainX, trainY, kernel="matern32", epochs=500)
 source("src/GPBQ.R")
 t0 <- proc.time()
 # need to add in function to optimise the hyperparameters
-predictionGPBQ <- computeGPBQ(trainX, trainY, dim, epochs = num_iterations-1, kernel = "matern32", N=500, FUN = genz, lengthscale,sequential)  
+predictionGPBQ <- computeGPBQ(trainX, trainY, dim, epochs = num_iterations-1, kernel = "matern32", FUN = genz, lengthscale,sequential)  
 t1 <- proc.time()
 GPTime <- (t1 - t0)[[1]]
 
@@ -86,8 +86,14 @@ K_inv <- solve(K + diag(jitter, nrow(K)))
 
 gp_post_mean <- k_xstar_x %*% K_inv %*% Y
 gp_post_cov <- k_xstar_xstar - k_xstar_x %*% K_inv %*% t(k_xstar_x)
+gp_post_sd <- sqrt(diag(gp_post_cov))
 
+x_order <- order(x_plot)
 plot(trainX, trainY, ylim=c(-0.5, 1))
+polygon(c(x_plot[x_order], rev(x_plot[x_order])),
+        c(gp_post_mean[x_order] - gp_post_sd[x_order], rev(gp_post_mean[x_order] + gp_post_sd[x_order])),
+        col = rgb(0, 0, 1, 0.6),
+        border = FALSE)
 points(x_plot, gp_post_mean, col = "red", cex=0.2)
 
 if (!sequential){
@@ -125,6 +131,6 @@ legend("topleft", legend=c("BART BQ", "GP BQ", "Actual"),
 # 3. Close the file
 dev.off()
 
-print("Please check {ROOT}/Figures/%s for plots" %--% figName)
+print("Please check {ROOT}/%s for plots" %--% figName)
 
 
