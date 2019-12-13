@@ -34,7 +34,7 @@ library(kernlab)
 args <- commandArgs(TRUE)
 dim <- as.double(args[1])
 num_iterations <- as.double(args[2])
-jump <- 2
+jumps <- 2
 whichGenz <- 7
 whichKernel <- as.character(args[4])
 
@@ -55,13 +55,13 @@ if (num_iterations == 1) { stop("NEED MORE THAN 1 ITERATION") }
 print(c(dim, num_iterations, whichGenz, sequential, whichKernel))
 source("src/genz/genz.R") # genz function to test
 
-if (whichGenz == 7) { genz <- step; genzFunctionName <-  deparse(substitute(step)) }
+if (whichGenz == 7) { genz <- function(xx){return(step(xx, jumps=jumps))}; genzFunctionName <-  deparse(substitute(step)) }
 
 print("Testing with: %s" %--% genzFunctionName)
 
 # prepare training dataset
 trainX <- replicate(dim, runif(100))
-trainY <- genz(trainX, jump = jump)
+trainY <- genz(trainX)
 
 
 # Bayesian Quadrature method
