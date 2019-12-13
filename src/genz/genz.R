@@ -332,7 +332,7 @@ prpeak <- function(xx)
 }
 
 
-step <- function(xx, regularizer=1e-5, jumps)
+step <- function(xx, regularizer=1e-5, jumps=1)
 {
   ##########################################################################
   #
@@ -343,7 +343,10 @@ step <- function(xx, regularizer=1e-5, jumps)
   # INPUTS:
   #
   # xx = c(x1, x2, ..., xd)
-  # jumps = number of jumps
+  # u  = c(u1, u2, ..., ud) (optional), with default value
+  #      c(0.5, 0.5, ..., 0.5)
+  # a  = 600/dim^3, where dim = number of column of xx
+  #
   ##########################################################################
   if (is.matrix(xx) == FALSE) { 
     xx <- matrix(xx, nrow = 1)  
@@ -353,15 +356,37 @@ step <- function(xx, regularizer=1e-5, jumps)
   
   y <- matrix(NA, nrow = dim(xx)[1])
   # One jump
-  for (j in 2:jumps){
-    y[xx[, 1] > (j - 1) / (jumps + 1) & xx[, 1] <= j / (jumps + 1), ] <- j / (jumps + 1)
+  for (j == 2:(k + 1)){
+    y[xx[, 1] > (j - 1) / (k + 1) & xx[, 1] < j / (k + 1), ] <- j / (k + 1)
   }
-  y[xx[, 1] <= 1/(jumps + 1), ] <- regularizer
-  y[xx[, 1] > jumps/(jumps + 1), ] <- 1 - regularizer
+
+  # if (jump == 1){
+  #   for (i in 1:dim(xx)[1]){
+  #     if (sum(xx[i, ] < 0.3) == dim){
+  #         y[i, ] <- regularizer
+  #     }
+  #     else{
+  #         y[i, ] <- 1 - regularizer
+  #     }
+  #   }
+  # }
+  # # Two jumps
+  # else if (jump == 2){
+  #   for (i in 1:dim(xx)[1]){
+  #     if (sum(xx[i, ] < 0.3) == dim){
+  #         y[i, ] <- regularizer
+  #     }
+  #     else if ( sum(xx[i, ] < 0.6 & xx[i, ] >= 0.3) == dim ){
+  #         y[i, ] <- 0.5
+  #     }
+  #     else{
+  #         y[i, ] <- 1 - regularizer
+  #     }
+  #   }
+  # }
 
   return(y)
 }
-
 
 mix <- function(xx){
   
