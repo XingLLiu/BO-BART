@@ -56,9 +56,9 @@ packageurl <- "https://cran.r-project.org/src/contrib/Archive/dbarts/dbarts_0.9-
 install.packages(packageurl, repos=NULL, type="source")
 ```
 
-2) To simulate, run the test scripts. For example:
+2) To simulate, run the test scripts with customized inputs. There are 6 inputs in total; the last input is optional and only works for the step function (_genz_function_number_ = 7). For example:
 ```
-Rscript integrationMain.R dimension num_iterations genz_function_number sequential_flag
+Rscript integrationMain.R dimension num_iterations genz_function_number sequential_flag kernel_name (number_of_jumps_for_step_function)
 
 ```
 where `genz_function_number` is following the indexing in https://www.sfu.ca/~ssurjano/integration.html. 
