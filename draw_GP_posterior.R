@@ -64,18 +64,18 @@ trainY <- genz(trainX)
 print("Begin Gaussian Process Integration")
 library(reticulate)
 source("src/optimise_gp.R")
-lengthscale <- optimise_gp_r(trainX, trainY, kernel="rbf", epochs=500)
+lengthscale <- optimise_gp_r(trainX, trainY, kernel="matern32", epochs=500)
 
 source("src/GPBQ.R")
 t0 <- proc.time()
 # need to add in function to optimise the hyperparameters
-GPResults <- computeGPBQ(trainX, trainY, dim, epochs = num_iterations-1, N=500, FUN = genz, lengthscale,sequential)  
+predictionGPBQ <- computeGPBQ(trainX, trainY, dim, epochs = num_iterations-1, kernel = "matern32", N=500, FUN = genz, lengthscale,sequential)  
 t1 <- proc.time()
 GPTime <- (t1 - t0)[[1]]
 
-K <- GPResults$K
-X <- GPResults$X
-Y <- GPResults$Y
+K <- predictionGPBQ$K
+X <- predictionGPBQ$X
+Y <- predictionGPBQ$Y
 x_plot <- replicate(dim, runif(1000))
 k_xstar_x <- kernelMatrix(rbfdot(.5/lengthscale^2), matrix(x_plot, ncol=1), X)
 k_xstar_xstar <- kernelMatrix(rbfdot(.5/lengthscale^2), 

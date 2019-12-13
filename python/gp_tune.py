@@ -11,8 +11,8 @@ class ExactGPModel(gpytorch.models.ExactGP):
         self.mean_module = gpytorch.means.ZeroMean()
         if kernel == "rbf":
             self.covar_module = gpytorch.kernels.RBFKernel()
-        elif kernel == "matern":
-            self.covar_module = gpytorch.kernels.MaternKernel()
+        elif kernel == "matern32":
+            self.covar_module = gpytorch.kernels.MaternKernel(nu=1.5)
         else:
             raise NotImplementedError()
 

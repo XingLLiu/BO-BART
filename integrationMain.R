@@ -19,16 +19,17 @@ library(kernlab)
 }
 
 # global parameters: dimension
-args <- as.double(commandArgs(TRUE))
-dim <- args[1]
-num_iterations <- args[2]
-whichGenz <- args[3]
+args <- commandArgs(TRUE)
+dim <- as.double(args[1])
+num_iterations <- as.double(args[2])
+whichGenz <- as.double(args[3])
+whichKernel <- as.character(args[5])
 cat("Sequential: ", args[4])
 # turn on/off sequential design
 # 1 denotes TRUE to sequential
 # 0 denotes FALSE to sequential
 cat("\nBegin testing:\n")
-if (args[4] == 1 | is.na(args[4])) {
+if (as.double(args[4]) == 1 | is.na(as.double(args[4]))) {
   sequential <- TRUE
   print("Sequantial design set to TRUE.")
 } else {
@@ -82,12 +83,12 @@ MITime <- (t1 - t0)[[1]]
 print("Begin Gaussian Process Integration")
 library(reticulate)
 source("src/optimise_gp.R")
-lengthscale <- optimise_gp_r(trainX, trainY, kernel="rbf", epochs=500)
+lengthscale <- optimise_gp_r(trainX, trainY, kernel = whichKernel, epochs=500)
 
 source("src/GPBQ.R")
 t0 <- proc.time()
 # need to add in function to optimise the hyperparameters
-predictionGPBQ <- computeGPBQ(trainX, trainY, dim, epochs = num_iterations-1, N=100, FUN = genz, lengthscale,sequential)  
+predictionGPBQ <- computeGPBQ(trainX, trainY, dim, epochs = num_iterations-1, kernel = whichKernel, N=100, FUN = genz, lengthscale,sequential)  
 t1 <- proc.time()
 GPTime <- (t1 - t0)[[1]]
 
