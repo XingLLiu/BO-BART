@@ -24,7 +24,6 @@ dim <- as.double(args[1])
 num_iterations <- as.double(args[2])
 whichGenz <- as.double(args[3])
 whichKernel <- as.character(args[5])
-cat("Sequential: ", args[4])
 # turn on/off sequential design
 # 1 denotes TRUE to sequential
 # 0 denotes FALSE to sequential
@@ -39,7 +38,7 @@ cat("Sequantial design set to", sequential, "\n")
 # 1 by default
 jumps <- as.double(args[6])
 if (whichGenz == 7 & is.na(jumps)) { jumps <- 1 }
-cat("Number of jumps:", jumps, "\n")
+cat("Number of jumps for step function:", jumps, "\n")
 
 if (num_iterations == 1) { stop("NEED MORE THAN 1 ITERATION") }
 
@@ -63,7 +62,6 @@ print("Testing with: %s" %--% genzFunctionName)
 # prepare training dataset
 trainX <- replicate(dim, runif(100))
 trainY <- genz(trainX)
-# plot(trainX, trainY)
 
 # Bayesian Quadrature method
 # set number of new query points using sequential design
