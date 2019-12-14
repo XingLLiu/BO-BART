@@ -24,18 +24,21 @@ dim <- as.double(args[1])
 num_iterations <- as.double(args[2])
 whichGenz <- as.double(args[3])
 whichKernel <- as.character(args[5])
-cat("Sequential: ", args[4])
 # turn on/off sequential design
 # 1 denotes TRUE to sequential
 # 0 denotes FALSE to sequential
 cat("\nBegin testing:\n")
 if (as.double(args[4]) == 1 | is.na(as.double(args[4]))) {
   sequential <- TRUE
-  print("Sequantial design set to TRUE.")
 } else {
   sequential <- FALSE
-  print("Sequantial design set to FALSE.")
 }
+cat("Sequantial design set to", sequential, "\n")
+# extra parameter for step function
+# 1 by default
+jumps <- as.double(args[6])
+if (whichGenz == 7 & is.na(jumps)) { jumps <- 1 }
+cat("Number of jumps for step function:", jumps, "\n")
 
 if (num_iterations == 1) { stop("NEED MORE THAN 1 ITERATION") }
 
@@ -51,7 +54,7 @@ if (whichGenz == 3) { genz <- disc; genzFunctionName <-  deparse(substitute(disc
 if (whichGenz == 4) { genz <- gaussian; genzFunctionName <-  deparse(substitute(gaussian)) }
 if (whichGenz == 5) { genz <- oscil; genzFunctionName <-  deparse(substitute(oscil)) }
 if (whichGenz == 6) { genz <- prpeak; genzFunctionName <-  deparse(substitute(prpeak)) }
-if (whichGenz == 7) { genz <- step; genzFunctionName <-  deparse(substitute(step)) }
+if (whichGenz == 7) { genz <- function(xx){return(step(xx, jumps=jumps))}; genzFunctionName <-  deparse(substitute(step)) }
 if (whichGenz == 8) { genz <- mix; genzFunctionName <-  deparse(substitute(mix)) }
 
 print("Testing with: %s" %--% genzFunctionName)
@@ -59,7 +62,6 @@ print("Testing with: %s" %--% genzFunctionName)
 # prepare training dataset
 trainX <- replicate(dim, runif(100))
 trainY <- genz(trainX)
-# plot(trainX, trainY)
 
 # Bayesian Quadrature method
 # set number of new query points using sequential design
@@ -95,13 +97,17 @@ GPTime <- (t1 - t0)[[1]]
 # read in analytical integrals
 dimensionsList <- c(1,2,3,5,10,20)
 whichDimension <- which(dim == dimensionsList)
-analyticalIntegrals <- read.csv("results/genz/integrals.csv", header = FALSE)
-real <- analyticalIntegrals[whichGenz, whichDimension]
-
-# analytical integrals for mixture genz
-if (whichGenz == 8 & dim ==1){ real <- 0.008327796}
-if (whichGenz == 8 & dim ==2){ real <- 0.008327796*2}
-if (whichGenz == 8 & dim ==3){ real <- 0.008327796*3}
+if (whichGenz <= 6){
+  analyticalIntegrals <- read.csv("results/genz/integrals.csv", header = FALSE)
+  real <- analyticalIntegrals[whichGenz, whichDimension]
+} else if (whichGenz == 7) {
+  source("src/genz/analyticalIntegrals.R")
+  real <- stepIntegral(dim, jumps)
+} else {
+  if (whichGenz == 8 & dim ==1){ real <- 0.008327796}
+  if (whichGenz == 8 & dim ==2){ real <- 0.008327796*2}
+  if (whichGenz == 8 & dim ==3){ real <- 0.008327796*3}
+}
 
 # Bayesian Quadrature methods: with BART, Monte Carlo Integration and Gaussian Process respectively
 print("Final Results:")
