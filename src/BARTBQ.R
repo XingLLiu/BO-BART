@@ -6,6 +6,8 @@ library(dbarts)
 library(data.tree)
 library(matrixStats)
 library(doParallel)
+library(mvtnorm)
+library(msm)
 terminalProbability <- function(currentNode) 
   
   #'Terminal Node Probability
@@ -28,7 +30,7 @@ terminalProbability <- function(currentNode)
   return (prob)
 }
 
-fillProbabilityForNode <- function(oneTree, cutPoints, cut) 
+fillProbabilityForNode <- function(oneTree, cutPoints, cut, measure) 
   
   #'Fill Non-Terminal Node Probability
   #' 
@@ -45,16 +47,22 @@ fillProbabilityForNode <- function(oneTree, cutPoints, cut)
     
     decisionRule <- cutPoints[[oneTree$splitVar]][oneTree$splitIndex]
 
-    oneTree$leftChild$probability <- (decisionRule - cut[1, oneTree$splitVar]) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
-    oneTree$rightChild$probability <- (cut[2, oneTree$splitVar] - decisionRule) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
-    
+    if (measure == "uniform"){
+      oneTree$leftChild$probability <- (decisionRule - cut[1, oneTree$splitVar]) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
+      oneTree$rightChild$probability <- (cut[2, oneTree$splitVar] - decisionRule) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
+    } else if (measure == "gaussian") {
+      normalizingConst <- pmvnorm(cut[1, oneTree$splitVar], cut[2, oneTree$splitVar], sigma=1)
+      oneTree$leftChild$probability <- pmvnorm(cut[1, oneTree$splitVar], decisionRule, sigma=1) / normalizingConst
+      oneTree$rightChild$probability <- 1 - oneTree$leftChild$probability
+    }
+
     cut[, oneTree$splitVar] = c(0, decisionRule)
     
-    fillProbabilityForNode(oneTree$leftChild, cutPoints, cut)
+    fillProbabilityForNode(oneTree$leftChild, cutPoints, cut, measure)
     
     cut[, oneTree$splitVar] = c(decisionRule, 1)
     
-    fillProbabilityForNode(oneTree$rightChild, cutPoints, cut)
+    fillProbabilityForNode(oneTree$rightChild, cutPoints, cut, measure)
     
   } else if( is.null(oneTree$probability) ) {
 
@@ -126,7 +134,7 @@ getTree <- function(sampler, chainNum, sampleNum, treeNum)
   return (tree)
 }
 
-singleTreeSum <- function(treeNum, model, drawNum, dim) 
+singleTreeSum <- function(treeNum, model, drawNum, dim, measure) 
   
   #'Sum over Terminal Nodes
   #' 
@@ -149,7 +157,7 @@ singleTreeSum <- function(treeNum, model, drawNum, dim)
   selectedTree <- FromListSimple(treeList) 
   
   #Modify tree by the functions written above
-  selectedTree <- fillProbabilityForNode(selectedTree, cutPoints, cut)
+  selectedTree <- fillProbabilityForNode(selectedTree, cutPoints, cut, measure)
   selectedTree <- terminalProbabilityStore(selectedTree)
   
   
@@ -165,7 +173,7 @@ singleTreeSum <- function(treeNum, model, drawNum, dim)
   return (integral)
 }
 
-posteriorSum <- function(drawNum, model, dim)
+posteriorSum <- function(drawNum, model, dim, measure)
   
   #'Sum over Trees
   #' 
@@ -183,7 +191,7 @@ posteriorSum <- function(drawNum, model, dim)
   treeNum <- seq(1, nTree, length.out=nTree)
   
   #Extra variables
-  var <- list(model, drawNum, dim)
+  var <- list(model, drawNum, dim, measure)
   
   #Calculate integration over all trees in the draw by mapply
   integral <- sum( unlist( mapply(singleTreeSum, treeNum, MoreArgs=var) ) )
@@ -192,7 +200,7 @@ posteriorSum <- function(drawNum, model, dim)
 }
 
 
-sampleIntegrals <- function(model, dim)
+sampleIntegrals <- function(model, dim, measure)
   
   #'Sum over Posterior Draws
   #' 
@@ -208,12 +216,12 @@ sampleIntegrals <- function(model, dim)
   drawNum <- seq(1, nDraw, length.out=nDraw)
   
   #Extra Variables
-  var <- list(model, dim)
+  var <- list(model, dim, measure)
   integrals <- mapply(posteriorSum, drawNum, MoreArgs=var)
   return (integrals)
 }
 
-BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, sequential)
+BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, sequential, measure)
   
   #'BART-BQ with Sequential Design
   #' 
@@ -251,14 +259,18 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, sequentia
 
     sink()
     # obtain posterior samples
-    integrals <- sampleIntegrals(model, dim)
+    integrals <- sampleIntegrals(model, dim, measure)
     integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
     meanValue[i] <- mean(integrals)
     standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
 
     # sequential design section, where we build the new training data
     candidateSetNum <- 100
-	candidateSet <- replicate(dim, runif(candidateSetNum))
+    if (measure == "uniform"){
+  	  candidateSet <- replicate(dim, runif(candidateSetNum))
+    } else if (measure == "gaussian") {
+      candidateSet <- replicate(dim, rtnorm(candidateSetNum, lower=0, upper=1))
+    }
     
     # predict the values
     fValues <- predict(model, candidateSet)
@@ -282,7 +294,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, sequentia
                "trainData" = trainData))
 }
 
-BART_posterior <- function(dim, trainX, trainY, numNewTraining, FUN, sequential)
+BART_posterior <- function(dim, trainX, trainY, numNewTraining, FUN, sequential, measure="uniform")
   
   #'BART-BQ with Sequential Design
   #' 
@@ -316,13 +328,17 @@ BART_posterior <- function(dim, trainX, trainY, numNewTraining, FUN, sequential)
     model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
     sink()
     # obtain posterior samples
-    integrals <- sampleIntegrals(model, dim)
+    integrals <- sampleIntegrals(model, dim, measure)
     integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
     
     # sequential design section, where we build the new training data
     candidateSetNum <- 100
-    candidateSet <- replicate(dim, runif(candidateSetNum))
-    
+    if (measure == "uniform"){
+  	  candidateSet <- replicate(dim, runif(candidateSetNum))
+    } else if (measure == "gaussian") {
+      candidateSet <- replicate(dim, rtnorm(candidateSetNum, lower=0, upper=1))
+    }
+
     # predict the values
     fValues <- predict(model, candidateSet)
     
@@ -342,7 +358,7 @@ BART_posterior <- function(dim, trainX, trainY, numNewTraining, FUN, sequential)
   return (model)
 }
 
-mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY, sequential=TRUE) 
+mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY, sequential=TRUE, measure="uniform") 
   
   #'BART-BQ with Sequential Design
   #' 
@@ -363,7 +379,7 @@ mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY, sequential=TRUE
   # prepare training data and parameters
   genz <- FUN #select genz function
   numNewTraining <- num_iterations
-  prediction <- BARTBQSequential(dim, trainX, trainY, numNewTraining, FUN = genz, sequential) 
+  prediction <- BARTBQSequential(dim, trainX, trainY, numNewTraining, FUN = genz, sequential, measure) 
 
   return (prediction)
 }

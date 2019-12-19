@@ -41,6 +41,7 @@ Project Documentation: https://bart-bq.readthedocs.io/en/latest/
     dbarts
     matrixStats
     mvtnorm
+    msm
 ```
 
 ## To run the genz integrals approximations:
@@ -48,7 +49,7 @@ Project Documentation: https://bart-bq.readthedocs.io/en/latest/
 1) Install all the necessary packages
 
 ```
-install.packages(c("yaml", "MASS", "cubature", "lhs", "data.tree", "matrixStats", "mvtnorm", "doParallel", "kernlab"))
+install.packages(c("yaml", "MASS", "cubature", "lhs", "data.tree", "matrixStats", "mvtnorm", "doParallel", "kernlab", "msm"))
 ```
 and also 
 ```
@@ -58,7 +59,7 @@ install.packages(packageurl, repos=NULL, type="source")
 
 2) To simulate, run the test scripts with customized inputs. There are 6 inputs in total; the last input is optional and only works for the step function (`genz_function_number` = 7). For example:
 ```
-Rscript integrationMain.R dimension num_iterations genz_function_number sequential_flag kernel_name (number_of_jumps_for_step_function)
+Rscript integrationMain.R dimension num_iterations genz_function_number kernel_name sequential_flag (number_of_jumps_for_step_function)
 
 ```
 where `genz_function_number` is following the indexing in https://www.sfu.ca/~ssurjano/integration.html. 

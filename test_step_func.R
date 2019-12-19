@@ -36,13 +36,13 @@ dim <- as.double(args[1])
 num_iterations <- as.double(args[2])
 jumps <- 2
 whichGenz <- 7
-whichKernel <- as.character(args[4])
+whichKernel <- as.character(args[3])
 
 # turn on/off sequential design
 # 1 denotes TRUE to sequential
 # 0 denotes FALSE to sequential
 cat("\nBegin testing:\n")
-if (as.double(args[3]) == 1 | is.na(as.double(args[3]))) {
+if (as.double(args[4]) == 1 | is.na(as.double(args[4]))) {
   sequential <- TRUE
   print("Sequantial design set to TRUE.")
 } else {
