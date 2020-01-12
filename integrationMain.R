@@ -72,7 +72,11 @@ if (whichGenz == 8) { genz <- mix; genzFunctionName <-  deparse(substitute(mix))
 print("Testing with: %s" %--% genzFunctionName)
 
 # prepare training dataset
-trainX <- replicate(dim, runif(100))
+if (measure == "uniform") {
+  trainX <- replicate(dim, runif(100))
+} else if (measure == "gaussian") {
+  trainX <- replicate(dim, rtnorm(100, mean = 0.5, lower=0, upper=1))
+}
 trainY <- genz(trainX)
 
 # Bayesian Quadrature method
