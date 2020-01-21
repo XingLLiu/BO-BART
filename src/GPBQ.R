@@ -25,7 +25,7 @@ maternKernelWrapper <- function(lengthscale = 1, sigma = 1) {
 
 rescale <- function(x) {x * attr(x, 'scaled:scale') + attr(x, 'scaled:center')}
 
-computeGPBQ <- function(X, Y_unscaled, dim, epochs, kernel="rbf", FUN, lengthscale=1, sequential=TRUE) 
+computeGPBQ <- function(X, Y, dim, epochs, kernel="rbf", FUN, lengthscale=1, sequential=TRUE) 
   #'Gaussian Process with Bayesian Quadrature
   #' 
   #'@description This function calculates the approxiamtion of integration using
@@ -45,7 +45,6 @@ computeGPBQ <- function(X, Y_unscaled, dim, epochs, kernel="rbf", FUN, lengthsca
   varianceGP <- c()
    
   N <- dim(X)[1]
-  Y <- scale(Y_unscaled)
 
   K <- matrix(0,nrow=N,ncol=N)
   jitter = 1e-6
@@ -59,18 +58,13 @@ computeGPBQ <- function(X, Y_unscaled, dim, epochs, kernel="rbf", FUN, lengthsca
   
   K = kernelMatrix(kernel, X)
   # compute the variance
-  k = function(arg) {
-    return(exp(-.5 * sum((arg[1]-arg[2])^2)/lengthscale^2))
-  }
-  int.points <- replicate(2, runif(500000))
-  vv = vapply(1:nrow(int.points), function(i) k(int.points[i,]),0)
-  var.firstterm = mean(vv)^dim
-  
-  z<-c()
-  for(i in 1:N) {
-    z[i] <- pmvnorm(rep(0,dim), rep(1,dim) , mean = X[i,], sigma = diag(lengthscale^2, dim))[[1]] * (2*pi*lengthscale^2)^(dim/2) # add in extra term obtained by integration
-  }
-  meanValueGP[1] <- t(z) %*% solve(K + diag(jitter, N) , rescale(Y))
+  int.points.1 <- replicate(dim, runif(1000))
+  int.points.2 <- replicate(dim, runif(1000))
+  cov <- kernelMatrix(kernel, int.points.1, int.points.2)
+  var.firstterm <- mean(cov[upper.tri(cov)])
+  cov <- kernelMatrix(kernel, int.points.1, X)
+  z <- colMeans(cov)
+  meanValueGP[1] <- t(z) %*% solve(K + diag(jitter, N) , Y)
   varianceGP[1] <- var.firstterm - t(z)%*% solve(K + diag(jitter, N) , z) #not quite right, missed out first term
 
   # train
@@ -78,33 +72,37 @@ computeGPBQ <- function(X, Y_unscaled, dim, epochs, kernel="rbf", FUN, lengthsca
    
     print(paste("GPBQ: Epoch =", p))
     candidateSetNum <- 100
-	candidateSet <- replicate(dim, runif(candidateSetNum))
-    
-    candidate_Var <- c()
-    
-    candidate_p <- c()
-    for(i in 1:candidateSetNum) {
-      candidate_p[i] <- pmvnorm(rep(0, dim), rep(1, dim) , mean = candidateSet[i,], sigma = diag(lengthscale^2, dim))[[1]] * (2*pi*lengthscale^2)^(dim/2) 
-      # add in extra term obtained by integration
-    }
-    
+	  candidateSet <- replicate(dim, runif(candidateSetNum))
     K_prime <- diag(N+p)
-    
     K_prime[1:(N+p-1), 1:(N+p-1)] <- K
-    for (i in 1:candidateSetNum) {
+    
+    # candidate_Var <- c()
+    # candidate_p <- c()
 
-      kernel_new_entries <- kernelMatrix(kernel, matrix(candidateSet[i,], nrow = 1), X)
+
+    # for(i in 1:candidateSetNum) {
+    #   candidate_p[i] <- pmvnorm(rep(0, dim), rep(1, dim) , mean = candidateSet[i,], sigma = diag(lengthscale^2, dim))[[1]] * (2*pi*lengthscale^2)^(dim/2) 
+    #   # add in extra term obtained by integration
+    # }
+    K_star_star <- kernelMatrix(kernel, candidateSet)
+    K_star <- kernelMatrix(kernel, candidateSet, X)
+
+    candidate_Var <- diag(K_star_star - K_star %*% solve(K + diag(jitter, nrow(K)), t(K_star)))
+
+    # for (i in 1:candidateSetNum) {
+
+    #   kernel_new_entries <- kernelMatrix(kernel, matrix(candidateSet[i,], nrow = 1), X)
 
 
-      K_prime[1:(N+p-1),(N+p)] <- kernel_new_entries
-      K_prime[(N+p),1:(N+p-1)] <- kernel_new_entries
+    #   K_prime[1:(N+p-1),(N+p)] <- kernel_new_entries
+    #   K_prime[(N+p),1:(N+p-1)] <- kernel_new_entries
       
-      z[N+p] <- candidate_p[i]
+    #   # z[N+p] <- candidate_p[i]
       
-      if (sequential){
-        candidate_Var[i] <- t(z)%*%solve(K_prime + diag(jitter,nrow(K_prime)), z) # where is the integral here
-      }
-    }
+    #   if (sequential){
+    #     candidate_Var[i] <- t(z)%*%solve(K_prime + diag(jitter,nrow(K_prime)), z) # where is the integral here
+    #   }
+    # }
     
     if (sequential){
       index <- which(candidate_Var == max(candidate_Var))[1]
@@ -120,15 +118,16 @@ computeGPBQ <- function(X, Y_unscaled, dim, epochs, kernel="rbf", FUN, lengthsca
     X <- rbind(X,candidateSet[index,])
     additionalResponse <- as.matrix( t(candidateSet[index,]), ncol = length(candidateSet[index,]) )
 
-    Y_unscaled <- c(Y_unscaled, genz(additionalResponse))
-    Y <- scale(Y_unscaled)
+    Y <- c(Y, genz(additionalResponse))
     K <- K_prime
     
     # add in extra term obtained by integration
-    z[N+p] <- pmvnorm(rep(0,dim), rep(1,dim), mean = X[N+p,], sigma = diag(lengthscale^2, dim))[[1]] * (2*pi*lengthscale^2)^(dim/2)
-    meanValueGP[p+1] <- t(z) %*% solve(K + diag(jitter,nrow(K)), as.matrix(rescale(Y)))
-    varianceGP[p+1] <- var.firstterm - t(z)%*%solve(K + diag(jitter,nrow(K)), z) #not quite right, missed out first term
-    
+    cov <- kernelMatrix(kernel, int.points.1, int.points.2)
+    var.firstterm <- mean(cov[upper.tri(cov)])
+    cov <- kernelMatrix(kernel, int.points.1, X)
+    z <- colMeans(cov)
+    meanValueGP[p+1] <- t(z) %*% solve(K + diag(jitter, N+p) , Y)
+    varianceGP[p+1] <- var.firstterm - t(z)%*% solve(K + diag(jitter, N+p) , z) #not quite right, missed out first term
   }
 
   return (list("meanValueGP" = meanValueGP, "varianceGP" = varianceGP, "X" = X, "Y" = Y, "K" = K))
