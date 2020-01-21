@@ -258,13 +258,10 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, sequentia
 
     # sequential design section, where we build the new training data
     candidateSetNum <- 100
-	candidateSet <- replicate(dim, runif(candidateSetNum))
+	  candidateSet <- replicate(dim, runif(candidateSetNum))
     
     # predict the values
     fValues <- predict(model, candidateSet)
-    
-    probability = 1 #uniform probability
-    #expectedValue <- colMeans(fValues*probability)
     
     if (sequential){
       var <- colVars(fValues)
