@@ -23,22 +23,34 @@ args <- commandArgs(TRUE)
 dim <- as.double(args[1])
 num_iterations <- as.double(args[2])
 whichGenz <- as.double(args[3])
-whichKernel <- as.character(args[5])
+whichKernel <- as.character(args[4])
 # turn on/off sequential design
 # 1 denotes TRUE to sequential
 # 0 denotes FALSE to sequential
 cat("\nBegin testing:\n")
-if (as.double(args[4]) == 1 | is.na(as.double(args[4]))) {
+if (as.double(args[5]) == 1 | is.na(as.double(args[5]))) {
   sequential <- TRUE
 } else {
   sequential <- FALSE
 }
 cat("Sequantial design set to", sequential, "\n")
+# prior measure over the inputs
+# uniform by default
+if (as.character(args[6]) != "gaussian" | is.na(args[6])) {
+  measure <- "uniform"
+} else{
+  measure <- as.character(args[6])
+}
+cat("Prior measure:", measure, "\n")
 # extra parameter for step function
 # 1 by default
-jumps <- as.double(args[6])
-if (whichGenz == 7 & is.na(jumps)) { jumps <- 1 }
-cat("Number of jumps for step function:", jumps, "\n")
+if (whichGenz == 7 & is.na(args[7])) {
+  jumps <- 1
+  cat("Number of jumps for step function:", jumps, "\n")
+} else if (whichGenz == 7){
+  jumps <- as.double(args[7])
+  cat("Number of jumps for step function:", jumps, "\n")
+}
 
 if (num_iterations == 1) { stop("NEED MORE THAN 1 ITERATION") }
 
@@ -60,14 +72,18 @@ if (whichGenz == 8) { genz <- mix; genzFunctionName <-  deparse(substitute(mix))
 print("Testing with: %s" %--% genzFunctionName)
 
 # prepare training dataset
-trainX <- replicate(dim, runif(100))
+if (measure == "uniform") {
+  trainX <- replicate(dim, runif(100))
+} else if (measure == "gaussian") {
+  trainX <- replicate(dim, rtnorm(100, mean = 0.5, lower=0, upper=1))
+}
 trainY <- genz(trainX)
 
 # Bayesian Quadrature method
 # set number of new query points using sequential design
 source("src/BARTBQ.R")
 t0 <- proc.time()
-predictionBART <- mainBARTBQ(dim, num_iterations, FUN = genz, trainX, trainY, sequential)
+predictionBART <- mainBARTBQ(dim, num_iterations, FUN = genz, trainX, trainY, sequential, measure)
 t1 <- proc.time()
 bartTime <- (t1 - t0)[[1]]
 
@@ -129,19 +145,30 @@ results <- data.frame(
 )
 
 if (!sequential){
-  csvName <- "results/genz/%s/results%sdim%sNoSequential.csv" %--% c(
+  csvName <- "results/genz/%s/%sDim%sNoSequential%s.csv" %--% c(
           whichGenz, 
-          whichGenz, 
-          dim
-     )
-  figName <- "Figures/%s/%s%sDimNoSequential.pdf" %--% c(whichGenz, genzFunctionName, dim)
+          genzFunctionName,
+          dim,
+          tools::toTitleCase(measure)
+          )
+  figName <- "Figures/%s/%sDim%sNoSequential%s.pdf" %--% c(
+          whichGenz,
+          genzFunctionName,
+          dim,
+          tools::toTitleCase(measure)
+          )
 } else {
-  csvName <- "results/genz/%s/results%sdim%s.csv" %--% c(
+  csvName <- "results/genz/%s/%sDim%s%s.csv" %--% c(
           whichGenz, 
-          whichGenz, 
-          dim
+          genzFunctionName,
+          dim,
+          tools::toTitleCase(measure)
      )
-  figName <- "Figures/%s/%s%sDim.pdf" %--% c(whichGenz, genzFunctionName, dim)
+  figName <- "Figures/%s/%sDim%s%s.pdf" %--% c(
+          whichGenz,
+          genzFunctionName,
+          dim,
+          tools::toTitleCase(measure))
 }
 
 write.csv(results, file = csvName, row.names=FALSE)
