@@ -1,4 +1,4 @@
-monteCarloIntegrationUniform <- function(FUN, numSamples, dim)
+monteCarloIntegrationUniform <- function(FUN, numSamples, dim, measure)
   #'Crude Monte Carlo Approximation
   #' 
   #'@description The function approximates the integral of interest using curde monte carlo
@@ -14,7 +14,12 @@ monteCarloIntegrationUniform <- function(FUN, numSamples, dim)
 	standardDeviationMonteCarlo <- rep(0, numSamples)
 	
 	for (i in 1:numSamples) {
-	  CandidateSet <- matrix(runif(i*dim), ncol = dim)
+	  
+	  if (measure == "uniform") {
+	    CandidateSet <- as.matrix(replicate(dim, runif(i)))
+	  } else if (measure == "gaussian") {
+	    CandidateSet <- as.matrix(replicate(dim, rtnorm(i, mean = 0.5, lower=0, upper=1)))
+	  }
 
 	  functionSamples <- FUN(CandidateSet)
 	  meanValueMonteCarlo[i] <- mean(functionSamples)

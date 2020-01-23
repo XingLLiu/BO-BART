@@ -9,6 +9,7 @@ library(matrixStats)
 library(mvtnorm)
 library(doParallel)
 library(kernlab)
+library(MCMCglmm)
 
 # define string formatting
 `%--%` <- function(x, y) 
@@ -92,7 +93,7 @@ print("Begin Monte Carlo Integration")
 source("src/monteCarloIntegration.R")
 
 t0 <- proc.time()
-predictionMonteCarlo <- monteCarloIntegrationUniform(FUN = genz, numSamples=num_iterations, dim)
+predictionMonteCarlo <- monteCarloIntegrationUniform(FUN = genz, numSamples=num_iterations, dim, measure)
 t1 <- proc.time()
 
 MITime <- (t1 - t0)[[1]]
@@ -106,7 +107,17 @@ lengthscale <- optimise_gp_r(trainX, trainY, kernel = whichKernel, epochs=500)
 source("src/GPBQ.R")
 t0 <- proc.time()
 # need to add in function to optimise the hyperparameters
-predictionGPBQ <- computeGPBQ(trainX, trainY, dim, epochs = num_iterations-1, kernel = whichKernel, FUN = genz, lengthscale,sequential)  
+predictionGPBQ <- computeGPBQ(
+  trainX, 
+  trainY, 
+  dim, 
+  epochs = num_iterations-1, 
+  kernel = whichKernel, 
+  FUN = genz, 
+  lengthscale,
+  sequential, 
+  measure
+)  
 t1 <- proc.time()
 GPTime <- (t1 - t0)[[1]]
 

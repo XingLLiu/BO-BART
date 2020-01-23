@@ -25,7 +25,7 @@ maternKernelWrapper <- function(lengthscale = 1, sigma = 1) {
 
 rescale <- function(x) {x * attr(x, 'scaled:scale') + attr(x, 'scaled:center')}
 
-computeGPBQ <- function(X, Y, dim, epochs, kernel="rbf", FUN, lengthscale=1, sequential=TRUE) 
+computeGPBQ <- function(X, Y, dim, epochs, kernel="rbf", FUN, lengthscale=1, sequential=TRUE, measure) 
   #'Gaussian Process with Bayesian Quadrature
   #' 
   #'@description This function calculates the approxiamtion of integration using
@@ -58,8 +58,13 @@ computeGPBQ <- function(X, Y, dim, epochs, kernel="rbf", FUN, lengthscale=1, seq
   
   K = kernelMatrix(kernel, X)
   # compute the variance
-  int.points.1 <- replicate(dim, runif(1000))
-  int.points.2 <- replicate(dim, runif(1000))
+  if (measure == "uniform"){
+    int.points.1 <- replicate(dim, runif(1000))
+    int.points.2 <- replicate(dim, runif(1000))
+  } else if (measure == "gaussian") {
+    int.points.1 <- replicate(dim, rtnorm(1000, lower=0, upper=1))
+    int.points.2 <- replicate(dim, rtnorm(1000, lower=0, upper=1))
+  }
   cov <- kernelMatrix(kernel, int.points.1, int.points.2)
   var.firstterm <- mean(cov[upper.tri(cov)])
   cov <- kernelMatrix(kernel, int.points.1, X)
@@ -122,8 +127,6 @@ computeGPBQ <- function(X, Y, dim, epochs, kernel="rbf", FUN, lengthscale=1, seq
     K <- K_prime
     
     # add in extra term obtained by integration
-    cov <- kernelMatrix(kernel, int.points.1, int.points.2)
-    var.firstterm <- mean(cov[upper.tri(cov)])
     cov <- kernelMatrix(kernel, int.points.1, X)
     z <- colMeans(cov)
     meanValueGP[p+1] <- t(z) %*% solve(K + diag(jitter, N+p) , Y)
