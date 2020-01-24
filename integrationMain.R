@@ -9,6 +9,7 @@ library(matrixStats)
 library(mvtnorm)
 library(doParallel)
 library(kernlab)
+library(msm)
 
 # define string formatting
 `%--%` <- function(x, y) 
@@ -75,7 +76,7 @@ print("Testing with: %s" %--% genzFunctionName)
 if (measure == "uniform") {
   trainX <- replicate(dim, runif(100))
 } else if (measure == "gaussian") {
-  trainX <- replicate(dim, rtnorm(100, mean = 0.5, lower=0, upper=1))
+  trainX <- replicate(dim, rtnorm(100, mean=0.5, lower=0, upper=1, sd=dim^2/100))
 }
 trainY <- genz(trainX)
 
@@ -110,7 +111,7 @@ predictionGPBQ <- computeGPBQ(trainX, trainY, dim, epochs = num_iterations-1, ke
 t1 <- proc.time()
 GPTime <- (t1 - t0)[[1]]
 
-# read in analytical integrals
+# Read in analytical integrals
 dimensionsList <- c(1,2,3,5,10,20)
 whichDimension <- which(dim == dimensionsList)
 if (whichGenz <= 6){
@@ -121,8 +122,8 @@ if (whichGenz <= 6){
   real <- stepIntegral(dim, jumps)
 } else {
   if (whichGenz == 8 & dim ==1){ real <- 0.008327796}
-  if (whichGenz == 8 & dim ==2){ real <- 0.008327796*2}
-  if (whichGenz == 8 & dim ==3){ real <- 0.008327796*3}
+  if (whichGenz == 8 & dim ==2){ real <- 0.008327796 * 2}
+  if (whichGenz == 8 & dim ==3){ real <- 0.008327796 * 3}
 }
 
 # Bayesian Quadrature methods: with BART, Monte Carlo Integration and Gaussian Process respectively

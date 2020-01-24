@@ -269,7 +269,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, sequentia
     if (measure == "uniform"){
   	  candidateSet <- replicate(dim, runif(candidateSetNum))
     } else if (measure == "gaussian") {
-      candidateSet <- replicate(dim, rtnorm(candidateSetNum, lower=0, upper=1))
+      candidateSet <- replicate(dim, rtnorm(candidateSetNum, mean=0.5, lower=0, upper=1, sd=dim^2))
     }
     
     # predict the values
@@ -336,7 +336,7 @@ BART_posterior <- function(dim, trainX, trainY, numNewTraining, FUN, sequential,
     if (measure == "uniform"){
   	  candidateSet <- replicate(dim, runif(candidateSetNum))
     } else if (measure == "gaussian") {
-      candidateSet <- replicate(dim, rtnorm(candidateSetNum, lower=0, upper=1))
+      candidateSet <- replicate(dim, rtnorm(candidateSetNum, mean=0.5, lower=0, upper=1, sd=dim^2))
     }
 
     # predict the values
