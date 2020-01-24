@@ -275,9 +275,6 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, sequentia
     # predict the values
     fValues <- predict(model, candidateSet)
     
-    probability = 1 #uniform probability
-    #expectedValue <- colMeans(fValues*probability)
-    
     if (sequential){
       var <- colVars(fValues)
       index <- sample(which(var==max(var)), 1)
