@@ -76,7 +76,7 @@ print("Testing with: %s" %--% genzFunctionName)
 if (measure == "uniform") {
   trainX <- replicate(dim, runif(100))
 } else if (measure == "gaussian") {
-  trainX <- replicate(dim, rtnorm(100, mean = 0.5, lower=0, upper=1))
+  trainX <- replicate(dim, rtnorm(100, lower=0, upper=1))
 }
 trainY <- genz(trainX)
 
