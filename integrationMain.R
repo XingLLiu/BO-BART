@@ -76,10 +76,12 @@ print("Testing with: %s" %--% genzFunctionName)
 # prepare training dataset
 if (measure == "uniform") {
   trainX <- replicate(dim, runif(100))
+  trainY <- genz(trainX)
 } else if (measure == "gaussian") {
-  trainX <- replicate(dim, rtnorm(100, mean=0.5, lower=0, upper=1, sd=dim^2/100))
+  trainX <- replicate(dim, rtnorm(100, lower=0, upper=1))
+  genz <- gaussian_weighted
+  trainY <- genz(trainX)
 }
-trainY <- genz(trainX)
 
 # Bayesian Quadrature method
 # set number of new query points using sequential design
