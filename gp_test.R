@@ -9,6 +9,7 @@ library(matrixStats)
 library(mvtnorm)
 library(doParallel)
 library(kernlab)
+library(MCMCglmm)
 
 # define string formatting
 `%--%` <- function(x, y) 
@@ -23,22 +24,34 @@ args <- commandArgs(TRUE)
 dim <- as.double(args[1])
 num_iterations <- as.double(args[2])
 whichGenz <- as.double(args[3])
-whichKernel <- as.character(args[5])
+whichKernel <- as.character(args[4])
 # turn on/off sequential design
 # 1 denotes TRUE to sequential
 # 0 denotes FALSE to sequential
 cat("\nBegin testing:\n")
-if (as.double(args[4]) == 1 | is.na(as.double(args[4]))) {
+if (as.double(args[5]) == 1 | is.na(as.double(args[5]))) {
   sequential <- TRUE
 } else {
   sequential <- FALSE
 }
 cat("Sequantial design set to", sequential, "\n")
+# prior measure over the inputs
+# uniform by default
+if (as.character(args[6]) != "gaussian" | is.na(args[6])) {
+  measure <- "uniform"
+} else{
+  measure <- as.character(args[6])
+}
+cat("Prior measure:", measure, "\n")
 # extra parameter for step function
 # 1 by default
-jumps <- as.double(args[6])
-if (whichGenz == 7 & is.na(jumps)) { jumps <- 1 }
-cat("Number of jumps for step function:", jumps, "\n")
+if (whichGenz == 7 & is.na(args[7])) {
+  jumps <- 1
+  cat("Number of jumps for step function:", jumps, "\n")
+} else if (whichGenz == 7){
+  jumps <- as.double(args[7])
+  cat("Number of jumps for step function:", jumps, "\n")
+}
 
 if (num_iterations == 1) { stop("NEED MORE THAN 1 ITERATION") }
 
@@ -60,15 +73,20 @@ if (whichGenz == 8) { genz <- mix; genzFunctionName <-  deparse(substitute(mix))
 print("Testing with: %s" %--% genzFunctionName)
 
 # prepare training dataset
-trainX <- replicate(dim, runif(100))
+if (measure == "uniform") {
+  trainX <- replicate(dim, runif(100))
+} else if (measure == "gaussian") {
+  trainX <- replicate(dim, rtnorm(100, mean = 0.5, lower=0, upper=1))
+}
 trainY <- genz(trainX)
+
 
 # Bayesian Quadrature with Monte Carlo integration method
 print("Begin Monte Carlo Integration")
 source("src/monteCarloIntegration.R")
 
 t0 <- proc.time()
-predictionMonteCarlo <- monteCarloIntegrationUniform(FUN = genz, numSamples=num_iterations, dim)
+predictionMonteCarlo <- monteCarloIntegrationUniform(FUN = genz, numSamples=num_iterations, dim, measure)
 t1 <- proc.time()
 
 MITime <- (t1 - t0)[[1]]
@@ -82,7 +100,7 @@ lengthscale <- optimise_gp_r(trainX, trainY, kernel = whichKernel, epochs=500)
 source("src/GPBQ.R")
 t0 <- proc.time()
 # need to add in function to optimise the hyperparameters
-predictionGPBQ <- computeGPBQ(trainX, trainY, dim, epochs = num_iterations-1, kernel = whichKernel, FUN = genz, lengthscale,sequential)  
+predictionGPBQ <- computeGPBQ(trainX, trainY, dim, epochs = num_iterations-1, kernel = whichKernel, FUN = genz, lengthscale,sequential, measure)  
 t1 <- proc.time()
 GPTime <- (t1 - t0)[[1]]
 

@@ -18,7 +18,7 @@ monteCarloIntegrationUniform <- function(FUN, numSamples, dim, measure)
 	  if (measure == "uniform") {
 	    CandidateSet <- as.matrix(replicate(dim, runif(i)))
 	  } else if (measure == "gaussian") {
-	    CandidateSet <- as.matrix(replicate(dim, rtnorm(i, mean = 0.5, lower=0, upper=1)))
+	    CandidateSet <- as.matrix(replicate(dim, rtnorm(i, lower=0, upper=1)))
 	  }
 
 	  functionSamples <- FUN(CandidateSet)
