@@ -78,9 +78,14 @@ if (measure == "uniform") {
   trainX <- replicate(dim, runif(100))
   trainY <- genz(trainX)
 } else if (measure == "gaussian") {
+<<<<<<< HEAD
   trainX <- replicate(dim, rtnorm(100, mean=0.5 lower=0, upper=1))
   genz <- gaussian_weighted
   trainY <- genz(trainX)
+=======
+  trainX <- replicate(dim, rtnorm(100, lower=0, upper=1))
+  trainY <- genz(trainX) / dtnorm(trainX, lower=0, upper=1)
+>>>>>>> 6635be30a70e1c6e0965bc077ca83cde6be5aa7f
 }
 
 # Bayesian Quadrature method
