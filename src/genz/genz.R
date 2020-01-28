@@ -457,6 +457,6 @@ gaussian_weighted <- function(xx)
   sum <- (xx - u)^2 %*% a^2
   y <- exp(-sum)
   
-  return(y / dtnorm(xx, mean = 0.5, lower = 0, upper = 1, sd = dim^2))
+  return(y / dtnorm(xx, mean = 0.5, lower = 0, upper = 1))
   
 }
