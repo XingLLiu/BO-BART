@@ -62,8 +62,8 @@ computeGPBQ <- function(X, Y, dim, epochs, kernel="rbf", FUN, lengthscale=1, seq
     int.points.1 <- replicate(dim, runif(1000))
     int.points.2 <- replicate(dim, runif(1000))
   } else if (measure == "gaussian") {
-    int.points.1 <- replicate(dim, rtnorm(1000, lower=0, upper=1))
-    int.points.2 <- replicate(dim, rtnorm(1000, lower=0, upper=1))
+    int.points.1 <- replicate(dim, rtnorm(1000, mean = 0.5, lower=0, upper=1))
+    int.points.2 <- replicate(dim, rtnorm(1000, mean = 0.5, lower=0, upper=1))
   }
   cov <- kernelMatrix(kernel, int.points.1, int.points.2)
   var.firstterm <- mean(cov[upper.tri(cov)])
