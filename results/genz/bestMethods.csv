@@ -5,4 +5,4 @@
 "gaussian","BART","MI","BART","BART","BART","BART"
 "oscil","BART","BART","BART","GP","BART","BART"
 "prpeak","MI","MI","BART","GP","BART","MI"
-"step",NA,NA,NA,NA,NA,NA
+"step","BART","BART","BART","MI","BART","BART"
