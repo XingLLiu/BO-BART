@@ -22,9 +22,10 @@ library(MCMCglmm)
 # global parameters: dimension
 args <- commandArgs(TRUE)
 dim <- 1
-num_iterations <- 2
-whichGenz <- 8
-whichKernel <- "rbf"
+num_iterations <- 1
+whichGenz <- 7
+whichKernel <- "matern32"
+jumps=1
 # turn on/off sequential design
 # 1 denotes TRUE to sequential
 # 0 denotes FALSE to sequential
@@ -58,12 +59,11 @@ print("Testing with: %s" %--% genzFunctionName)
 
 # prepare training dataset
 if (measure == "uniform") {
-  trainX <- replicate(dim, runif(500))
+  trainX <- replicate(dim, runif(50))
 } else if (measure == "gaussian") {
-  trainX <- replicate(dim, rtnorm(500, lower=0, upper=1))
+  trainX <- replicate(dim, rtnorm(50, lower=0, upper=1))
 }
 trainY <- genz(trainX)
-
 source("src/BARTBQ.R")
 t0 <- proc.time()
 posterior_model <- BART_posterior(dim, trainX, trainY, num_iterations, FUN = genz, sequential, measure)
@@ -71,11 +71,18 @@ t1 <- proc.time()
 bartTime <- (t1 - t0)[[1]]
 
 x_plot <- replicate(dim, runif(500))
-x_order <- order(x_plot)
-y_pred <- predict(posterior_model,x_plot)
+x_plot <- x_plot[order(x_plot),]
+y_pred <- predict(posterior_model$model, x_plot)
 y_pred_mean <- colMeans(y_pred)
 y_pred_sd <- sqrt(colVars(y_pred))
 
+# obtain posterior samples
+integrals <- sampleIntegrals(posterior_model$model, dim, measure)
+ymin <- min(posterior_model$trainData[, (dim + 1)]); ymax <- max(posterior_model$trainData[, (dim + 1)])
+integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
+
+plot(x_plot, y_pred_mean)
+hist(integrals)
 
 if (!sequential){
   figName <- "Figures/%s/drawBART%s%sDimNoSequential.pdf" %--% c(whichGenz, genzFunctionName, dim)
@@ -89,7 +96,7 @@ if (!sequential){
 
 results <- data.frame(
   "x_plot" = x_plot,
-  "y_pred" = y_pred
+  "y_pred" = y_pred_mean
 )
 groundTruth <- data.frame(
   "trainX" = trainX,
@@ -113,9 +120,12 @@ GPTime <- (t1 - t0)[[1]]
 
 K <- predictionGPBQ$K
 X <- predictionGPBQ$X
+Y <- Y[order(X)]
 Y <- predictionGPBQ$Y
-k_xstar_x <- kernelMatrix(rbfdot(.5/lengthscale^2), matrix(x_plot, ncol=1), X)
-k_xstar_xstar <- kernelMatrix(rbfdot(.5/lengthscale^2), 
+maternKernel <- maternKernelWrapper(lengthscale = lengthscale)
+
+k_xstar_x <- kernelMatrix(maternKernel, matrix(x_plot, ncol=1), X)
+k_xstar_xstar <- kernelMatrix(maternKernel, 
                               matrix(x_plot, ncol=1), 
                               matrix(x_plot, ncol=1))
 jitter = 1e-6
@@ -125,13 +135,71 @@ gp_post_mean <- k_xstar_x %*% K_inv %*% Y
 gp_post_cov <- k_xstar_xstar - k_xstar_x %*% K_inv %*% t(k_xstar_x)
 gp_post_sd <- sqrt(diag(gp_post_cov))
 
-x_order <- order(x_plot)
-plot(trainX, trainY, ylim=c(-0.5, 1))
-polygon(c(x_plot[x_order], rev(x_plot[x_order])),
-        c(gp_post_mean[x_order] - gp_post_sd[x_order], rev(gp_post_mean[x_order] + gp_post_sd[x_order])),
-        col = rgb(0, 0, 1, 0.6),
-        border = FALSE)
-points(x_plot, gp_post_mean, col = "red", cex=0.2)
+#plot of integrals
+GPdensity <- dnorm(
+  seq(0, 1, 0.01), 
+  mean = predictionGPBQ$meanValueGP[1], 
+  sd = sqrt(predictionGPBQ$varianceGP[1])
+)
+KDE_BART <- density(integrals)
+
+
+par(mfrow = c(1,2), pty = "s")
+plot(
+  seq(0, 1, 0.01), 
+  GPdensity, 
+  ty="l", 
+  col = "dodgerblue", 
+  xlim = c(0.3,0.7), 
+  ylim = c(0, 100),
+  xlab = "x",
+  ylab = "Posterior density",
+  cex.lab = 1.5,
+  cex.axis = 1.5,
+  lwd=3
+)
+points(KDE_BART, ty="l", col = "orangered", lwd=3)
+abline(v=0.5)
+legend("topright", legend=c("BART-Int", "GP-BQ", "Actual"),
+       col=c("orangered", "dodgerblue", "black"), cex=1, lty = c(1,1,1), lwd=3)
+
+a <-density(integrals)$y 
+# plot(trainX, trainY, ylim=c(-0.2, 1.3))
+plot(x_plot, 
+     gp_post_mean, 
+     col = "dodgerblue", 
+     cex=0.2, 
+     ty="l", 
+     ylim=c(-0.2, 1.3),
+     xlab = "x",
+     cex.lab = 1.5,
+     cex.axis = 1.5,
+     ylab = "y",
+     cex.lab = 1.5,
+     cex.axis = 1.5,
+     lwd=3
+ )
+points(trainX[order(trainX),], trainY[order(trainX), ], ty="l", lwd=3)
+points(trainX[order(trainX),], trainY[order(trainX), ], col = "black", bg='black', pch=21, lwd=3)
+polygon(c(x_plot, rev(x_plot)), 
+        c(
+          gp_post_mean + 2*gp_post_sd, 
+          rev(gp_post_mean - 2*gp_post_sd)
+        ), 
+        col = adjustcolor("dodgerblue", alpha.f = 0.10), 
+        border = "dodgerblue", lty = c("dashed", "solid"))
+# points(trainX, trainY, col = "blue")
+polygon(c(x_plot, rev(x_plot)), 
+        c(
+          y_pred_mean + 2*y_pred_sd, 
+          rev(y_pred_mean - 2*y_pred_sd)
+        ), 
+        col = adjustcolor("orangered", alpha.f = 0.10),  
+        border = "orangered", lty = c("dashed", "solid"))
+points(x_plot, y_pred_mean, col = "orangered", cex=0.2, ty="l", lwd=3)
+# legend("topright", legend=c("BART-Int", "GP-BQ"),
+#        col=c("orangered", "dodgerblue"), cex=1, lty = c(1,1,1,1))
+
 
 if (!sequential){
   figName <- "Figures/%s/drawGP%s%sDimNoSequential.pdf" %--% c(whichGenz, genzFunctionName, dim)
@@ -151,8 +219,8 @@ groundTruth <- data.frame(
   "trainX" = trainX,
   "trainY" = trainY
 )
-write.csv(results, file = csvName, row.names=FALSE)
-write.csv(groundTruth, file = groundTruthName, row.names=FALSE)
+# write.csv(results, file = csvName, row.names=FALSE)
+# write.csv(groundTruth, file = groundTruthName, row.names=FALSE)
 
 # print("Begin Plots")
 # # 1. Open jpeg file

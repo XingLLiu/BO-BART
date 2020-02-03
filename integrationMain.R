@@ -186,7 +186,7 @@ for (num_cv in 1:5) {
             tools::toTitleCase(measure),
             num_cv
        )
-    figName <- "Figures/%s/%sDim%s%s_%s.pdf" %--% c(
+    figName <- "Figures/%s/%sDim%s%s_%s_.pdf" %--% c(
             whichGenz,
             genzFunctionName,
             dim,
