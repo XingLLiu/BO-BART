@@ -1,0 +1,8 @@
+"","1","2","3","5","10","20"
+"cont","MI","BART","MI","BART","GP","MI"
+"copeak","BART","BART","BART","BART","GP","GP"
+"disc",NA,NA,NA,NA,NA,NA
+"gaussian","MI","MI","GP","GP","GP","BART"
+"oscil","GP","MI","GP","BART","BART","GP"
+"prpeak","MI","MI","GP","BART","MI","MI"
+"step","GP","BART","BART","MI","BART","GP"
