@@ -72,7 +72,7 @@ computeGPBQ <- function(X, Y, dim, epochs, kernel="rbf", FUN, lengthscale=1, seq
   meanValueGP[1] <- t(z) %*% solve(K + diag(jitter, N) , Y)
   tmp <- t(z)%*% solve(K + diag(jitter, N) , z) 
   varianceGP[1] <- var.firstterm - tmp
-  print(var.firstterm, tmp)
+  cat(var.firstterm, tmp,"\n")
 
   # train
   if (epochs == 0){
