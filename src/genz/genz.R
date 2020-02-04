@@ -413,7 +413,7 @@ gaussian_weighted <- function(xx)
 {
   ##########################################################################
   #
-  # GAUSSIAN PEAK INTEGRAND FAMILY
+  # WEIGHTED GAUSSIAN PEAK INTEGRAND FAMILY
   #
   # Authors: Sonja Surjanovic, Simon Fraser University
   #          Derek Bingham, Simon Fraser University
@@ -446,17 +446,71 @@ gaussian_weighted <- function(xx)
   #
   ##########################################################################
   
-  if (is.matrix(xx) == FALSE) { 
-    xx <- matrix(xx, nrow = 1) 
-  }
+  return(gaussian(xx) / dtnorm(xx, mean = 0.5, lower = 0, upper = 1))
   
-  dim <- ncol(xx)
-  u=rep(0.5, dim)
-  a <- rep(100/dim^2, dim) 
-  
-  sum <- (xx - u)^2 %*% a^2
-  y <- exp(-sum)
-  
-  return(y / dtnorm(xx, mean = 0.5, lower = 0, upper = 1))
-  
+}
+
+
+prpeak_weighted <- function(xx)
+{
+  ##########################################################################
+  #
+  # WEIGHTED PRODUC PEAK INTEGRAND FAMILY
+  #
+  # Authors: Sonja Surjanovic, Simon Fraser University
+  #          Derek Bingham, Simon Fraser University
+  # Questions/Comments: Please email Derek Bingham at dbingham@stat.sfu.ca.
+  #
+  # Copyright 2013. Derek Bingham, Simon Fraser University.
+  #
+  # THERE IS NO WARRANTY, EXPRESS OR IMPLIED. WE DO NOT ASSUME ANY LIABILITY
+  # FOR THE USE OF THIS SOFTWARE.  If software is modified to produce
+  # derivative works, such modified software should be clearly marked.
+  # Additionally, this program is free software; you can redistribute it 
+  # and/or modify it under the terms of the GNU General Public License as 
+  # published by the Free Software Foundation; version 2.0 of the License. 
+  # Accordingly, this program is distributed in the hope that it will be 
+  # useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+  # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+  # General Public License for more details.
+  #
+  # For function details and reference information, see:
+  # http://www.sfu.ca/~ssurjano/
+  #
+  ##########################################################################
+  #
+  # INPUTS:
+  #
+  # xx = c(x1, x2, ..., xd)
+  # u  = c(u1, u2, ..., ud) (optional), with default value
+  #      c(0.5, 0.5, ..., 0.5)
+  # a  = 600/dim^3, where dim = number of column of xx
+  #
+  ##########################################################################
+
+  return(prpeak(xx) / dtnorm(xx, mean = 0.5, lower = 0, upper = 1))
+}
+
+
+step_weighted <- function(xx, regularizer=1e-5, jumps)
+{
+  ##########################################################################
+  #
+  # WEIGHTED STEP FUNCTION
+  #
+  # f(x) = 0,             if x_1 < 1/(jumps + 1);
+  #        j/(jumps + 1), if j/(jumps + 1) < x_1 <= (j + 1)/(jumps + 1),
+  #                       for j = 1, ..., jumps
+  # where x \in \R^d
+  #
+  ##########################################################################
+  #
+  # INPUTS:
+  #
+  # xx = c(x1, x2, ..., xd)
+  # jumps = number of jumps
+  #
+  ##########################################################################
+
+  return(step(xx, regularizer, jumps) / dtnorm(xx, mean = 0.5, lower = 0, upper = 1))
 }

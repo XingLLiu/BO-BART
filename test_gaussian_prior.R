@@ -19,9 +19,10 @@ library(kernlab)
 }
 
 # global parameters: dimension
-dim <- 1
-num_iterations <- 1
-whichGenz <- 4
+args <- commandArgs(TRUE)
+dim <- as.double(args[1])
+num_iterations <- as.double(args[2])
+whichGenz <- as.double(args[3])
 whichKernel <- "matern32"
 # turn on/off sequential design
 # 1 denotes TRUE to sequential
@@ -33,10 +34,15 @@ cat("Sequantial design set to", sequential, "\n")
 # uniform by default
 measure = "gaussian"
 cat("Prior measure:", measure, "\n")
+# number of jumps if step function is used
+jumps <- 1
 
 print(c(dim, num_iterations, whichGenz))
 source("src/genz/genz.R") # genz function to test
+
 if (whichGenz == 4) { genz <- gaussian_weighted; genzFunctionName <-  deparse(substitute(gaussian)) }
+if (whichGenz == 6) { genz <- prpeak_weighted; genzFunctionName <-  deparse(substitute(prpeak)) }
+if (whichGenz == 7) { genz <- function(xx){return(step_weighted(xx, jumps=jumps))}; genzFunctionName <-  deparse(substitute(step)) }
 print("Testing with: %s" %--% genzFunctionName)
 
 # prepare training dataset
@@ -133,23 +139,74 @@ for (num_cv in 1:5) {
     "runtimeMI" = rep(MITime, num_iterations),
     "runtimeGP" = rep(GPTime, num_iterations)
   )
+
   print("Begin Plots")
   if (!sequential){
-      csvName <- "results/genz/%s/%sDim%sNoSequential%s_%s.csv" %--% c(
-      whichGenz, 
-      genzFunctionName,
-      dim,
-      tools::toTitleCase(measure),
-      num_cv
-    )
+    csvName <- "results/genz/%s/%sDim%sNoSequential%s_%s.csv" %--% c(
+            whichGenz, 
+            genzFunctionName,
+            dim,
+            tools::toTitleCase(measure),
+            num_cv
+            )
+    figName <- "Figures/%s/%sDim%sNoSequential%s_%s.pdf" %--% c(
+            whichGenz,
+            genzFunctionName,
+            dim,
+            tools::toTitleCase(measure),
+            num_cv
+            )
   } else {
     csvName <- "results/genz/%s/%sDim%s%s_%s.csv" %--% c(
-      whichGenz, 
-      genzFunctionName,
-      dim,
-      tools::toTitleCase(measure),
-      num_cv
+            whichGenz, 
+            genzFunctionName,
+            dim,
+            tools::toTitleCase(measure),
+            num_cv
+       )
+    figName <- "Figures/%s/%sDim%s%s_%s_.pdf" %--% c(
+            whichGenz,
+            genzFunctionName,
+            dim,
+            tools::toTitleCase(measure),
+            num_cv
     )
   }
+
   write.csv(results, file = csvName, row.names=FALSE)
+
+  print("Begin Plots")
+  # 1. Open jpeg file
+  pdf(figName, width = 10, height = 11)
+  # 2. Create the plot
+  par(mfrow = c(1,2), pty = "s")
+  plot(x = c(1:num_iterations), y = predictionMonteCarlo$meanValueMonteCarlo,
+       pch = 16, type = "l",
+       xlab = "Number of epochs N", ylab = "Integral approximation", col = "blue",
+       main = "Convergence of methods: mean vs N \nusing %s with %s epochs in %s dim" %--% c(genzFunctionName, num_iterations, dim),
+       ylim = c(-real, 3 * real), 
+       lty = 1,
+       xaxs="i", yaxs="i"
+       )
+  lines(x = c(1:num_iterations), predictionBART$meanValueBART, type = 'l', col = "red", lty = 1)
+  lines(x = c(1:num_iterations), predictionGPBQ$meanValueGP, type = 'l', col = "green", lty = 1)
+  abline(a = real, b = 0, lty = 4)
+  legend("topleft", legend=c("MC Integration", "BART BQ", "GP BQ", "Actual"),
+         col=c("blue", "red", "green", "black"), cex=0.8, lty = c(1,1,1,1))
+  
+  # 2. Create the plot
+  plot(x = log(c(2:num_iterations)), y = log(predictionMonteCarlo$standardDeviationMonteCarlo[-1]),
+       pch = 16, type = "l",
+       xlab = "Number of epochs N", ylab = "Log standard deviation", col = "blue",
+       main = "Convergence of methods: log(sd) vs log(N) \nusing %s with %s epochs in %s dim" %--% c(genzFunctionName, num_iterations, dim),
+       lty = 1,
+       xaxs="i", yaxs="i")
+  lines(x = log(c(2:num_iterations)), log(predictionBART$standardDeviationBART[-1]), type = 'l', col = "red", lty = 1)
+  lines(x = log(c(2:num_iterations)), log(sqrt(predictionGPBQ$varianceGP[-1])), type = 'l', col = "green", lty = 1)
+  legend("topleft", legend=c("MC Integration", "BART BQ", "GP BQ"),
+         col=c("blue", "red", "green"), cex=0.8, lty = c(1,1,1,1))
+  # 3. Close the file
+  invisible(dev.off())
+  
+  print("Please check {ROOT}/%s for plots" %--% figName)
 }
