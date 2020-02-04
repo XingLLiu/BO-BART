@@ -42,7 +42,8 @@ source("src/genz/genz.R") # genz function to test
 
 if (whichGenz == 4) { genz <- gaussian_weighted; genzFunctionName <-  deparse(substitute(gaussian)) }
 if (whichGenz == 6) { genz <- prpeak_weighted; genzFunctionName <-  deparse(substitute(prpeak)) }
-if (whichGenz == 7) { genz <- function(xx){return(step_weighted(xx, jumps=jumps))}; genzFunctionName <-  deparse(substitute(step)) }
+if (whichGenz == 7) { genz <- function(xx){return(step(xx, jumps=jumps))}; genzFunctionName <-  deparse(substitute(step)) }
+if (whichGenz == 8) { genz <- function(xx){return(step_weighted(xx, jumps=jumps))}; genzFunctionName <-  deparse(substitute(step)) }
 print("Testing with: %s" %--% genzFunctionName)
 
 # prepare training dataset

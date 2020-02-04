@@ -75,23 +75,21 @@ install.packages(packageurl, repos=NULL, type="source")
 Rscript integrationMain.R dimension num_iterations genz_function_number kernel_name sequential_flag (measure) (number_of_jumps_for_step_function)
 
 ```
-where `genz_function_number` is following the order in this [documentation](https://www.sfu.ca/~ssurjano/integration.html) of the Genz families. 
+where `genz_function_number` follows the indexing in this [documentation](https://www.sfu.ca/~ssurjano/integration.html) for the Genz families. The results will be stored in `results`, where you can find the `.csv` files containing the numerical values and the automatically generated graphs.
 
-This will generate the results in `../results`, where you can take a look at the `.csv` files or automatically generated graphs.
-
-4) If you want to tune the GP integral, you can also run
+3) If you want to tune the GP integral, you can also run
 
 ```
 Rscript GPRunTime.R dimension num_iterations genz_function_number initial_training_set_size
 ```
 
-Results will similarly be in `../results`.
+Results will also be stored in `results`.
 
-## To test the design in real-life data with provided dataset
+## To test the design with real-life data with provided
 
 1) Install the dependencies in `R`. Make sure you are using **R 3.5.0** or higher.
 
-2) In the terminal, `cd` to `meanPopulationStudy`
+2) In the terminal, `cd` to `src/meanPopulationStudy`
 
 3) Run
 
@@ -100,5 +98,5 @@ Rscript poptMean.R num_iterations
 
 ```
 
-This will generate the results in `meanPopulationStudy` where you can take a look at the `.csv` files or automatically generated graphs.
+This will generate and store the results in `meanPopulationStudy`, where you can find the `.csv` files containing the numerical values and the automatically generated graphs.
 
