@@ -47,7 +47,7 @@ computeGPBQ <- function(X, Y, dim, epochs, kernel="rbf", FUN, lengthscale=1, seq
   N <- dim(X)[1]
 
   K <- matrix(0,nrow=N,ncol=N)
-  jitter = 1e-6
+  jitter = 1e-8
 
   if (kernel == "rbf") {
     kernel <- rbfdot(.5/lengthscale^2)
@@ -59,20 +59,25 @@ computeGPBQ <- function(X, Y, dim, epochs, kernel="rbf", FUN, lengthscale=1, seq
   K = kernelMatrix(kernel, X)
   # compute the variance
   if (measure == "uniform"){
-    int.points.1 <- replicate(dim, runif(1000))
-    int.points.2 <- replicate(dim, runif(1000))
+    int.points.1 <- replicate(dim, runif(5000))
+    int.points.2 <- replicate(dim, runif(5000))
   } else if (measure == "gaussian") {
-    int.points.1 <- replicate(dim, rtnorm(1000, mean = 0.5, lower=0, upper=1))
-    int.points.2 <- replicate(dim, rtnorm(1000, mean = 0.5, lower=0, upper=1))
+    int.points.1 <- replicate(dim, rtnorm(5000, mean = 0.5, lower=0, upper=1))
+    int.points.2 <- replicate(dim, rtnorm(5000, mean = 0.5, lower=0, upper=1))
   }
   cov <- kernelMatrix(kernel, int.points.1, int.points.2)
   var.firstterm <- mean(cov[upper.tri(cov)])
   cov <- kernelMatrix(kernel, int.points.1, X)
   z <- colMeans(cov)
   meanValueGP[1] <- t(z) %*% solve(K + diag(jitter, N) , Y)
-  varianceGP[1] <- var.firstterm - t(z)%*% solve(K + diag(jitter, N) , z) #not quite right, missed out first term
+  tmp <- t(z)%*% solve(K + diag(jitter, N) , z) 
+  varianceGP[1] <- var.firstterm - tmp
+  cat(var.firstterm, tmp,"\n")
 
   # train
+  if (epochs == 0){
+    return (list("meanValueGP" = meanValueGP, "varianceGP" = varianceGP, "X" = X, "Y" = Y, "K" = K))
+  }
   for (p in 1:epochs) {
    
     print(paste("GPBQ: Epoch =", p))

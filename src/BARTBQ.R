@@ -253,7 +253,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, sequentia
     ymin <- min(trainData[, (dim + 1)]); ymax <- max(trainData[, (dim + 1)])
     # first build BART and scale mean and standard deviation
     sink("/dev/null")
-    model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
+    model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=5L, nskip=500, ndpost=1500, ntree=50, k = 2)
     # model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=2000)
     # model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=10000, ntree=50, k = 2)
 
@@ -322,7 +322,7 @@ BART_posterior <- function(dim, trainX, trainY, numNewTraining, FUN, sequential,
     ymin <- min(trainData[, (dim + 1)]); ymax <- max(trainData[, (dim + 1)])
     # first build BART and scale mean and standard deviation
     sink("/dev/null")
-    model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=1000, ntree=50, k = 5)
+    model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=5L, nskip=1000, ndpost=5000, ntree=50, k = 2)
     sink()
     # obtain posterior samples
     integrals <- sampleIntegrals(model, dim, measure)
@@ -352,7 +352,7 @@ BART_posterior <- function(dim, trainX, trainY, numNewTraining, FUN, sequential,
     value <- FUN(t(candidateSet[index,]))
     trainData <- rbind(trainData, c(candidateSet[index,], value))
   }
-  return (model)
+  return (list("model"=model, "trainData"=trainData))
 }
 
 mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY, sequential=TRUE, measure="uniform") 
