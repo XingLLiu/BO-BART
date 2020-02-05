@@ -6,10 +6,9 @@ library(data.tree)
 library(matrixStats)
 source("./bartMean.R")
 # set seed to enable reproduction
-set.seed(0)
 
 args <- as.double(commandArgs(TRUE))
-num_new_surveys <- 100
+num_new_surveys <- 2
 
 # read in data
 trainData <- read.csv("../../data/train.csv")
@@ -51,7 +50,7 @@ for (num_cv in 1:5) {
         "BRSMean" = BRSresults$meanValueBRS, "BRSsd" = BRSresults$standardDeviationBRS, 
         "PoptMean" = poptMean
     )
-    write.csv(results, file = paste("results", num_cv, ".pdf", sep=""), row.names=FALSE)
+    write.csv(results, file = paste("results", num_cv, ".csv", sep=""), row.names=FALSE)
     
     real <- results$PoptMean[1]
     # 1. Open jpeg file

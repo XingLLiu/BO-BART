@@ -45,8 +45,6 @@ computeBART <- function(trainX, trainY, condidateX, candidateY, num_iterations)
   for (i in 1:num_iterations) {
     
     # set seed to enable reproduction of the results
-    set.seed(i)
-
     print(c("BART: Epoch=", i))
     # first build BART model
     sink("/dev/null")
