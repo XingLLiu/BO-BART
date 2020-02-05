@@ -32,81 +32,85 @@ candidateY <- candidateData[, (cols+1)]/1000
 # compute the real population mean income
 poptMean <- mean(populationData$Total_person_income/1000)
 
-# compute population average income estimates by BARTBQ
-BARTresults <- computeBART(trainX, trainY, candidateX, candidateY, num_iterations=num_new_surveys)
 
-# population average income estimation by Monte Carlo
-MIresults <- computeMI(trainX, trainY, candidateX, candidateY, num_iterations=num_new_surveys)
-
-# population average income estimation by block random sampling
-BRSresults <- computeBRS(trainX, trainY, candidateX, candidateY, group = "Race", num_iterations=num_new_surveys)
-
-# store results
-results <- data.frame(
-    "epochs" = c(1:num_new_surveys),
-    "BARTMean" = BARTresults$meanValueBART, "BARTsd" = BARTresults$standardDeviationBART,
-    "MIMean" = MIresults$meanValueMI, "MIsd" = MIresults$standardDeviationMI, 
-    "BRSMean" = BRSresults$meanValueBRS, "BRSsd" = BRSresults$standardDeviationBRS, 
-    "PoptMean" = poptMean
-)
-write.csv(results, file = "./population.csv", row.names=FALSE)
-
-real <- results$PoptMean[1]
-# 1. Open jpeg file
-plot_points <- seq(0, num_new_surveys, 10)
-pdf("results.pdf", width = 8,5, height = 10)
-par(mfrow = c(1,2), pty = "s")
-ymin <- min(c(results$BARTMean - 2*results$BARTsd, results$BRSMean - 2*results$BRSsd, results$MIMean[1:num_new_surveys]))
-ymax <- max(c(results$BARTMean + 2*results$BARTsd, results$BRSMean + 2*results$BRSsd, results$MIMean[1:num_new_surveys]))
-plot(results$epochs,
-     abs(results$BARTMean - results$PoptMean),
-     ty="l",
-     ylab = "Absolute Error",
-     xlab = "num_iterations",
-     col = "chartreuse4",
-     ylim = c(0, 40)
-)
-abline(h=0)
-points(results$epochs[plot_points], abs(results$MIMean[plot_points] - real), col = "chartreuse4", bg='chartreuse4', pch=21, lwd=3)
-points(results$epochs[plot_points], abs(results$BARTMean[plot_points] - real), col = "orangered",bg='orangered', pch=21, lwd=3)
-points(results$epochs, abs(results$BARTMean - real), ty="l", col = "orangered")
-points(results$epochs, abs(results$BRSMean-real), ty="l", col = "dodgerblue")
-points(results$epochs[plot_points], abs(results$BRSMean[plot_points] - real), col = "dodgerblue", bg='dodgerblue', pch=21, lwd=3)
-legend("topright", legend=c("Block sampling", "BART-Int", "GP-BQ"),
-       col=c("chartreuse4", "orangered", "dodgerblue"), cex=0.8, lty = c(1,1,1,1))
-
-ymin <- min(c(results$BARTMean - 2*results$BARTsd, results$BRSMean - 2*results$BRSsd, results$MIMean[1:num_new_surveys]))
-ymax <- max(c(results$BARTMean + 2*results$BARTsd, results$BRSMean + 2*results$BRSsd, results$MIMean[1:num_new_surveys]))
-
-plot(results$epochs, 
-     results$MIMean, 
-     ty="l", 
-     ylab = "Mean Population",
-     xlab = "num_iterations",
-     col = "chartreuse4",
-     ylim = c(ymin, ymax)
-)
-points(results$epochs[plot_points], results$MIMean[plot_points], col = "chartreuse4", bg='chartreuse4', pch=21, lwd=3)
-points(results$epochs, results$BRSMean, ty="l", col = "dodgerblue")
-points(results$epochs[plot_points], results$BRSMean[plot_points], col = "dodgerblue", bg='dodgerblue', pch=21, lwd=3)
-polygon(c(results$epochs, rev(results$epochs)), 
-        c(
-          results$BRSMean + 2*results$BRSsd, 
-          rev(results$BRSMean - 2*results$BRSsd)
-        ), 
-        col = adjustcolor("dodgerblue", alpha.f = 0.10), 
-        border = "dodgerblue", lty = c("dashed", "solid"))
-points(results$epochs, results$BARTMean, ty="l", col = "orangered")
-points(results$epochs[plot_points], results$BARTMean[plot_points], col = "orangered",bg='orangered', pch=21, lwd=3)
-polygon(c(results$epochs, rev(results$epochs)), 
-        c(
-          results$BARTMean + 2*results$BARTsd, 
-          rev(results$BARTMean - 2*results$BARTsd)
-        ), 
-        col = adjustcolor("orangered", alpha.f = 0.10), 
-        border = "orangered", lty = c("dashed", "solid"))
-abline(h=results$PoptMean)
-dev.off()
+for (num_cv in 1:5) {
+    # compute population average income estimates by BARTBQ
+    BARTresults <- computeBART(trainX, trainY, candidateX, candidateY, num_iterations=num_new_surveys)
+    
+    # population average income estimation by Monte Carlo
+    MIresults <- computeMI(trainX, trainY, candidateX, candidateY, num_iterations=num_new_surveys)
+    
+    # population average income estimation by block random sampling
+    BRSresults <- computeBRS(trainX, trainY, candidateX, candidateY, group = "Race", num_iterations=num_new_surveys)
+    
+    # store results
+    results <- data.frame(
+        "epochs" = c(1:num_new_surveys),
+        "BARTMean" = BARTresults$meanValueBART, "BARTsd" = BARTresults$standardDeviationBART,
+        "MIMean" = MIresults$meanValueMI, "MIsd" = MIresults$standardDeviationMI, 
+        "BRSMean" = BRSresults$meanValueBRS, "BRSsd" = BRSresults$standardDeviationBRS, 
+        "PoptMean" = poptMean
+    )
+    write.csv(results, file = paste("results", num_cv, ".pdf", sep=""), row.names=FALSE)
+    
+    real <- results$PoptMean[1]
+    # 1. Open jpeg file
+    plot_points <- seq(0, num_new_surveys, 10)
+    pdf(paste("results", num_cv, ".pdf", sep=""), width = 8,5, height = 10)
+    par(mfrow = c(1,2), pty = "s")
+    ymin <- min(c(results$BARTMean - 2*results$BARTsd, results$BRSMean - 2*results$BRSsd, results$MIMean[1:num_new_surveys]))
+    ymax <- max(c(results$BARTMean + 2*results$BARTsd, results$BRSMean + 2*results$BRSsd, results$MIMean[1:num_new_surveys]))
+    plot(results$epochs,
+         abs(results$BARTMean - results$PoptMean),
+         ty="l",
+         ylab = "Absolute Error",
+         xlab = "num_iterations",
+         col = "chartreuse4",
+         ylim = c(0, 40)
+    )
+    abline(h=0)
+    
+    points(results$epochs[plot_points], abs(results$MIMean[plot_points] - real), col = "chartreuse4", bg='chartreuse4', pch=21, lwd=3)
+    points(results$epochs[plot_points], abs(results$BARTMean[plot_points] - real), col = "orangered",bg='orangered', pch=21, lwd=3)
+    points(results$epochs, abs(results$BARTMean - real), ty="l", col = "orangered")
+    points(results$epochs, abs(results$BRSMean-real), ty="l", col = "dodgerblue")
+    points(results$epochs[plot_points], abs(results$BRSMean[plot_points] - real), col = "dodgerblue", bg='dodgerblue', pch=21, lwd=3)
+    legend("topright", legend=c("Block sampling", "BART-Int", "GP-BQ"),
+           col=c("chartreuse4", "orangered", "dodgerblue"), cex=0.8, lty = c(1,1,1,1))
+    
+    ymin <- min(c(results$BARTMean - 2*results$BARTsd, results$BRSMean - 2*results$BRSsd, results$MIMean[1:num_new_surveys]))
+    ymax <- max(c(results$BARTMean + 2*results$BARTsd, results$BRSMean + 2*results$BRSsd, results$MIMean[1:num_new_surveys]))
+    
+    plot(results$epochs, 
+         results$MIMean, 
+         ty="l", 
+         ylab = "Mean Population",
+         xlab = "num_iterations",
+         col = "chartreuse4",
+         ylim = c(ymin, ymax)
+    )
+    points(results$epochs[plot_points], results$MIMean[plot_points], col = "chartreuse4", bg='chartreuse4', pch=21, lwd=3)
+    points(results$epochs, results$BRSMean, ty="l", col = "dodgerblue")
+    points(results$epochs[plot_points], results$BRSMean[plot_points], col = "dodgerblue", bg='dodgerblue', pch=21, lwd=3)
+    polygon(c(results$epochs, rev(results$epochs)), 
+            c(
+              results$BRSMean + 2*results$BRSsd, 
+              rev(results$BRSMean - 2*results$BRSsd)
+            ), 
+            col = adjustcolor("dodgerblue", alpha.f = 0.10), 
+            border = "dodgerblue", lty = c("dashed", "solid"))
+    points(results$epochs, results$BARTMean, ty="l", col = "orangered")
+    points(results$epochs[plot_points], results$BARTMean[plot_points], col = "orangered",bg='orangered', pch=21, lwd=3)
+    polygon(c(results$epochs, rev(results$epochs)), 
+            c(
+              results$BARTMean + 2*results$BARTsd, 
+              rev(results$BARTMean - 2*results$BARTsd)
+            ), 
+            col = adjustcolor("orangered", alpha.f = 0.10), 
+            border = "orangered", lty = c("dashed", "solid"))
+    abline(h=results$PoptMean)
+    dev.off()
+}
 
 # data segmentation by education level
 # studies <- c("Highschool and below", "Beyond highschool")
