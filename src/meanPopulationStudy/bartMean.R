@@ -50,8 +50,8 @@ computeBART <- function(trainX, trainY, condidateX, candidateY, num_iterations)
     print(c("BART: Epoch=", i))
     # first build BART model
     sink("/dev/null")
-    model <- bart(trainData[, 1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=3L, 
-                  nskip=500, ndpost=2000, ntree=50, k=2, usequant=FALSE)
+    model <- bart(trainData[, 1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=5L, 
+                  nskip=500, ndpost=2500, ntree=50, k=2, usequant=FALSE)
     sink()
 
     # predict the values
