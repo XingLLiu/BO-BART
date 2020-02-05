@@ -8,11 +8,7 @@ source("./bartMean.R")
 # set seed to enable reproduction
 
 args <- as.double(commandArgs(TRUE))
-<<<<<<< HEAD
 num_new_surveys <- 500
-=======
-num_new_surveys <- 2
->>>>>>> 412242a2f9ae2bd940bf072c816bc62b0ae55759
 
 # read in data
 trainData <- read.csv("../../data/train.csv")
