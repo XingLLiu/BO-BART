@@ -51,7 +51,7 @@ fillProbabilityForNode <- function(oneTree, cutPoints, cut, measure)
       oneTree$leftChild$probability <- (decisionRule - cut[1, oneTree$splitVar]) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
       oneTree$rightChild$probability <- (cut[2, oneTree$splitVar] - decisionRule) / (cut[2, oneTree$splitVar] - cut[1, oneTree$splitVar])
     } else if (measure == "gaussian") {
-      normalizingConst <- pmvnorm(cut[1, oneTree$splitVar], cut[2, oneTree$splitVar], sigma=1)
+      normalizingConst <- pmvnorm(cut[1, oneTree$splitVar], cut[2, oneTree$splitVar], mean=0.5, sigma=1)
       oneTree$leftChild$probability <- pmvnorm(cut[1, oneTree$splitVar], decisionRule, sigma=1) / normalizingConst
       oneTree$rightChild$probability <- 1 - oneTree$leftChild$probability
     }
