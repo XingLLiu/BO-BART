@@ -2,7 +2,7 @@ library(lhs)
 library(dbarts)
 library(data.tree)
 library(matrixStats)
-library(docstring)
+# library(docstring)
 
 # define string formatting
 `%--%` <- function(x, y) 
@@ -45,13 +45,11 @@ computeBART <- function(trainX, trainY, condidateX, candidateY, num_iterations)
   for (i in 1:num_iterations) {
     
     # set seed to enable reproduction of the results
-    set.seed(i)
-
     print(c("BART: Epoch=", i))
     # first build BART model
     sink("/dev/null")
-    model <- bart(trainData[, 1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=5L, 
-                  nskip=100, ndpost=200, ntree=50, k=10, usequant=FALSE)
+    model <- bart(trainData[, 1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=3L, 
+                  nskip=500, ndpost=2000, ntree=50, k=2, usequant=FALSE)
     sink()
 
     # predict the values
