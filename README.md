@@ -5,7 +5,7 @@
 
 Bayesian Optimization using Bayesian Additive Regression Trees (under review)
 
-- Briol F-X, Kang R, Liu X, Shen Z, Zhu H and Flaxman S
+- Zhu H, Liu X, Briol F-X, Kang R, Shen Z, and Flaxman S
 
 Project Documentation: https://bart-bq.readthedocs.io/en/latest/
 
