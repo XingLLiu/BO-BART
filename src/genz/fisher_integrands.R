@@ -11,7 +11,8 @@ gf_func <- function(x, f)
   return (result)
 }
 
-create_fisher_function <- function(C, R, H, F, P, dim) {
+create_fisher_function <- function(C, R, H, F, P, dim) 
+{
   fisher_function <- function(x) {
     integrand <- 1
     for (i in 1:dim) {
@@ -26,5 +27,10 @@ create_fisher_function <- function(C, R, H, F, P, dim) {
   return(fisher_function)
 }
 
-
-
+estimate_real_integral <- function(func, dim, num_discrete) 
+{
+  groundX <- replicate(dim, seq(0, 1, 1/num_discrete))
+  groundY <- func(groundX)
+  real <- mean(groundY)
+  return (real)
+}
