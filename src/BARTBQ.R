@@ -5,7 +5,6 @@ library(lhs)
 library(dbarts)
 library(data.tree)
 library(matrixStats)
-library(doParallel)
 library(mvtnorm)
 library(msm)
 terminalProbability <- function(currentNode) 
@@ -288,7 +287,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, sequentia
   }
 
   return (list("meanValueBART"=meanValue, "standardDeviationBART"=standardDeviation, 
-               "trainData" = trainData))
+               "trainData" = trainData, "model"=model))
 }
 
 BART_posterior <- function(dim, trainX, trainY, numNewTraining, FUN, sequential, measure="uniform")
