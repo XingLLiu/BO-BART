@@ -43,10 +43,10 @@ P <- rep(1, dim)
 fisher_function <- create_fisher_function(C, R, H, F, P, dim)
 # prepare training dataset
 if (measure == "uniform") {
-  trainX <- replicate(dim, runif(50))
+  trainX <- replicate(dim, runif(100, 0, 1))
   trainY <- fisher_function(trainX)
 } else if (measure == "gaussian") {
-  trainX <- replicate(dim, rtnorm(50, mean=0.5, lower=0, upper=1))
+  trainX <- replicate(dim, rtnorm(100, mean=0.5, lower=0, upper=1))
   trainY <- fisher_function(trainX)
 }
 fisher_1d <- create_fisher_function(C[1], R[1], H[1], F[1], P[1], 1)
@@ -147,99 +147,101 @@ for (num_cv in 1:5) {
   
   write.csv(results, file = csvName, row.names=FALSE)
   
-  # Plotting
-  
-  x_plot <- replicate(dim, runif(500))
-  x_plot <- x_plot[order(x_plot),]
-  y_pred <- predict(predictionBART$model, x_plot)
-  y_pred_mean <- colMeans(y_pred)
-  y_pred_sd <- sqrt(colVars(y_pred))
-  
-  # obtain posterior samples
-  integrals <- sampleIntegrals(predictionBART$model, dim, measure)
-  ymin <- min(predictionBART$trainData[, (dim + 1)]); ymax <- max(predictionBART$trainData[, (dim + 1)])
-  integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
-  
-  K <- predictionGPBQ$K
-  X <- predictionGPBQ$X
-  Y <- predictionGPBQ$Y
-  Y <- Y[order(X)]
-  maternKernel <- maternKernelWrapper(lengthscale = lengthscale)
-  
-  k_xstar_x <- kernelMatrix(maternKernel, matrix(x_plot, ncol=1), X)
-  k_xstar_xstar <- kernelMatrix(maternKernel, 
-                                matrix(x_plot, ncol=1), 
-                                matrix(x_plot, ncol=1))
-  jitter = 1e-6
-  K_inv <- solve(K + diag(jitter, nrow(K)))
-  
-  gp_post_mean <- k_xstar_x %*% K_inv %*% Y
-  gp_post_cov <- k_xstar_xstar - k_xstar_x %*% K_inv %*% t(k_xstar_x)
-  gp_post_sd <- sqrt(diag(gp_post_cov))
-  
-  #plot of integrals
-  GPdensity <- dnorm(
-    seq(0, 1, 0.01), 
-    mean = predictionGPBQ$meanValueGP[1], 
-    sd = sqrt(predictionGPBQ$varianceGP[1])
-  )
-  plot(x_plot, y_pred_mean)
-  hist(integrals)
-  KDE_BART <- density(integrals)
-  
-  pdf(figName, width = 12, height = 8)
-  par(mfrow = c(1,2), pty = "s", cex=1.5)
-  plot(
-    seq(0, 1, 0.01), 
-    GPdensity, 
-    ty="l", 
-    col = "dodgerblue", 
-    xlim = c(0,1), 
-    ylim = c(0, 60),
-    xlab = "x",
-    ylab = "Posterior density",
-    cex.lab = 1.5,
-    cex.axis = 1.5,
-    lwd=3
-  )
-  points(KDE_BART, ty="l", col = "orangered", lwd=3)
-  abline(v=real)
-  legend("topright", legend=c("BART-Int", "GP-BQ", "Actual"),
-         col=c("orangered", "dodgerblue", "black"), cex=0.6, lty = c(1,1,1), lwd=3)
-  
-  a <-density(integrals)$y 
-  plot(x_plot, 
-       gp_post_mean, 
-       col = "dodgerblue", 
-       cex=0.5, 
-       ty="l", 
-       ylim=c(-2, 4),
-       xlab = "x",
-       cex.lab = 1.5,
-       cex.axis = 1.5,
-       ylab = "y",
-       cex.lab = 1.5,
-       cex.axis = 1.5,
-       lwd=3
-  )
-  points(trainX[order(trainX),], trainY[order(trainX), ], ty="l", lwd=3)
-  points(trainX[order(trainX),], trainY[order(trainX), ], col = "black", bg='black', pch=21, lwd=3, cex=0.5)
-  polygon(c(x_plot, rev(x_plot)), 
-          c(
-            gp_post_mean + 2*gp_post_sd, 
-            rev(gp_post_mean - 2*gp_post_sd)
-          ), 
-          col = adjustcolor("dodgerblue", alpha.f = 0.10), 
-          border = "dodgerblue", lty = c("dashed", "solid"))
-  # points(trainX, trainY, col = "blue")
-  polygon(c(x_plot, rev(x_plot)), 
-          c(
-            y_pred_mean + 2*y_pred_sd, 
-            rev(y_pred_mean - 2*y_pred_sd)
-          ), 
-          col = adjustcolor("orangered", alpha.f = 0.10),  
-          border = "orangered", lty = c("dashed", "solid"))
-  points(x_plot, y_pred_mean, col = "orangered", cex=0.5, ty="l", lwd=3)
+  if (dim == 1) {
+    
+    # Plotting
+    x_plot <- replicate(dim, runif(500))
+    x_plot <- x_plot[order(x_plot),]
+    y_pred <- predict(predictionBART$model, x_plot)
+    y_pred_mean <- colMeans(y_pred)
+    y_pred_sd <- sqrt(colVars(y_pred))
+    
+    # obtain posterior samples
+    integrals <- sampleIntegrals(predictionBART$model, dim, measure)
+    ymin <- min(predictionBART$trainData[, (dim + 1)]); ymax <- max(predictionBART$trainData[, (dim + 1)])
+    integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
+    
+    K <- predictionGPBQ$K
+    X <- predictionGPBQ$X
+    Y <- predictionGPBQ$Y
+    Y <- Y[order(X)]
+    maternKernel <- maternKernelWrapper(lengthscale = lengthscale)
+    
+    k_xstar_x <- kernelMatrix(maternKernel, matrix(x_plot, ncol=1), X)
+    k_xstar_xstar <- kernelMatrix(maternKernel, 
+                                  matrix(x_plot, ncol=1), 
+                                  matrix(x_plot, ncol=1))
+    jitter = 1e-6
+    K_inv <- solve(K + diag(jitter, nrow(K)))
+    
+    gp_post_mean <- k_xstar_x %*% K_inv %*% Y
+    gp_post_cov <- k_xstar_xstar - k_xstar_x %*% K_inv %*% t(k_xstar_x)
+    gp_post_sd <- sqrt(diag(gp_post_cov))
+    
+    #plot of integrals
+    GPdensity <- dnorm(
+      seq(0, 1, 0.01), 
+      mean = predictionGPBQ$meanValueGP[1], 
+      sd = sqrt(predictionGPBQ$varianceGP[1])
+    )
+    plot(x_plot, y_pred_mean)
+    hist(integrals)
+    KDE_BART <- density(integrals)
+    
+    pdf(figName, width = 12, height = 8)
+    par(mfrow = c(1,2), pty = "s", cex=1.5)
+    plot(
+      seq(0, 1, 0.01), 
+      GPdensity, 
+      ty="l", 
+      col = "dodgerblue", 
+      xlim = c(0,1), 
+      ylim = c(0, 60),
+      xlab = "x",
+      ylab = "Posterior density",
+      cex.lab = 1.5,
+      cex.axis = 1.5,
+      lwd=3
+    )
+    points(KDE_BART, ty="l", col = "orangered", lwd=3)
+    abline(v=real)
+    legend("topright", legend=c("BART-Int", "GP-BQ", "Actual"),
+           col=c("orangered", "dodgerblue", "black"), cex=0.6, lty = c(1,1,1), lwd=3)
+    
+    a <-density(integrals)$y 
+    plot(x_plot, 
+         gp_post_mean, 
+         col = "dodgerblue", 
+         cex=0.5, 
+         ty="l", 
+         ylim=c(-2, 4),
+         xlab = "x",
+         cex.lab = 1.5,
+         cex.axis = 1.5,
+         ylab = "y",
+         cex.lab = 1.5,
+         cex.axis = 1.5,
+         lwd=3
+    )
+    points(trainX[order(trainX),], trainY[order(trainX), ], ty="l", lwd=3)
+    points(trainX[order(trainX),], trainY[order(trainX), ], col = "black", bg='black', pch=21, lwd=3, cex=0.5)
+    polygon(c(x_plot, rev(x_plot)), 
+            c(
+              gp_post_mean + 2*gp_post_sd, 
+              rev(gp_post_mean - 2*gp_post_sd)
+            ), 
+            col = adjustcolor("dodgerblue", alpha.f = 0.10), 
+            border = "dodgerblue", lty = c("dashed", "solid"))
+    # points(trainX, trainY, col = "blue")
+    polygon(c(x_plot, rev(x_plot)), 
+            c(
+              y_pred_mean + 2*y_pred_sd, 
+              rev(y_pred_mean - 2*y_pred_sd)
+            ), 
+            col = adjustcolor("orangered", alpha.f = 0.10),  
+            border = "orangered", lty = c("dashed", "solid"))
+    points(x_plot, y_pred_mean, col = "orangered", cex=0.5, ty="l", lwd=3)
+  }
 }
 
 

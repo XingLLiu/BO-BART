@@ -86,35 +86,13 @@ computeGPBQ <- function(X, Y, dim, epochs, kernel="rbf", FUN, lengthscale=1, seq
     K_prime <- diag(N+p)
     K_prime[1:(N+p-1), 1:(N+p-1)] <- K
     
-    # candidate_Var <- c()
-    # candidate_p <- c()
 
 
-    # for(i in 1:candidateSetNum) {
-    #   candidate_p[i] <- pmvnorm(rep(0, dim), rep(1, dim) , mean = candidateSet[i,], sigma = diag(lengthscale^2, dim))[[1]] * (2*pi*lengthscale^2)^(dim/2) 
-    #   # add in extra term obtained by integration
-    # }
-    K_star_star <- kernelMatrix(kernel, candidateSet)
-    K_star <- kernelMatrix(kernel, candidateSet, X)
-
-    candidate_Var <- diag(K_star_star - K_star %*% solve(K + diag(jitter, nrow(K)), t(K_star)))
-
-    # for (i in 1:candidateSetNum) {
-
-    #   kernel_new_entries <- kernelMatrix(kernel, matrix(candidateSet[i,], nrow = 1), X)
-
-
-    #   K_prime[1:(N+p-1),(N+p)] <- kernel_new_entries
-    #   K_prime[(N+p),1:(N+p-1)] <- kernel_new_entries
-      
-    #   # z[N+p] <- candidate_p[i]
-      
-    #   if (sequential){
-    #     candidate_Var[i] <- t(z)%*%solve(K_prime + diag(jitter,nrow(K_prime)), z) # where is the integral here
-    #   }
-    # }
     
     if (sequential){
+      K_star_star <- kernelMatrix(kernel, candidateSet)
+      K_star <- kernelMatrix(kernel, candidateSet, X)
+      candidate_Var <- diag(K_star_star - K_star %*% solve(K + diag(jitter, nrow(K)), t(K_star)))
       index <- which(candidate_Var == max(candidate_Var))[1]
     }
     else {

@@ -243,9 +243,26 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, sequentia
   meanValue <- rep(0, numNewTraining)
   standardDeviation <- rep(0, numNewTraining)
   trainData <- data.frame(trainX, trainY)
+  print(paste("BART: Epoch = ", 1))
+  # find the min and max range of y
+  ymin <- min(trainData[, (dim + 1)]); ymax <- max(trainData[, (dim + 1)])
+  # first build BART and scale mean and standard deviation
+  sink("/dev/null")
+  model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=5L, nskip=500, ndpost=1500, ntree=50, k = 2)
+  sink()
+  # obtain posterior samples
+  integrals <- sampleIntegrals(model, dim, measure)
+  integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
+  meanValue[1] <- mean(integrals)
+  standardDeviation[1] <- sqrt( sum((integrals - meanValue[1])^2) / (length(integrals) - 1) )
+
+  if (numNewTraining == 1) {
+    return (list("meanValueBART"=meanValue, "standardDeviationBART"=standardDeviation, 
+                "trainData" = trainData, "model"=model))
+  }
   
   # generate extra training data using the scheme (see pdf)
-  for (i in 1:numNewTraining) {
+  for (i in 2:numNewTraining) {
     
     print(paste("BART: Epoch =", i))
     # find the min and max range of y
