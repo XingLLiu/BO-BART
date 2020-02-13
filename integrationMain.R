@@ -100,7 +100,7 @@ for (num_cv in 1:5) {
   source("src/monteCarloIntegration.R")
   
   t0 <- proc.time()
-  predictionMonteCarlo <- monteCarloIntegrationUniform(FUN = genz, numSamples=num_iterations, dim, measure)
+  predictionMonteCarlo <- monteCarloIntegrationUniform(FUN = genz, trainX, trainY, numSamples=num_iterations, dim, measure)
   t1 <- proc.time()
   
   MITime <- (t1 - t0)[[1]]
@@ -184,7 +184,7 @@ for (num_cv in 1:5) {
             dim,
             tools::toTitleCase(measure),
             num_cv
-    )
+    ))
   } else {
     csvName <- "results/genz/%s/%sDim%s%s_%s.csv" %--% c(
             whichGenz, 
