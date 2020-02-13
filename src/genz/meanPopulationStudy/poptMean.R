@@ -54,7 +54,7 @@ for (num_cv in 1:5) {
     
     real <- results$PoptMean[1]
     # 1. Open jpeg file
-    plot_points <- seq(0, num_new_surveys, 50)
+    plot_points <- seq(0, num_new_surveys, 10)
     pdf(paste("results", num_cv, ".pdf", sep=""), width = 8,5, height = 10)
     par(mfrow = c(1,2), pty = "s")
     ymin <- min(c(results$BARTMean - 2*results$BARTsd, results$BRSMean - 2*results$BRSsd, results$MIMean[1:num_new_surveys]))

@@ -8,8 +8,8 @@ for (num_cv in 1:5) {
   plot_points <- seq(0, 1000, 100)
   pdf(paste("results", num_cv, ".pdf", sep=""), width = 8.5, height = 5)
   par(mfrow = c(1,2), pty = "s")
-  ymin <- min(c(results$BARTMean - 2*results$BARTsd, results$BRSMean - 2*results$BRSsd, results$MIMean[1:num_new_surveys]))
-  ymax <- max(c(results$BARTMean + 2*results$BARTsd, results$BRSMean + 2*results$BRSsd, results$MIMean[1:num_new_surveys]))
+  ymin <- min(results$BARTMean - 2*results$BARTsd, results$BRSMean - 2*results$BRSsd, results$MIMean[1:num_new_surveys])
+  ymax <- max(results$BARTMean + 2*results$BARTsd, results$BRSMean + 2*results$BRSsd, results$MIMean[1:num_new_surveys])
   plot(results$epochs,
        abs(results$BARTMean - results$PoptMean),
        ty="l",

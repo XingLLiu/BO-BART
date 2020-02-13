@@ -49,7 +49,8 @@ if (measure == "uniform") {
   trainX <- replicate(dim, rtnorm(50, mean=0.5, lower=0, upper=1))
   trainY <- fisher_function(trainX)
 }
-real <- estimate_real_integral(fisher_function, dim, 1e6) 
+fisher_1d <- create_fisher_function(C[1], R[1], H[1], F[1], P[1], 1)
+real <- estimate_real_integral(fisher_1d, 1, 1e7)^dim
 
 for (num_cv in 1:5) {
   cat("NUM_CV", num_cv, "\n")

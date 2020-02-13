@@ -29,7 +29,7 @@ create_fisher_function <- function(C, R, H, F, P, dim)
 
 estimate_real_integral <- function(func, dim, num_discrete) 
 {
-  groundX <- replicate(dim, seq(0, 1, 1/num_discrete))
+  groundX <- replicate(dim, runif(num_discrete, 0, 1))
   groundY <- func(groundX)
   real <- mean(groundY)
   return (real)
