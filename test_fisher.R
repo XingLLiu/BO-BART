@@ -67,7 +67,7 @@ for (num_cv in 1:5) {
   source("src/monteCarloIntegration.R")
   
   t0 <- proc.time()
-  predictionMonteCarlo <- monteCarloIntegrationUniform(FUN = fisher_function, numSamples=num_iterations, dim, measure)
+  predictionMonteCarlo <- monteCarloIntegrationUniform(FUN = fisher_function, trainX, trainY, numSamples=num_iterations, dim, measure)
   t1 <- proc.time()
   
   MITime <- (t1 - t0)[[1]]

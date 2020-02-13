@@ -1,4 +1,4 @@
-monteCarloIntegrationUniform <- function(FUN, numSamples, dim, measure)
+monteCarloIntegrationUniform <- function(FUN, trainX, trainY, numSamples, dim, measure)
   #'Crude Monte Carlo Approximation
   #' 
   #'@description The function approximates the integral of interest using curde monte carlo
@@ -11,19 +11,30 @@ monteCarloIntegrationUniform <- function(FUN, numSamples, dim, measure)
   #'@return List; A list containing meanValue (appximation) and the variance of crude monte Carlo
 {
 	meanValueMonteCarlo <- rep(0, numSamples)
-	standardDeviationMonteCarlo <- rep(0, numSamples)
+  	standardDeviationMonteCarlo <- rep(0, numSamples)
+  	trainData <- data.frame(trainX, trainY)
 	
-	for (i in 50:(50+numSamples)) {
-	  
-	  if (measure == "uniform") {
-	    CandidateSet <- replicate(dim, runif(i, 0, 1))
-	  } else if (measure == "gaussian") {
-	    CandidateSet <- replicate(dim, rtnorm(i, mean=0.5, lower=0, upper=1))
-	  }
-
-	  functionSamples <- FUN(CandidateSet)
-	  meanValueMonteCarlo[i-49] <- mean(functionSamples)
-	  standardDeviationMonteCarlo[i-49] <- sqrt(var(functionSamples))
+	meanValueMonteCarlo[1] <- mean(trainData[, dim+1])
+	standardDeviationMonteCarlo[1] <- sqrt(var(trainData[, dim+1]))
+	if (numSamples == 1) {
+		return(list("meanValueMonteCarlo" = meanValueMonteCarlo, 
+					"standardDeviationMonteCarlo" = standardDeviationMonteCarlo, 
+					"trainData"=trainData))
 	}
-	return(list("meanValueMonteCarlo" = meanValueMonteCarlo, "standardDeviationMonteCarlo" = standardDeviationMonteCarlo))
+
+	for (i in 2:numSamples) {
+		
+		if (measure == "uniform") {
+			candidateX <- matrix(replicate(dim, runif(1, 0, 1)), ncol=dim)
+		} else if (measure == "gaussian") {
+			candidateX <- matrix(replicate(dim, rtnorm(1, mean=0.5, lower=0, upper=1)), ncol=dim)
+		}
+		candidateY <- FUN(candidateX)
+		trainData <- rbind(trainData, c(candidateX, candidateY))
+		meanValueMonteCarlo[i] <- mean(trainData[, dim+1])
+		standardDeviationMonteCarlo[i] <- sqrt(var(trainData[,dim+1]))
+	}
+	return(list("meanValueMonteCarlo" = meanValueMonteCarlo, 
+				"standardDeviationMonteCarlo" = standardDeviationMonteCarlo, 
+				"trainData"=trainData))
 }
