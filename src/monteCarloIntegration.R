@@ -13,17 +13,17 @@ monteCarloIntegrationUniform <- function(FUN, numSamples, dim, measure)
 	meanValueMonteCarlo <- rep(0, numSamples)
 	standardDeviationMonteCarlo <- rep(0, numSamples)
 	
-	for (i in 1:numSamples) {
+	for (i in 50:(50+numSamples)) {
 	  
 	  if (measure == "uniform") {
-	    CandidateSet <- as.matrix(replicate(dim, runif(i)))
+	    CandidateSet <- replicate(dim, runif(i, 0, 1))
 	  } else if (measure == "gaussian") {
-	    CandidateSet <- as.matrix(replicate(dim, rtnorm(i, mean=0.5, lower=0, upper=1)))
+	    CandidateSet <- replicate(dim, rtnorm(i, mean=0.5, lower=0, upper=1))
 	  }
 
 	  functionSamples <- FUN(CandidateSet)
-	  meanValueMonteCarlo[i] <- mean(functionSamples)
-	  standardDeviationMonteCarlo[i] <- sqrt(var(functionSamples))
+	  meanValueMonteCarlo[i-49] <- mean(functionSamples)
+	  standardDeviationMonteCarlo[i-49] <- sqrt(var(functionSamples))
 	}
 	return(list("meanValueMonteCarlo" = meanValueMonteCarlo, "standardDeviationMonteCarlo" = standardDeviationMonteCarlo))
 }
