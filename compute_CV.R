@@ -17,11 +17,11 @@ rownames(resultsAll) <- matrix(c(rep("cont",4), rep("copeak", 4), rep("disc", 4)
 colnames(resultsAll) <- c("Methods", "1", "2", "3", "5", "10", "20")   
 resultsAll[, 1] <- c("True", "BART", "MI", "GP")  
 
-rmseValues <- matrix(NA, ncol = 7, nrow = 21)
-rownames(rmseValues) <- matrix(c(rep("cont",3), rep("copeak", 3), rep("disc", 3), rep("gaussian", 3), 
+mapeValues <- matrix(NA, ncol = 7, nrow = 21)
+rownames(mapeValues) <- matrix(c(rep("cont",3), rep("copeak", 3), rep("disc", 3), rep("gaussian", 3), 
                                  rep("oscil", 3), rep("prpeak", 3),  rep("step", 3)), ncol = 1)
-colnames(rmseValues) <- c("Methods", "1", "2", "3", "5", "10", "20") 
-rmseValues[, 1] <- c("BART", "MI", "GP") 
+colnames(mapeValues) <- c("Methods", "1", "2", "3", "5", "10", "20") 
+mapeValues[, 1] <- c("BART", "MI", "GP") 
 
 # RMSE function
 RMSE <- function(x, y){
@@ -29,9 +29,9 @@ RMSE <- function(x, y){
 }
 
 
-for (i in c(1, 2, 4, 5, 6, 7)){
-  for (j in c(1, 4, 5, 6)){
-    meanAbsDifference <- 0
+for (i in c(7)){
+  for (j in c(1)){
+    meanabsMape <- 0
     resultsAllEntry <- 0
     
     # global parameters: dimension
@@ -62,8 +62,8 @@ for (i in c(1, 2, 4, 5, 6, 7)){
     
     for (num_cv in 1:5) {
       # Set path for estimated integral values
-      fileName <- paste(toString(genzFunctionName), 'Dim', toString(dim), "", "Uniform", "_", toString(num_cv),  '.csv', sep='')
-      filePath <- paste('results/genz', toString(whichGenz), fileName, sep='/')
+      fileName <- paste(toString(genzFunctionName), 'Dim', toString(dim), "", "Gaussian", "_", toString(num_cv),  '.csv', sep='')
+      filePath <- paste('mlbox/step_10_jumps/results/genz', toString(whichGenz), fileName, sep='/')
       
       # Retrieve estimated integral values
       integrals <- read.csv(filePath, header=TRUE, sep=",", stringsAsFactors = FALSE)
@@ -77,10 +77,10 @@ for (i in c(1, 2, 4, 5, 6, 7)){
       real <- analyticalIntegrals[whichGenz, whichDimension]
       # Compute abs error
       epoch <- nrow(integrals)
-      absDifference <- abs(c(predictionBART$meanValueBART[epoch], 
+      absMape <- abs(c(predictionBART$meanValueBART[epoch], 
                              predictionMonteCarlo$meanValueMonteCarlo[epoch], 
-                             predictionGPBQ$meanValueGP[epoch]) - real)
-      meanAbsDifference <- meanAbsDifference + absDifference 
+                             predictionGPBQ$meanValueGP[epoch]) - real / real)
+      meanabsMape <- meanabsMape + absMape 
       # Store all estimates in a single csv
       resultsAllEntry <- c(
             real, 
@@ -94,16 +94,16 @@ for (i in c(1, 2, 4, 5, 6, 7)){
       #           RMSE(predictionMonteCarlo$meanValueMonteCarlo[epoch], real),
       #           RMSE(predictionGPBQ$meanValueGP[epoch], real)
       # )
-      # rmseValues[( (3*i - 2) : (3*i) ), (j + 1)] <- signif(rmse, 3)
+      # mapeValues[( (3*i - 2) : (3*i) ), (j + 1)] <- signif(rmse, 3)
     }
-    meanAbsDifference <- meanAbsDifference / 5
-    bestMethod[i, j] <- methods[which(meanAbsDifference == min(meanAbsDifference))[1]]
-    rmseValues[( (3*i - 2) : (3*i) ), (j + 1)] <- signif(meanAbsDifference, 3)
+    meanabsMape <- meanabsMape / 5
+    bestMethod[i, j] <- methods[which(meanabsMape == min(meanabsMape))[1]]
+    mapeValues[( (3*i - 2) : (3*i) ), (j + 1)] <- signif(meanabsMape, 3)
     resultsAll[( (4*i - 3) : (4*i) ), (j + 1)] <- signif(resultsAllEntry / 5, 3)
   }
   cat(genzFunctionName, "done", '\n')
 }
 
-write.csv(bestMethod, file = "../../results/genz/bestMethods.csv")
-write.csv(resultsAll, file = "../../results/genz/allEstimates.csv")
-write.csv(rmseValues, file = "../../results/genz/rmseValues.csv")
+write.csv(bestMethod, file = "Figures_step_10_jumps/bestMethods.csv")
+write.csv(resultsAll, file = "Figures_step_10_jumps/allEstimates.csv")
+write.csv(mapeValues, file = "Figures_step_10_jumps/mapeValues.csv")
