@@ -86,7 +86,7 @@ for (num_cv in 1:5) {
     trainX, 
     trainY, 
     dim, 
-    epochs = num_iterations-1, 
+    epochs = num_iterations, 
     kernel = whichKernel, 
     FUN = fisher_function, 
     lengthscale,
@@ -104,6 +104,7 @@ for (num_cv in 1:5) {
   print(c("GP integral:", predictionGPBQ$meanValueGP[num_iterations]))
   
   print("Writing full results to results/fisher_function")
+  cat(length(predictionBART$meanValueBART), length(predictionGPBQ$meanValueGP), length(predictionMonteCarlo$meanValueMonteCarlo))
   results <- data.frame(
     "epochs" = c(1:num_iterations),
     "BARTMean" = predictionBART$meanValueBART, "BARTsd" = predictionBART$standardDeviationBART,
@@ -223,8 +224,8 @@ for (num_cv in 1:5) {
          cex.axis = 1.5,
          lwd=3
     )
-    points(trainX[order(trainX),], trainY[order(trainX), ], ty="l", lwd=3)
-    points(trainX[order(trainX),], trainY[order(trainX), ], col = "black", bg='black', pch=21, lwd=3, cex=0.5)
+    points(trainX[order(trainX),], trainY[order(trainX)], ty="l", lwd=3)
+    points(trainX[order(trainX),], trainY[order(trainX)], col = "black", bg='black', pch=21, lwd=3, cex=0.5)
     polygon(c(x_plot, rev(x_plot)), 
             c(
               gp_post_mean + 2*gp_post_sd, 

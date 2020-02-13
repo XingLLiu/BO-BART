@@ -75,16 +75,16 @@ computeGPBQ <- function(X, Y, dim, epochs, kernel="rbf", FUN, lengthscale=1, seq
   cat(var.firstterm, tmp,"\n")
 
   # train
-  if (epochs == 0){
+  if (epochs == 1){
     return (list("meanValueGP" = meanValueGP, "varianceGP" = varianceGP, "X" = X, "Y" = Y, "K" = K))
   }
-  for (p in 1:epochs) {
+  for (p in 2:epochs) {
    
     print(paste("GPBQ: Epoch =", p))
     candidateSetNum <- 100
 	  candidateSet <- replicate(dim, runif(candidateSetNum))
-    K_prime <- diag(N+p)
-    K_prime[1:(N+p-1), 1:(N+p-1)] <- K
+    K_prime <- diag(N+p-1)
+    K_prime[1:(N+p-2), 1:(N+p-2)] <- K
     
 
 
@@ -101,8 +101,8 @@ computeGPBQ <- function(X, Y, dim, epochs, kernel="rbf", FUN, lengthscale=1, seq
     
     kernel_new_entry <- kernelMatrix(kernel, matrix(candidateSet[index,], nrow=1), X)
     
-    K_prime[N+p,1:(N+p-1)] <- kernel_new_entry
-    K_prime[1:(N+p-1),N+p] <- kernel_new_entry
+    K_prime[N+p-1,1:(N+p-2)] <- kernel_new_entry
+    K_prime[1:(N+p-2),N+p-1] <- kernel_new_entry
     X <- rbind(X,candidateSet[index,])
     additionalResponse <- as.matrix( t(candidateSet[index,]), ncol = length(candidateSet[index,]) )
 
@@ -112,8 +112,8 @@ computeGPBQ <- function(X, Y, dim, epochs, kernel="rbf", FUN, lengthscale=1, seq
     # add in extra term obtained by integration
     cov <- kernelMatrix(kernel, int.points.1, X)
     z <- colMeans(cov)
-    meanValueGP[p+1] <- t(z) %*% solve(K + diag(jitter, N+p) , Y)
-    varianceGP[p+1] <- var.firstterm - t(z)%*% solve(K + diag(jitter, N+p) , z) #not quite right, missed out first term
+    meanValueGP[p] <- t(z) %*% solve(K + diag(jitter, N+p-1) , Y)
+    varianceGP[p] <- var.firstterm - t(z)%*% solve(K + diag(jitter, N+p-1) , z) 
   }
 
   return (list("meanValueGP" = meanValueGP, "varianceGP" = varianceGP, "X" = X, "Y" = Y, "K" = K))
