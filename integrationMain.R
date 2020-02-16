@@ -90,7 +90,7 @@ if (measure == "uniform") {
   trainY <- genz(trainX)
 }
 
-for (num_cv in 1:1) {
+for (num_cv in 1:5) {
   cat("NUM_CV", num_cv, "\n")
   # Bayesian Quadrature method
   # set number of new query points using sequential design
