@@ -16,7 +16,7 @@ set.seed(0)
 `%--%` <- function(x, y) 
   # from stack exchange:
   # https://stackoverflow.com/questions/46085274/is-there-a-string-formatting-operator-in-r-similar-to-pythons
-{
+{ 
   do.call(sprintf, c(list(x), y))
 }
 
@@ -38,32 +38,57 @@ source("src/genz/fisher_integrands.R")
 # H <- rep(1.5020584867022158, dim)
 # F <- rep(4.624266954512351, dim)
 # P <- rep(1, dim)
-C <- replicate(dim, runif(9, 0.1, 0.9))
-R <- replicate(dim, rbeta(9, 5, 2))
-H <- replicate(dim, runif(9, 0.5*exp(1), 1.5*exp(1)))
-F <- replicate(dim, runif(9, 0, 5))
-P <- replicate(dim, rbinom(9, 1, 0.5))
+# C <- replicate(dim, runif(9, 0.1, 0.9))
+# R <- replicate(dim, rbeta(9, 5, 2))
+# H <- replicate(dim, runif(9, 0.5*exp(1), 1.5*exp(1)))
+# F <- replicate(dim, runif(9, 0, 5))
+# P <- replicate(dim, rbinom(9, 1, 0.5))
+# 
+# fisher_function <- create_fisher_function(C, R, H, F, P, dim)
+# # prepare training dataset
+# if (measure == "uniform") {
+#   trainX <- replicate(dim, runif(num_data, 0, 1))
+#   trainY <- fisher_function(trainX)
+# } else if (measure == "gaussian") {
+#   trainX <- replicate(dim, rtnorm(num_data, mean=0.5, lower=0, upper=1))
+#   trainY <- fisher_function(trainX)
+# }
+# 
+# plot(trainX[order(trainX)], trainY[order(trainX)], ty="l")
+# points(trainX[order(trainX)], trainY[order(trainX)])
+# 
+# real <- 1
+# for (i in 1:dim) {
+#   fisher_1d <- create_fisher_function(C[i], R[i], H[i], F[i], P[i], 1)
+#   real <- real*estimate_real_integral(fisher_1d, 1, 1e7)
+# }
 
-fisher_function <- create_fisher_function(C, R, H, F, P, dim)
-# prepare training dataset
-if (measure == "uniform") {
-  trainX <- replicate(dim, runif(num_data, 0, 1))
-  trainY <- fisher_function(trainX)
-} else if (measure == "gaussian") {
-  trainX <- replicate(dim, rtnorm(num_data, mean=0.5, lower=0, upper=1))
-  trainY <- fisher_function(trainX)
-}
-
-plot(trainX[order(trainX)], trainY[order(trainX)], ty="l")
-points(trainX[order(trainX)], trainY[order(trainX)])
-
-real <- 1
-for (i in 1:dim) {
-  fisher_1d <- create_fisher_function(C[i], R[i], H[i], F[i], P[i], 1)
-  real <- real*estimate_real_integral(fisher_1d, 1, 1e7)
-}
-
-for (num_cv in 1:1) {
+for (num_cv in 1:5) {
+  C <- replicate(dim, runif(9, 0.1, 0.9))
+  R <- replicate(dim, rbeta(9, 5, 2))
+  H <- replicate(dim, runif(9, 0.5*exp(1), 1.5*exp(1)))
+  F <- replicate(dim, runif(9, 0, 5))
+  P <- replicate(dim, rbinom(9, 1, 0.5))
+  
+  fisher_function <- create_fisher_function(C, R, H, F, P, dim)
+  # prepare training dataset
+  if (measure == "uniform") {
+    trainX <- replicate(dim, runif(num_data, 0, 1))
+    trainY <- fisher_function(trainX)
+  } else if (measure == "gaussian") {
+    trainX <- replicate(dim, rtnorm(num_data, mean=0.5, lower=0, upper=1))
+    trainY <- fisher_function(trainX)
+  }
+  
+  plot(trainX[order(trainX)], trainY[order(trainX)], ty="l")
+  points(trainX[order(trainX)], trainY[order(trainX)])
+  
+  real <- 1
+  for (i in 1:dim) {
+    fisher_1d <- create_fisher_function(C[i], R[i], H[i], F[i], P[i], 1)
+    real <- real*estimate_real_integral(fisher_1d, 1, 1e7)
+  }
+  
   cat("NUM_CV", num_cv, "\n")
   # Bayesian Quadrature method
   # set number of new query points using sequential design
