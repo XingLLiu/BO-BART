@@ -119,7 +119,7 @@ for (num_cv in 1:5) {
     trainX, 
     trainY, 
     dim, 
-    epochs = num_iterations-1, 
+    epochs = num_iterations, 
     kernel = whichKernel, 
     FUN = genz, 
     lengthscale,
