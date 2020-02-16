@@ -45,6 +45,7 @@ if (as.character(args[6]) != "gaussian" | is.na(args[6])) {
   measure <- as.character(args[6])
 }
 cat("Prior measure:", measure, "\n")
+
 # extra parameter for step function
 # 1 by default
 if (whichGenz == 7 & is.na(args[7])) {
@@ -54,6 +55,9 @@ if (whichGenz == 7 & is.na(args[7])) {
   jumps <- as.double(args[7])
   cat("Number of jumps for step function:", jumps, "\n")
 }
+
+# extra parameter for additive Gaussian function
+if (whichGenz == 9){ add_gauss_a <- NA}
 
 if (num_iterations == 1) { stop("NEED MORE THAN 1 ITERATION") }
 
@@ -71,6 +75,7 @@ if (whichGenz == 5) { genz <- oscil; genzFunctionName <-  deparse(substitute(osc
 if (whichGenz == 6) { genz <- prpeak; genzFunctionName <-  deparse(substitute(prpeak)) }
 if (whichGenz == 7) { genz <- function(xx){return(step(xx, jumps=jumps))}; genzFunctionName <-  deparse(substitute(step)) }
 if (whichGenz == 8) { genz <- mix; genzFunctionName <-  deparse(substitute(mix)) }
+if (whichGenz == 9) { genz <- function(xx){return(additive_gaussian(xx, a=add_gauss_a))}; genzFunctionName <-  deparse(substitute(additive_gaussian)) }
 
 print("Testing with: %s" %--% genzFunctionName)
 
@@ -130,18 +135,20 @@ for (num_cv in 1:5) {
   GPTime <- (t1 - t0)[[1]]
   
   # Read in analytical integrals
+  source("src/genz/analyticalIntegrals.R")
   dimensionsList <- c(1,2,3,5,10,20)
   whichDimension <- which(dim == dimensionsList)
   if (whichGenz <= 6){
     analyticalIntegrals <- read.csv("results/genz/integrals.csv", header = FALSE)
     real <- analyticalIntegrals[whichGenz, whichDimension]
   } else if (whichGenz == 7) {
-    source("src/genz/analyticalIntegrals.R")
     real <- stepIntegral(dim, jumps)
-  } else {
-    if (whichGenz == 8 & dim ==1){ real <- 0.008327796}
-    if (whichGenz == 8 & dim ==2){ real <- 0.008327796 * 2}
-    if (whichGenz == 8 & dim ==3){ real <- 0.008327796 * 3}
+  } else if (whichGenz == 8) {
+    if (dim ==1){ real <- 0.008327796}
+    if (dim ==2){ real <- 0.008327796 * 2}
+    if (dim ==3){ real <- 0.008327796 * 3}
+  } else if (whichGenz == 9) {
+    real <- additiveGaussianIntegral(dim, a = add_gauss_a)
   }
   
   # Bayesian Quadrature methods: with BART, Monte Carlo Integration and Gaussian Process respectively
