@@ -152,35 +152,41 @@ for (num_cv in 1:5) {
     "runtimeGP" = rep(GPTime, num_iterations)
   )
   if (!sequential){
-    csvName <- "results/fisher_function/Dim%sNoSequential%s_%s.csv" %--% c(
+    csvName <- "results/fisher_function/Dim%sNoSequential%s_numData%s_%s.csv" %--% c(
       dim,
       tools::toTitleCase(measure),
+      num_data,
       num_cv
     )
-    figName <- "Figures/fisher_function/Dim%sNoSequential%s_%s.pdf" %--% c(
+    figName <- "Figures/fisher_function/Dim%sNoSequential%s_numData%s_%s.pdf" %--% c(
       dim,
       tools::toTitleCase(measure),
+      num_data,
       num_cv
     )
-    figName_convergence <- "Figures/fisher_function/convergence_Dim%sNoSequential%s_%s.pdf" %--% c(
+    figName_convergence <- "Figures/fisher_function/convergence_Dim%sNoSequential%s_numData%s_%s.pdf" %--% c(
       dim,
       tools::toTitleCase(measure),
+      num_data,
       num_cv
     )
   } else {
-    csvName <- "results/fisher_function/Dim%s%s_%s.csv" %--% c(
+    csvName <- "results/fisher_function/Dim%s%s_numData%s_%s.csv" %--% c(
       dim,
       tools::toTitleCase(measure),
+      num_data,
       num_cv
     )
-    figName <- "Figures/fisher_function/Dim%s%s_%s_.pdf" %--% c(
+    figName <- "Figures/fisher_function/Dim%s%s_numData%s_%s.pdf" %--% c(
       dim,
       tools::toTitleCase(measure),
+      num_data,
       num_cv
     )
-    figName_convergence <- "Figures/fisher_function/convergence_Dim%s%s_%s_.pdf" %--% c(
+    figName_convergence <- "Figures/fisher_function/convergence_Dim%s%s_numData%s_%s.pdf" %--% c(
       dim,
       tools::toTitleCase(measure),
+      num_data,
       num_cv
     )
   }
