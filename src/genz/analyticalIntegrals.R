@@ -64,12 +64,13 @@ discIntegral <- function(dim, u=0.5)
   
 }
 
-gaussianIntegral <- function(dim, u=0.5)
+gaussianIntegral <- function(dim, u=0.5, a=NA)
   
   # Description: Calculate the integral of Gaussian-Peak integrand Genz functions in [0,1]^dim
   # Input:
   #        dim: dimension of integrand
   #        u: parameter u in continuous integrand, in the domain [0,1]
+  #        a: parameter a in integrand. If not given, a = 100/dim^2
   #
   # errorFunction:
   #        Calculate the value of error function at point x
@@ -81,7 +82,9 @@ gaussianIntegral <- function(dim, u=0.5)
   if ( u < 0 || u >1 ){ stop("u must be in [0,1]") }
 
   # Set value of a
-  a <- 100/dim^2
+  if (is.na(a)){
+    a <- 100/dim^2  
+  }
   
   errorFunction <- function (x) pnorm( x, mean = 0, sd = sqrt(0.5) ) - 
                                          pnorm( -x, mean = 0, sd = sqrt(0.5) )
@@ -174,4 +177,43 @@ stepIntegral <- function(dim, k)
 {
   result <- 0.5 * k * (3 + k) / (k + 1)^2
   return(result)
+}
+
+
+additiveGaussianIntegral <- function(dim, u=0.5, a=NA)
+  
+  # Description: Calculate the integral of additive Gaussian integrand Genz functions in [0,1]^dim
+  # Input:
+  #        dim: dimension of integrand
+  #        u: parameter u in continuous integrand, in the domain [0,1]
+  #        a: parameter a in integrand. Can be a scalar or a vector of dimension dim. 
+  #           If not given, a = 100/dim^2
+  #
+  # errorFunction:
+  #        Calculate the value of error function at point x
+  # 
+  #Output:
+  #        integral: integral of the Gaussian Peak integrand in the domain [0,1]^dim 
+{
+  if ( u < 0 || u >1 ){ stop("u must be in [0,1]") }
+
+  # Set value of a
+  if ( any(is.na(a)) ){
+    a <- 100/dim^2  
+  }
+  
+  if (length(a) == 1){
+    a <- rep(a, dim)
+  }
+
+  if (length(a) != dim){
+    warning("Dimension of a is not dim! Only the first dim entries of a are used.")
+  }
+
+  integral <- 0
+  for (j in 1:dim){
+    integral <- integral + gaussianIntegral(1, u, a[j])
+  }
+
+  return(integral)
 }
