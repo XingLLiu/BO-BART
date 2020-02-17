@@ -51,17 +51,21 @@ F <- c(4.607562, 4.526243, 2.221768)
 P <- c(1, 0, 1)
 
 cut_point <- 0.5
-fisher_function <- create_fisher_function(C, R, H, F, P, 3)
+fisher_function_full <- create_fisher_function(C, R, H, F, P, 3)
+
+fisher_function <- function(x) {
+  x_in <- cbind(x, matrix(cut_point, nrow = nrow(x), ncol = 3-dim))
+  return(fisher_function_full(x_in))
+}
+
+
 # prepare training dataset
-trainX <- matrix(cut_point, nrow = num_data, ncol = 3)
 if (measure == "uniform") {
-  trainX[,1:dim]<- replicate(dim, runif(num_data, 0, 1))
+  trainX<- replicate(dim, runif(num_data, 0, 1))
   trainY <- fisher_function(trainX)
-  trainX <- matrix(trainX[,1:dim], ncol = dim)
 } else if (measure == "gaussian") {
-  trainX[,1:dim] <- replicate(dim, rtnorm(num_data, mean=0.5, lower=0, upper=1))
+  trainX <- replicate(dim, rtnorm(num_data, mean=0.5, lower=0, upper=1))
   trainY <- fisher_function(trainX)
-  trainX <- matrix(trainX[,1:dim], ncol = dim)
 }
 
 real <- 1
