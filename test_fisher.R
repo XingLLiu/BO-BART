@@ -57,7 +57,7 @@ trainX <- matrix(cut_point, nrow = num_data, ncol = 3)
 if (measure == "uniform") {
   trainX[,1:dim]<- replicate(dim, runif(num_data, 0, 1))
   trainY <- fisher_function(trainX)
-  trainX <- matrix(trainX[,1:dim])
+  trainX <- matrix(trainX[,1:dim], ncol = dim)
 } else if (measure == "gaussian") {
   trainX[,1:dim] <- replicate(dim, rtnorm(num_data, mean=0.5, lower=0, upper=1))
   trainY <- fisher_function(trainX)
