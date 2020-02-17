@@ -39,11 +39,17 @@ source("src/genz/fisher_integrands.R")
 # F <- rep(4.624266954512351, dim)
 # P <- rep(1, dim)
 
-C <- replicate(1, runif(3, 0.1, 0.9))
-R <- replicate(1, rbeta(3, 5, 2))
-H <- replicate(1, runif(3, 0.5*exp(1), 1.5*exp(1)))
-F <- replicate(1, runif(3, 0, 5))
-P <- replicate(1, rbinom(3, 1, 0.5))
+# C <- replicate(1, runif(3, 0.1, 0.9))
+# R <- replicate(1, rbeta(3, 5, 2))
+# H <- replicate(1, runif(3, 0.5*exp(1), 1.5*exp(1)))
+# F <- replicate(1, runif(3, 0, 5))
+# P <- replicate(1, rbinom(3, 1, 0.5))
+C <- c(0.1706093, 0.5319923, 0.7117816)
+R <- c(0.6786221, 0.7207544, 0.5120249)
+H <- c(3.029867, 3.065427, 3.114357)
+F <- c(4.607562, 4.526243, 2.221768)
+P <- c(1, 0, 1)
+
 cut_point <- 0.5
 fisher_function <- create_fisher_function(C, R, H, F, P, 3)
 # prepare training dataset
@@ -55,7 +61,7 @@ if (measure == "uniform") {
 } else if (measure == "gaussian") {
   trainX[,1:dim] <- replicate(dim, rtnorm(num_data, mean=0.5, lower=0, upper=1))
   trainY <- fisher_function(trainX)
-  trainX <- matrix(trainX[,1:dim])
+  trainX <- matrix(trainX[,1:dim], ncol = dim)
 }
 
 real <- 1
@@ -63,7 +69,7 @@ for (i in 1:dim) {
   fisher_1d <- create_fisher_function(C[i], R[i], H[i], F[i], P[i], 1)
   real <- real*estimate_real_integral(fisher_1d, 1, 1e7)
 }
-
+print(real)
 if (dim != 3) {
   for (i in (dim+1):3) {
     fisher_1d <- create_fisher_function(C[i], R[i], H[i], F[i], P[i], 1)
