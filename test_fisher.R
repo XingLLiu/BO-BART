@@ -147,43 +147,50 @@ for (num_cv in 1:20) {
     "runtimeGP" = rep(GPTime, num_iterations)
   )
   if (!sequential){
-    csvName <- "results/fisher_function/Dim%sNoSequential%s_%s.csv" %--% c(
+    csvName <- "results/fisher_function/Dim%sNoSequential%s_%s_%s.csv" %--% c(
       dim,
       tools::toTitleCase(measure),
+      num_data,
       num_cv
     )
-    figName <- "Figures/fisher_function/Dim%sNoSequential%s_%s.pdf" %--% c(
+    figName <- "Figures/fisher_function/Dim%sNoSequential%s_%s_%s.pdf" %--% c(
       dim,
       tools::toTitleCase(measure),
+      num_data,
       num_cv
     )
-    figName_convergence <- "Figures/fisher_function/convergence_Dim%sNoSequential%s_%s.pdf" %--% c(
+    figName_convergence <- "Figures/fisher_function/convergence_Dim%sNoSequential%s_%s_%s.pdf" %--% c(
       dim,
       tools::toTitleCase(measure),
+      num_data,
       num_cv
     )
   } else {
-    csvName <- "results/fisher_function/Dim%s%s_%s.csv" %--% c(
+    csvName <- "results/fisher_function/Dim%s%s_%s_%s.csv" %--% c(
       dim,
       tools::toTitleCase(measure),
+      num_data,
       num_cv
     )
-    figName <- "Figures/fisher_function/Dim%s%s_%s_.pdf" %--% c(
+    figName <- "Figures/fisher_function/Dim%s%s_%s_%s.pdf" %--% c(
       dim,
       tools::toTitleCase(measure),
+      num_data,
       num_cv
     )
-    figName_convergence <- "Figures/fisher_function/convergence_Dim%s%s_%s_.pdf" %--% c(
+    figName_convergence <- "Figures/fisher_function/convergence_Dim%s%s_%s_%s.pdf" %--% c(
       dim,
       tools::toTitleCase(measure),
+      num_data,
       num_cv
     )
   }
   
   results_models <- list("BART"=predictionBART, "GP"=predictionGPBQ, "MC"=predictionMonteCarlo)
-  save(results_models, file = "results/fisher_function/Dim%s%s_%s.RData" %--% c(
+  save(results_models, file = "results/fisher_function/Dim%s%s_%s_%s.RData" %--% c(
     dim,
     tools::toTitleCase(measure),
+    num_data,
     num_cv
   ))
   
@@ -293,54 +300,54 @@ for (num_cv in 1:20) {
     dev.off()
   }
 }
-# num_data_lists <- list()
-# num_data_lists[[1]] <- c(20,50,100)
-# num_data_lists[[2]] <- c(50,100,200)
-# for (dim in 1:2) {
-#   num_data_list <- num_data_lists[[dim]]
-#   results <- data.frame(
-#   "num_data" = num_data_list,
-#   "BARTMape" = num_data_list,
-#   "BARTSE" = num_data_list,
-#   "GPMape" = num_data_list,
-#   "GPSE" = num_data_list,
-#   "MIMape" = num_data_list,
-#   "MISE" = num_data_list
-#   )
-#   for (num_data in num_data_list) {
-#     n <- 1
-#     mape <- 0
-#     sd <- 0
-#     bart_estimates <-c()
-#     gp_estimates <-c()
-#     mi_estimates <-c()
-#     for (num_cv in 1:20) {
-#       csv_name <- paste(
-#       "results/fisher_function/",
-#       "Dim",
-#       dim,
-#       "NoSequentialUniform_numData",
-#       num_data,
-#       "_",
-#       num_cv,
-#       ".csv",
-#       sep=""
-#       )
-#       result <- read.csv(csv_name)
-#       real <- result$actual
-#       mape <- mape + 1/20 * abs((c(result$BARTMean, result$GPMean, result$MIMean)-real)/real)
-#       bart_estimates[num_cv] <- result$BARTMean
-#       gp_estimates[num_cv] <- result$GPMean
-#       mi_estimates[num_cv] <- result$MIMean
-#     }
-#     se[1] <- 1/sqrt(num_cv) * bart_estimates
-#     se[2] <- 1/sqrt(num_cv) * gp_estimates
-#     se[3] <- 1/sqrt(num_cv) * mi_estimates
-#     results[n, c(2,4,6)] <- mape
-#     results[n, c(3,5,7)] <- se
-#     n <- n + 1
-#   }
-#   result_csv_name <- paste("results/fisher_function/results_fisher_function_dim_", dim, ".csv", sep="")
-#   write.csv(results, result_csv_name)
-# }
+num_data_lists <- list()
+num_data_lists[[1]] <- c(20,50,100)
+num_data_lists[[2]] <- c(50,100,200)
+for (dim in 1:2) {
+  num_data_list <- num_data_lists[[dim]]
+  results <- data.frame(
+  "num_data" = num_data_list,
+  "BARTMape" = num_data_list,
+  "BARTSE" = num_data_list,
+  "GPMape" = num_data_list,
+  "GPSE" = num_data_list,
+  "MIMape" = num_data_list,
+  "MISE" = num_data_list
+  )
+  for (num_data in num_data_list) {
+    n <- 1
+    mape <- 0
+    sd <- 0
+    bart_estimates <-c()
+    gp_estimates <-c()
+    mi_estimates <-c()
+    for (num_cv in 1:20) {
+      csv_name <- paste(
+      "results/fisher_function/",
+      "Dim",
+      dim,
+      "NoSequentialUniform_",
+      num_data,
+      "_",
+      num_cv,
+      ".csv",
+      sep=""
+      )
+      result <- read.csv(csv_name)
+      real <- result$actual
+      mape <- mape + 1/20 * abs((c(result$BARTMean, result$GPMean, result$MIMean)-real)/real)
+      bart_estimates[num_cv] <- result$BARTMean
+      gp_estimates[num_cv] <- result$GPMean
+      mi_estimates[num_cv] <- result$MIMean
+    }
+    se[1] <- 1/sqrt(num_cv) * sd(bart_estimates)
+    se[2] <- 1/sqrt(num_cv) * sd(gp_estimates)
+    se[3] <- 1/sqrt(num_cv) * sd(mi_estimates)
+    results[n, c(2,4,6)] <- mape
+    results[n, c(3,5,7)] <- se
+    n <- n + 1
+  }
+  result_csv_name <- paste("results/fisher_function/results_fisher_function_dim_", dim, ".csv", sep="")
+  write.csv(results, result_csv_name)
+}
 
