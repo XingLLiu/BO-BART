@@ -23,7 +23,8 @@ set.seed(0)
 # global parameters: dimension
 args <- commandArgs(TRUE)
 dim <- as.double(args[1])
-num_iterations <- as.double(args[2])
+num_data <- as.double(args[2])
+num_iterations <- 1
 whichKernel <- "matern32"
 sequential <- FALSE
 # prior measure over the inputs
@@ -32,27 +33,57 @@ measure <- "uniform"
 print(c(dim, num_iterations))
 
 source("src/genz/fisher_integrands.R")
-# C <- replicate(dim, runif(9, 0.1, 0.9))
-C <- rep(0.45958094818045914, dim)
-R <- rep(0.13332051229486602, dim)
-H <- rep(1.5020584867022158, dim)
-F <- rep(4.624266954512351, dim)
-P <- rep(1, dim)
+# C <- rep(0.45958094818045914, dim)
+# R <- rep(0.13332051229486602, dim)
+# H <- rep(1.5020584867022158, dim)
+# F <- rep(4.624266954512351, dim)
+# P <- rep(1, dim)
+
+# C <- replicate(1, runif(3, 0.1, 0.9))
+# R <- replicate(1, rbeta(3, 5, 2))
+# H <- replicate(1, runif(3, 0.5*exp(1), 1.5*exp(1)))
+# F <- replicate(1, runif(3, 0, 5))
+# P <- replicate(1, rbinom(3, 1, 0.5))
+C <- c(0.1706093, 0.5319923, 0.7117816)
+R <- c(0.6786221, 0.7207544, 0.5120249)
+H <- c(3.029867, 3.065427, 3.114357)
+F <- c(4.607562, 4.526243, 2.221768)
+P <- c(1, 0, 1)
+
+cut_point <- 0.5
+fisher_function_full <- create_fisher_function(C, R, H, F, P, 3)
+
+fisher_function <- function(x) {
+  x_in <- cbind(x, matrix(cut_point, nrow = nrow(x), ncol = 3-dim))
+  return(fisher_function_full(x_in))
+}
 
 
-fisher_function <- create_fisher_function(C, R, H, F, P, dim)
 # prepare training dataset
 if (measure == "uniform") {
-  trainX <- replicate(dim, runif(100, 0, 1))
+  trainX<- replicate(dim, runif(num_data, 0, 1))
   trainY <- fisher_function(trainX)
 } else if (measure == "gaussian") {
-  trainX <- replicate(dim, rtnorm(100, mean=0.5, lower=0, upper=1))
+  trainX <- replicate(dim, rtnorm(num_data, mean=0.5, lower=0, upper=1))
   trainY <- fisher_function(trainX)
 }
-fisher_1d <- create_fisher_function(C[1], R[1], H[1], F[1], P[1], 1)
-real <- estimate_real_integral(fisher_1d, 1, 1e7)^dim
 
-for (num_cv in 1:5) {
+real <- 1
+for (i in 1:dim) {
+  fisher_1d <- create_fisher_function(C[i], R[i], H[i], F[i], P[i], 1)
+  real <- real*estimate_real_integral(fisher_1d, 1, 1e7)
+}
+print(real)
+if (dim != 3) {
+  for (i in (dim+1):3) {
+    fisher_1d <- create_fisher_function(C[i], R[i], H[i], F[i], P[i], 1)
+    print(fisher_1d(matrix(cut_point)))
+    real <- real * fisher_1d(matrix(cut_point))
+  }
+}
+  
+
+for (num_cv in 1:20) {
   cat("NUM_CV", num_cv, "\n")
   # Bayesian Quadrature method
   # set number of new query points using sequential design
@@ -116,33 +147,50 @@ for (num_cv in 1:5) {
     "runtimeGP" = rep(GPTime, num_iterations)
   )
   if (!sequential){
-    csvName <- "results/fisher_function/Dim%sNoSequential%s_%s.csv" %--% c(
+    csvName <- "results/fisher_function/Dim%sNoSequential%s_%s_%s.csv" %--% c(
       dim,
       tools::toTitleCase(measure),
+      num_data,
       num_cv
     )
-    figName <- "Figures/fisher_function/Dim%sNoSequential%s_%s.pdf" %--% c(
+    figName <- "Figures/fisher_function/Dim%sNoSequential%s_%s_%s.pdf" %--% c(
       dim,
       tools::toTitleCase(measure),
+      num_data,
+      num_cv
+    )
+    figName_convergence <- "Figures/fisher_function/convergence_Dim%sNoSequential%s_%s_%s.pdf" %--% c(
+      dim,
+      tools::toTitleCase(measure),
+      num_data,
       num_cv
     )
   } else {
-    csvName <- "results/fisher_function/Dim%s%s_%s.csv" %--% c(
+    csvName <- "results/fisher_function/Dim%s%s_%s_%s.csv" %--% c(
       dim,
       tools::toTitleCase(measure),
+      num_data,
       num_cv
     )
-    figName <- "Figures/fisher_function/Dim%s%s_%s_.pdf" %--% c(
+    figName <- "Figures/fisher_function/Dim%s%s_%s_%s.pdf" %--% c(
       dim,
       tools::toTitleCase(measure),
+      num_data,
+      num_cv
+    )
+    figName_convergence <- "Figures/fisher_function/convergence_Dim%s%s_%s_%s.pdf" %--% c(
+      dim,
+      tools::toTitleCase(measure),
+      num_data,
       num_cv
     )
   }
   
   results_models <- list("BART"=predictionBART, "GP"=predictionGPBQ, "MC"=predictionMonteCarlo)
-  save(results_models, file = "results/fisher_function/Dim%s%s_%s.RData" %--% c(
+  save(results_models, file = "results/fisher_function/Dim%s%s_%s_%s.RData" %--% c(
     dim,
     tools::toTitleCase(measure),
+    num_data,
     num_cv
   ))
   
@@ -151,11 +199,16 @@ for (num_cv in 1:5) {
   if (dim == 1) {
     
     # Plotting
-    x_plot <- replicate(dim, runif(500))
-    x_plot <- x_plot[order(x_plot),]
+    x_plot <- matrix(cut_point, nrow = 300, ncol = 3)
+    x_plot[,1:dim] <- replicate(dim, runif(300))
+    y_plot <- fisher_function(x_plot)
+    x_plot <- x_plot[,1:dim]
+    y_plot <- y_plot[order(x_plot)]
+    x_plot <- x_plot[order(x_plot)]
     y_pred <- predict(predictionBART$model, x_plot)
     y_pred_mean <- colMeans(y_pred)
     y_pred_sd <- sqrt(colVars(y_pred))
+    plot(x_plot, y_plot, ty="l")
     
     # obtain posterior samples
     integrals <- sampleIntegrals(predictionBART$model, dim, measure)
@@ -173,7 +226,7 @@ for (num_cv in 1:5) {
                                   matrix(x_plot, ncol=1), 
                                   matrix(x_plot, ncol=1))
     jitter = 1e-6
-    K_inv <- solve(K + diag(jitter, nrow(K)))
+    K_inv <- chol2inv(chol(K + diag(jitter,nrow(K))))
     
     gp_post_mean <- k_xstar_x %*% K_inv %*% Y
     gp_post_cov <- k_xstar_xstar - k_xstar_x %*% K_inv %*% t(k_xstar_x)
@@ -185,7 +238,9 @@ for (num_cv in 1:5) {
       mean = predictionGPBQ$meanValueGP[1], 
       sd = sqrt(predictionGPBQ$varianceGP[1])
     )
-    plot(x_plot, y_pred_mean)
+    plot(x_plot, y_pred_mean, ty="l")
+    plot(x_plot, gp_post_mean, ty="l")
+    
     hist(integrals)
     KDE_BART <- density(integrals)
     
@@ -207,7 +262,7 @@ for (num_cv in 1:5) {
     points(KDE_BART, ty="l", col = "orangered", lwd=3)
     abline(v=real)
     legend("topright", legend=c("BART-Int", "GP-BQ", "Actual"),
-           col=c("orangered", "dodgerblue", "black"), cex=0.6, lty = c(1,1,1), lwd=3)
+           col=c("orangered", "dodgerblue", "black"), cex=1, lty = c(1,1,1), lwd=3)
     
     a <-density(integrals)$y 
     plot(x_plot, 
@@ -224,7 +279,7 @@ for (num_cv in 1:5) {
          cex.axis = 1.5,
          lwd=3
     )
-    points(trainX[order(trainX),], trainY[order(trainX)], ty="l", lwd=3)
+    points(x_plot[order(x_plot)], y_plot[order(x_plot)], ty="l", lwd=3)
     points(trainX[order(trainX),], trainY[order(trainX)], col = "black", bg='black', pch=21, lwd=3, cex=0.5)
     polygon(c(x_plot, rev(x_plot)), 
             c(
@@ -242,8 +297,57 @@ for (num_cv in 1:5) {
             col = adjustcolor("orangered", alpha.f = 0.10),  
             border = "orangered", lty = c("dashed", "solid"))
     points(x_plot, y_pred_mean, col = "orangered", cex=0.5, ty="l", lwd=3)
+    dev.off()
   }
 }
-
-
+num_data_lists <- list()
+num_data_lists[[1]] <- c(20,50,100)
+num_data_lists[[2]] <- c(50,100,200)
+for (dim in 1:2) {
+  num_data_list <- num_data_lists[[dim]]
+  results <- data.frame(
+  "num_data" = num_data_list,
+  "BARTMape" = num_data_list,
+  "BARTSE" = num_data_list,
+  "GPMape" = num_data_list,
+  "GPSE" = num_data_list,
+  "MIMape" = num_data_list,
+  "MISE" = num_data_list
+  )
+  for (num_data in num_data_list) {
+    n <- 1
+    mape <- 0
+    sd <- 0
+    bart_estimates <-c()
+    gp_estimates <-c()
+    mi_estimates <-c()
+    for (num_cv in 1:20) {
+      csv_name <- paste(
+      "results/fisher_function/",
+      "Dim",
+      dim,
+      "NoSequentialUniform_",
+      num_data,
+      "_",
+      num_cv,
+      ".csv",
+      sep=""
+      )
+      result <- read.csv(csv_name)
+      real <- result$actual
+      mape <- mape + 1/20 * abs((c(result$BARTMean, result$GPMean, result$MIMean)-real)/real)
+      bart_estimates[num_cv] <- result$BARTMean
+      gp_estimates[num_cv] <- result$GPMean
+      mi_estimates[num_cv] <- result$MIMean
+    }
+    se[1] <- 1/sqrt(num_cv) * sd(bart_estimates)
+    se[2] <- 1/sqrt(num_cv) * sd(gp_estimates)
+    se[3] <- 1/sqrt(num_cv) * sd(mi_estimates)
+    results[n, c(2,4,6)] <- mape
+    results[n, c(3,5,7)] <- se
+    n <- n + 1
+  }
+  result_csv_name <- paste("results/fisher_function/results_fisher_function_dim_", dim, ".csv", sep="")
+  write.csv(results, result_csv_name)
+}
 

@@ -47,7 +47,7 @@ computeGPBQ <- function(X, Y, dim, epochs, kernel="rbf", FUN, lengthscale=1, seq
   N <- dim(X)[1]
 
   K <- matrix(0,nrow=N,ncol=N)
-  jitter = 1e-8
+  jitter = 1e-7
 
   if (kernel == "rbf") {
     kernel <- rbfdot(.5/lengthscale^2)
@@ -68,9 +68,10 @@ computeGPBQ <- function(X, Y, dim, epochs, kernel="rbf", FUN, lengthscale=1, seq
   cov <- kernelMatrix(kernel, int.points.1, int.points.2)
   var.firstterm <- mean(cov[upper.tri(cov)])
   cov <- kernelMatrix(kernel, int.points.1, X)
-  z <- colMeans(cov)
-  meanValueGP[1] <- t(z) %*% solve(K + diag(jitter, N) , Y)
-  tmp <- t(z)%*% solve(K + diag(jitter, N) , z) 
+  z <- colMeans(cov) 
+  covInverse <- chol2inv(chol(K + diag(jitter, nrow(K))))
+  meanValueGP[1] <- t(z) %*% covInverse %*% Y
+  tmp <- t(z)%*% covInverse %*% z 
   varianceGP[1] <- var.firstterm - tmp
   cat(var.firstterm, tmp,"\n")
 
@@ -86,13 +87,10 @@ computeGPBQ <- function(X, Y, dim, epochs, kernel="rbf", FUN, lengthscale=1, seq
     K_prime <- diag(N+p-1)
     K_prime[1:(N+p-2), 1:(N+p-2)] <- K
     
-
-
-    
     if (sequential){
       K_star_star <- kernelMatrix(kernel, candidateSet)
       K_star <- kernelMatrix(kernel, candidateSet, X)
-      candidate_Var <- diag(K_star_star - K_star %*% solve(K + diag(jitter, nrow(K)), t(K_star)))
+      candidate_Var <- diag(K_star_star - K_star %*% chol2inv(chol(K + diag(jitter, N))) %*% t(K_star))
       index <- which(candidate_Var == max(candidate_Var))[1]
     }
     else {
@@ -112,8 +110,9 @@ computeGPBQ <- function(X, Y, dim, epochs, kernel="rbf", FUN, lengthscale=1, seq
     # add in extra term obtained by integration
     cov <- kernelMatrix(kernel, int.points.1, X)
     z <- colMeans(cov)
-    meanValueGP[p] <- t(z) %*% solve(K + diag(jitter, N+p-1) , Y)
-    varianceGP[p] <- var.firstterm - t(z)%*% solve(K + diag(jitter, N+p-1) , z) 
+    covInverse <- chol2inv(chol(K + diag(jitter, N+p-1)))
+    meanValueGP[p] <- t(z) %*% covInverse %*% Y
+    varianceGP[p] <- var.firstterm - t(z) %*% covInverse %*% z
   }
 
   return (list("meanValueGP" = meanValueGP, "varianceGP" = varianceGP, "X" = X, "Y" = Y, "K" = K))
