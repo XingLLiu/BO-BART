@@ -1,0 +1,207 @@
+# Plot results for each Genz integral after 500 epochs.
+# To run:
+#     In Unix terminal: 
+#     Rscript {ROOT}/src/genz/drawGraphs.R
+# To manually adjust y limits of the plots:
+#     Uncomment ylim = ylims[1:2] and ylim = ylims[3:3] in the two plot functions, 
+#     and input the four limits when running the file
+# To see results:
+#     Plots stored in {ROOT}/report/Figures for plots
+
+ylims <- as.double(commandArgs(TRUE))
+# abs_error <- read.csv("../../Figures_matern32_k2/rmseValues.csv")
+dimensionsList <- c(1,2,3,5,10,20)
+measure <- "Uniform"   # or "Gaussian"
+num_cv_total <- 5
+
+for (whichGenz in c(9)){
+  for (dim in c(10)){
+    for (sequential in c("")){
+
+      # Skip if dim = 1 for discontinuous
+      if (whichGenz == 3 & dim == 1) { break } 
+      
+      # Find Genz function
+      if (whichGenz == 1) { genzFunctionName <-  "cont" }
+      if (whichGenz == 2) { genzFunctionName <-  "copeak" }
+      if (whichGenz == 3) { genzFunctionName <-  "disc" }
+      if (whichGenz == 4) { genzFunctionName <-  "gaussian" }
+      if (whichGenz == 5) { genzFunctionName <-  "oscil" }
+      if (whichGenz == 6) { genzFunctionName <-  "prpeak" }
+      if (whichGenz == 7) { genzFunctionName <-  "step" }
+      if (whichGenz == 9) { genzFunctionName <-  "additive_gaussian" }
+      
+      for (num_cv in 1:num_cv_total) {
+        # Set path for estimated integral values
+        fileName <- paste(toString(genzFunctionName), 'Dim', toString(dim), sequential, measure, "_", toString(num_cv),'.csv', sep='')
+        filePath <- paste('../../results/genz', toString(whichGenz), fileName, sep='/')
+        
+        # Retrieve estimated integral values
+        integrals <- read.csv(filePath, header=TRUE, sep=",", stringsAsFactors = FALSE)
+        predictionBART <- data.frame("meanValueBART" = integrals[, 2], "standardDeviationBART" = integrals[, 3])
+        predictionMonteCarlo <- data.frame("meanValueMonteCarlo" = integrals[, 4], "standardDeviationMonteCarlo" = integrals[, 5])
+        predictionGPBQ <-  data.frame("meanValueGP" = integrals[, 6], "standardDeviationGP" = integrals[, 7])
+        
+        if (num_cv == 1){
+          predictionComb <- data.frame("meanValueBART" = predictionBART$meanValueBART,
+                                       "standardDeviationBART" = predictionBART$standardDeviationBART,
+                                       "meanValueMonteCarlo" = predictionMonteCarlo$meanValueMonteCarlo,
+                                       "standardDeviationMonteCarlo" = predictionMonteCarlo$standardDeviationMonteCarlo,
+                                       "meanValueGP" = predictionGPBQ$meanValueGP,
+                                       "standardDeviationGP" = predictionGPBQ$standardDeviationGP)
+        } else{
+          predictionComb$meanValueBART <- cbind(predictionComb$meanValueBART, predictionBART$meanValueBART)
+          predictionComb$standardDeviationBART <- cbind(predictionComb$standardDeviationBART, predictionBART$standardDeviationBART)
+          predictionComb$meanValueMonteCarlo <- cbind(predictionComb$meanValueMonteCarlo, predictionMonteCarlo$meanValueMonteCarlo)
+          predictionComb$standardDeviationMonteCarlo <- cbind(predictionComb$standardDeviationMonteCarlo, predictionMonteCarlo$standardDeviationMonteCarlo)
+          predictionComb$meanValueGP <- cbind(predictionComb$meanValueGP, predictionGPBQ$meanValueGP)
+          predictionComb$standardDeviationGP <- cbind(predictionComb$standardDeviationGP, predictionGPBQ$standardDeviationGP)
+        }
+
+        # Retrieve analytical integral values
+        real <- integrals$actual[1]
+        
+        # 1. Open eps file
+        plotRootPath <- paste("../../Figures/", toString(whichGenz), "/", plotName, sep="")
+        plotName <- paste("convergenceMean", toString(whichGenz), sequential, toString(dim), "Dimensions_", toString(num_cv),".pdf", sep = "")
+        plotPath <- gsub(plotRootPath, pattern = "csv", replacement="jpg")
+        plotName_error <- paste("convergenceMean", toString(whichGenz), sequential, toString(dim), "Dimensions_error_", toString(num_cv),".pdf", sep = "")
+        plotPath_error <- gsub(plotRootPath, pattern = "csv", replacement="jpg")
+        
+        ymin <- min( apply(cbind(predictionBART$meanValueBART, predictionMonteCarlo$meanValueMonteCarlo, predictionGPBQ$meanValueGP), 2, FUN = min) )
+        ymax <- max( apply(cbind(predictionBART$meanValueBART, predictionMonteCarlo$meanValueMonteCarlo, predictionGPBQ$meanValueGP), 2, FUN = max) )
+        
+        # Posterior plots
+        pdf(plotPath, width = 8.5, height = 8)
+        par(pty = "s")
+
+        plot(integrals$epochs, 
+            integrals$MIMean, 
+            ty="l", 
+            ylab = "Integral",
+            xlab = "num_iterations",
+            col = "chartreuse4",
+            ylim = c(ymin, ymax),
+            lwd = 1.5
+        )
+        polygon(c(integrals$epochs, rev(integrals$epochs)), 
+                c(
+                  integrals$GPMean + 2*integrals$GPsd, 
+                  rev(integrals$GPMean - 2*integrals$GPsd)
+                ), 
+                col = adjustcolor("dodgerblue", alpha.f = 0.2), 
+                border = adjustcolor("dodgerblue", alpha.f = 0.2),
+                lty = "solid")
+        polygon(c(integrals$epochs, rev(integrals$epochs)), 
+                c(
+                  integrals$BARTMean + 2*integrals$BARTsd, 
+                  rev(integrals$BARTMean - 2*integrals$BARTsd)
+                ), 
+                col = adjustcolor("orangered", alpha.f = 0.2), 
+                border = adjustcolor("orangered", alpha.f = 0.2),
+                lty = "solid")
+        points(integrals$epochs, integrals$GPMean, ty="l", col = "dodgerblue", lwd = 1.5)
+        points(integrals$epochs, integrals$BARTMean, ty="l", col = "orangered", lwd = 1.5)
+        abline(h=integrals$actual)
+        legend("topright", legend=c("MI", "BART-Int", "GP-BQ", "Actual"),
+              col=c("chartreuse4", "orangered", "dodgerblue", "black"), cex=1, lty = c(1,1,1,1))
+   
+        # Close the file
+        dev.off()
+        
+        pdf(plotPath_error, width = 8,5, height = 10)
+        plot(integrals$epochs,
+            abs(integrals$MIMean - real),
+            ty="l",
+            ylab = "Absolute Error",
+            xlab = "num_iterations",
+            col = "chartreuse4",
+            lwd = 1.5
+        )
+        abline(h=0)
+        points(integrals$epochs, abs(integrals$GPMean-real), ty="l", col = "dodgerblue", lwd = 1.5)
+        points(integrals$epochs, abs(integrals$BARTMean - real), ty="l", col = "orangered", lwd = 1.5)
+        dev.off()
+
+        cat(genzFunctionName, "done", '\n')
+      }
+    }
+
+    # Combined plots for all cv runs
+    combinedGPsd <- apply(predictionComb$meanValueGP, 1, sd) / sqrt(num_cv)
+    combinedBARTsd <- apply(predictionComb$meanValueBART, 1, sd) / sqrt(num_cv)
+    combinedMeanMC <- apply(predictionComb$meanValueMonteCarlo, 1, mean)
+    combinedMeanGP <- apply(predictionComb$meanValueGP, 1, mean)
+    combinedMeanBART <- apply(predictionComb$meanValueBART, 1, mean)
+
+    pdf(paste("../../Figures", "/combined_", toString(whichGenz), ".pdf", sep = ""), width = 8.5, height = 5)
+    par(mfrow = c(1,2), pty = "s")
+    plot(integrals$epochs,
+         abs(combinedMeanMC - real),
+         ty="l",
+         ylab = "Absolute Error",
+         xlab = "num_iterations",
+         col = "chartreuse4",
+         lwd = 1.5
+    )
+    abline(h=0)
+    points(integrals$epochs, abs(combinedMeanGP - real), ty = "l", col = "dodgerblue", lwd = 1.5)
+    points(integrals$epochs, abs(combinedMeanBART - real), ty="l", col = "orangered", lwd = 1.5)
+    legend("topright", legend=c("BART-Int", "GP-BQ", "MI"),
+           col=c("orangered", "dodgerblue", "chartreuse4"), cex=1.2, lty = c(1,1,1,1))
+    
+    plot(integrals$epochs, 
+         combinedMeanMC, 
+         ty="l", 
+         ylab = "Integral",
+         xlab = "num_iterations",
+         col = "chartreuse4",
+         ylim = c(ymin, ymax),
+         lwd = 1.5
+    )
+    polygon(c(integrals$epochs, rev(integrals$epochs)), 
+            c(
+              combinedMeanGP + 2*combinedGPsd, 
+              rev(combinedMeanGP - 2*combinedGPsd)
+            ), 
+            col = adjustcolor("dodgerblue", alpha.f = 0.20), 
+            border = adjustcolor("dodgerblue", alpha.f = 0.20),
+            lty = "solid")
+    polygon(c(integrals$epochs, rev(integrals$epochs)), 
+            c(
+              combinedMeanBART + 2*combinedBARTsd,
+              rev(combinedMeanBART - 2*combinedBARTsd)
+            ), 
+            col = adjustcolor("orangered", alpha.f = 0.20), 
+            border = adjustcolor("orangered", alpha.f = 0.20),
+            lty = "solid")
+    points(integrals$epochs, combinedMeanGP, ty="l", col = "dodgerblue", lwd = 1.5)
+    points(integrals$epochs, combinedMeanBART, ty="l", col = "orangered", lwd = 1.5)
+    abline(h=integrals$actual)
+    dev.off()
+  }
+
+#   genz_error <- abs_error[abs_error$X == genzFunctionName,]
+#   ymin_er <- min(genz_error[1, c(3, 7, 8)], genz_error[2, c(3, 7, 8)], genz_error[3, c(3, 7, 8)])
+#   ymax_er <- max(genz_error[1, c(3, 7, 8)], genz_error[2, c(3, 7, 8)], genz_error[3, c(3, 7, 8)])
+#   pdf(paste("../../", measure, "/", toString(whichGenz), ".pdf", sep = ""), width = 8.5, height = 10)
+#   plot(c(1, 10, 20), 
+#        log(genz_error[1, c(3, 7, 8)]), 
+#        ty = "l", 
+#        col = "orangered", 
+#        ylim = c(log(ymin_er), log(ymax_er)),
+#        ylab = "Log absolute error",
+#        xlab = "dimension",
+#        cex.lab = 1.5,
+#        cex.axis = 1.5
+#   )
+#   points(c(1, 10, 20), log(genz_error[1, c(3, 7, 8)]), col = "orangered", bg='orangered', pch=21, lwd=3)
+#   points(c(1, 10, 20), log(genz_error[2, c(3, 7, 8)]), col = "dodgerblue", bg='dodgerblue', pch=21, lwd=3)
+#   points(c(1, 10, 20), log(genz_error[2, c(3, 7, 8)]), col = "dodgerblue", bg='dodgerblue', ty = "l")
+#   points(c(1, 10, 20), log(genz_error[3, c(3, 7, 8)]), col = "chartreuse4", bg='chartreuse4', pch=21, lwd=3)
+#   points(c(1, 10, 20), log(genz_error[3, c(3, 7, 8)]), col = "chartreuse4", bg='chartreuse4', ty = "l")
+#   legend("topright", legend=c("BART-Int", "GP-BQ", "MI"),
+#          col=c("orangered", "dodgerblue", "chartreuse4"), cex=2, lty = c(1,1,1,1))
+#   dev.off()
+  
+}

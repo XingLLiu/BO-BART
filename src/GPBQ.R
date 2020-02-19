@@ -73,7 +73,7 @@ computeGPBQ <- function(X, Y, dim, epochs, kernel="rbf", FUN, lengthscale=1, seq
   meanValueGP[1] <- t(z) %*% covInverse %*% Y
   tmp <- t(z)%*% covInverse %*% z 
   varianceGP[1] <- var.firstterm - tmp
-  cat(var.firstterm, tmp,"\n")
+  # cat(var.firstterm, tmp,"\n")
 
   # train
   if (epochs == 1){
