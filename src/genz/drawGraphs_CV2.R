@@ -231,7 +231,11 @@ plot_results <- function(args)
                                         "meanValueMonteCarlo" = predictionMonteCarlo$meanValueMonteCarlo,
                                         "standardDeviationMonteCarlo" = predictionMonteCarlo$standardDeviationMonteCarlo,
                                         "meanValueGP" = predictionGPBQ$meanValueGP,
-                                        "standardDeviationGP" = predictionGPBQ$standardDeviationGP)
+                                        "standardDeviationGP" = predictionGPBQ$standardDeviationGP,
+                                        "timeBART" = integrals$runtimeBART,
+                                        "timeMC" = integrals$runtimeMI,
+                                        "timeGP" = integrals$runtimeGP)
+
           } else{
             predictionComb$meanValueBART <- cbind(predictionComb$meanValueBART, predictionBART$meanValueBART)
             predictionComb$standardDeviationBART <- cbind(predictionComb$standardDeviationBART, predictionBART$standardDeviationBART)
@@ -239,6 +243,8 @@ plot_results <- function(args)
             predictionComb$standardDeviationMonteCarlo <- cbind(predictionComb$standardDeviationMonteCarlo, predictionMonteCarlo$standardDeviationMonteCarlo)
             predictionComb$meanValueGP <- cbind(predictionComb$meanValueGP, predictionGPBQ$meanValueGP)
             predictionComb$standardDeviationGP <- cbind(predictionComb$standardDeviationGP, predictionGPBQ$standardDeviationGP)
+            predictionComb$timeBART <- cbind(predictionComb$timeBART, integrals$runtimeBART)
+            predictionComb$timeGP <- cbind(predictionComb$timeGP, integrals$runtimeGP)
           }
 
           # Retrieve analytical integral values
@@ -262,7 +268,7 @@ plot_results <- function(args)
               integrals$MIMean, 
               ty="l", 
               ylab = "Integral",
-              xlab = "num_iterations",
+              xlab = "Number of training points",
               col = "chartreuse4",
               ylim = c(ymin, ymax),
               lwd = 1.5
@@ -297,7 +303,7 @@ plot_results <- function(args)
               abs(integrals$MIMean - real),
               ty="l",
               ylab = "Absolute Error",
-              xlab = "num_iterations",
+              xlab = "Number of training points",
               col = "chartreuse4",
               lwd = 1.5
           )
@@ -311,16 +317,19 @@ plot_results <- function(args)
 
         # Combined plots for all cv runs
         if (num_cv_total > 1){
-          combinedGPsd <- apply(predictionComb$meanValueGP, 1, sd)   # / sqrt(num_cv_total)
-          combinedBARTsd <- apply(predictionComb$meanValueBART, 1, sd)   # / sqrt(num_cv_total)
+          combinedGPsd <- apply(predictionComb$meanValueGP, 1, sd)  
+          combinedBARTsd <- apply(predictionComb$meanValueBART, 1, sd)
           combinedMeanMC <- apply(predictionComb$meanValueMonteCarlo, 1, mean)
           combinedMeanGP <- apply(predictionComb$meanValueGP, 1, mean)
           combinedMeanBART <- apply(predictionComb$meanValueBART, 1, mean)
+          combinedTimeGP <- apply(predictionComb$timeGP, 1, mean)
+          combinedTimeBART <- apply(predictionComb$timeBART, 1, mean)
 
           ymin <- min( apply(cbind(combinedMeanBART, combinedMeanMC, combinedMeanGP), 2, FUN = min) )
           ymax <- max( apply(cbind(combinedMeanBART, combinedMeanMC, combinedMeanGP), 2, FUN = max) )
           ymin_err <- min( apply(cbind(abs(combinedMeanBART - real), abs(combinedMeanMC - real), abs(combinedMeanGP - real)), 2, FUN = min) )
           ymax_err <- max( apply(cbind(abs(combinedMeanBART - real), abs(combinedMeanMC - real), abs(combinedMeanGP - real)), 2, FUN = max) )
+          ymax_time <- max( apply(cbind(combinedTimeBART, combinedTimeGP), 2, FUN = max) )
 
           pdf(paste("Figures", "/combined_", toString(whichGenz), "Dim", dim, ".pdf", sep = ""), width = 8.5, height = 5)
           par(mfrow = c(1,2), pty = "s")
@@ -328,7 +337,7 @@ plot_results <- function(args)
               abs(combinedMeanMC - real),
               ty="l",
               ylab = "Absolute Error",
-              xlab = "num_iterations",
+              xlab = "Number of training points",
               col = "chartreuse4",
               lwd = 1.5,
               ylim = c(ymin_err, ymax_err)
@@ -343,7 +352,7 @@ plot_results <- function(args)
               combinedMeanMC, 
               ty="l", 
               ylab = "Integral",
-              xlab = "num_iterations",
+              xlab = "Number of training points",
               col = "chartreuse4",
               ylim = c(ymin, ymax),
               lwd = 1.5
@@ -367,6 +376,24 @@ plot_results <- function(args)
           abline(h=integrals$actual)
           points(integrals$epochs, combinedMeanGP, ty="l", col = "dodgerblue", lwd = 1.5)
           points(integrals$epochs, combinedMeanBART, ty="l", col = "orangered", lwd = 1.5)
+
+          # Close file
+          dev.off()
+
+          # Runtime plot
+          pdf(paste("Figures", "/combined_time_", toString(whichGenz), "Dim", dim, ".pdf", sep = ""), width = 8.5, height = 5)
+          plot(integrals$epochs,
+              combinedTimeGP,
+              ty="b",
+              ylab = "Runtime",
+              xlab = "Number of training points",
+              col = "dodgerblue",
+              # lwd = 1.5,
+              ylim = c(0, ymax_time * 2)
+          )
+          points(integrals$epochs, combinedMeanBART, ty="b", col = "orangered")
+          legend("topright", legend=c("BART-Int", "GP-BQ"),
+                col=c("orangered", "dodgerblue"), cex=1.2, lty = c(1,1,1,1))
 
           # Close file
           dev.off()
