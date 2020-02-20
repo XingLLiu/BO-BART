@@ -59,12 +59,12 @@ if (whichGenz == 7 & is.na(args[7])) {
 # extra parameter for additive Gaussian function
 if (whichGenz == 9){ add_gauss_a <- NA}
 
-if (num_iterations == 1) { stop("NEED MORE THAN 1 ITERATION") }
+if (num_iterations == 1 & sequential) { stop("NEED MORE THAN 1 ITERATION") }
 
 print(c(dim, num_iterations, whichGenz))
 source("src/genz/genz.R") # genz function to test
 
-if (whichGenz < 1 | whichGenz > 8) { stop("undefined genz function. Change 3rd argument to 1-8") }
+if (whichGenz < 1 | whichGenz > 9) { stop("undefined genz function. Change 3rd argument to 1-9") }
 if (whichGenz == 3 & dim == 1) { stop("incorrect dimension. Discrete Genz function only defined for dimension >= 2") } 
 
 if (whichGenz == 1) { genz <- cont; genzFunctionName <-  deparse(substitute(cont)) }
@@ -116,6 +116,7 @@ for (num_cv in 1:5) {
     library(reticulate)
     source("src/optimise_gp.R")
     lengthscale <- optimise_gp_r(trainX, trainY, kernel = whichKernel, epochs=500)
+    print("...Finished training for the lengthscale")
   }
   source("src/GPBQ.R")
   t0 <- proc.time()
@@ -218,6 +219,4 @@ for (num_cv in 1:5) {
   
   write.csv(results, file = csvName, row.names=FALSE)
 }
-
-
 
