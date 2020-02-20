@@ -12,6 +12,9 @@ library(kernlab)
 library(msm)
 library(MCMCglmm)
 set.seed(0)
+# fix numbe of point
+# n increasing
+
 # define string formatting
 `%--%` <- function(x, y) 
   # from stack exchange:
@@ -23,7 +26,7 @@ set.seed(0)
 # global parameters: dimension
 args <- commandArgs(TRUE)
 dim <- as.double(args[1])
-num_data <- 50*dim
+num_data <- 1000
 num_iterations <- 1
 whichKernel <- "matern32"
 sequential <- FALSE
@@ -109,15 +112,15 @@ source("src/GPBQ.R")
 t0 <- proc.time()
 # need to add in function to optimise the hyperparameters
 predictionGPBQ <- computeGPBQ(
-trainX, 
-trainY, 
-dim, 
-epochs = num_iterations, 
-kernel = whichKernel, 
-FUN = fisher_function, 
-lengthscale,
-sequential, 
-measure
+  trainX, 
+  trainY, 
+  dim, 
+  epochs = num_iterations, 
+  kernel = whichKernel, 
+  FUN = fisher_function, 
+  lengthscale,
+  sequential, 
+  measure
 )  
 t1 <- proc.time()
 GPTime <- (t1 - t0)[[1]]
@@ -160,3 +163,40 @@ tools::toTitleCase(measure)
 ))
 
 write.csv(results, file = csvName, row.names=FALSE)
+
+
+# test time
+# dims <- c(1, 5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100)
+# times <- data.frame(
+#   "dims" = dims,
+#   "BARTTime" = dims,
+#   "MITime" = dims,
+#   "GPTime" = dims
+# )
+# for (i in 1:length(dims)) {
+#   dim <- dims[i]
+#   result <- read.csv("time_results/results/fisher_function/TimeDim%sNoSequentialUniform.csv" %--% c(dim))
+#   time <- result[1, c(9,10,11)]
+#   times[i, c(2,3,4)] <- time
+# }
+# write.csv(times, "time_results/results/fisher_function/time_dim.csv", row.names=FALSE)
+# pdf("time_results/results/time_dim.pdf", width = 5, height = 5.5)
+# par(pty = "s")
+# plot(times$dims, 
+#      times$BARTTime, 
+#      ty = "l", 
+#      col = "orangered", 
+#      ylab = "Time in seconds",
+#      xlab = "dimension",
+#      ylim = c(0, max(times$BARTTime, times$GPTime)),
+#      cex.lab = 1.5,
+#      cex.axis = 1.5
+# )
+# points(times$dims, times$BARTTime, col = "orangered", bg='orangered', pch=21, lwd=3)
+# points(times$dims, times$GPTime, col = "dodgerblue", ty = "l")
+# points(times$dims, times$GPTime, col = "dodgerblue", bg='dodgerblue', pch=21, lwd=3)
+# legend("topleft", legend=c("BART-Int", "GP-BQ"),
+#        col=c("orangered", "dodgerblue"), cex=1, lty = c(1,1), lwd=3)
+# 
+# dev.off()
+

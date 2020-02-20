@@ -269,7 +269,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, sequentia
     ymin <- min(trainData[, (dim + 1)]); ymax <- max(trainData[, (dim + 1)])
     # first build BART and scale mean and standard deviation
     sink("/dev/null")
-    model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=5L, nskip=500, ndpost=1500, ntree=50, k = 2)
+    model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=5L, nskip=500, ndpost=5000, ntree=50, k = 2)
     # model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=2000)
     # model <- bart(trainData[,1:dim], trainData[,dim+1], keeptrees=TRUE, keepevery=20L, nskip=1000, ndpost=10000, ntree=50, k = 2)
 
@@ -290,7 +290,6 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, sequentia
     
     # predict the values
     fValues <- predict(model, candidateSet)
-    
     if (sequential){
       var <- colVars(fValues)
       index <- sample(which(var==max(var)), 1)
