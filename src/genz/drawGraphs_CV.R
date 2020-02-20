@@ -12,7 +12,7 @@ ylims <- as.double(commandArgs(TRUE))
 abs_error <- read.csv("../../Figures_matern32_k2/rmseValues.csv")
 for (i in c(7)){
   for (j in c(1)){
-    for (sequential in c("")){
+    for (sequential in c("NoSequential")){
       # global parameters: dimension
       dimensionsList <- c(1,2,3,5,10,20)
       dim <- dimensionsList[j]
@@ -29,6 +29,7 @@ for (i in c(7)){
       if (whichGenz == 5) { genzFunctionName <-  "oscil" }
       if (whichGenz == 6) { genzFunctionName <-  "prpeak" }
       if (whichGenz == 7) { genzFunctionName <-  "step" }
+      if (whichGenz == 8) { genzFunctionName <-  "additive_gaussian" }
       
       for (num_cv in 1:5) {
         # Set path for estimated integral values
