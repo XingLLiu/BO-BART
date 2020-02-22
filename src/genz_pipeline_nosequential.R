@@ -105,11 +105,11 @@ genz_pipeline_nosequential <- function(args)
         }
       } else {
         if (measure == "uniform") {
-            trainX <- rbind(trainX, runif(epochs[iter] - epochs[iter - 1]))
+            trainX <- rbind(trainX, replicate(dim, runif(epochs[iter] - epochs[iter - 1])))
             # trainX <- rbind(trainX, replicate(dim, runif(epochs[iter] - epochs[iter - 1])))
             trainY <- genz(trainX)
         } else if (measure == "gaussian") {
-            trainX <- rbind(trainX, runif(epochs[iter] - epochs[iter - 1]))
+            trainX <- rbind(trainX, replicate(dim, runif(epochs[iter] - epochs[iter - 1])))
             genz <- gaussian_weighted
             trainY <- genz(trainX)
         }
