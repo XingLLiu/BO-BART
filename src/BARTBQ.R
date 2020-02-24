@@ -290,7 +290,6 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, sequentia
     
     # predict the values
     fValues <- predict(model, candidateSet)
-    
     if (sequential){
       var <- colVars(fValues)
       index <- sample(which(var==max(var)), 1)
