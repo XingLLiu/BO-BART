@@ -15,8 +15,8 @@ set.seed(0)
 
 # define string formatting
 `%--%` <- function(x, y) 
-# from stack exchange:
-# https://stackoverflow.com/questions/46085274/is-there-a-string-formatting-operator-in-r-similar-to-pythons
+  # from stack exchange:
+  # https://stackoverflow.com/questions/46085274/is-there-a-string-formatting-operator-in-r-similar-to-pythons
 {
   do.call(sprintf, c(list(x), y))
 }
@@ -82,10 +82,10 @@ print("Testing with: %s" %--% genzFunctionName)
 
 # prepare training dataset
 if (measure == "uniform") {
-  trainX <- replicate(dim, runif(50))
+  trainX <- replicate(dim, runif(50*dim))
   trainY <- genz(trainX)
 } else if (measure == "gaussian") {
-  trainX <- replicate(dim, rtnorm(50, mean=0.5, lower=0, upper=1))
+  trainX <- replicate(dim, rtnorm(50*dim, mean=0.5, lower=0, upper=1))
   genz <- gaussian_weighted
   trainY <- genz(trainX)
 }
@@ -161,62 +161,61 @@ for (num_cv in 1:5) {
   
   print("Writing full results to results/genz%s" %--% c(whichGenz))
   results <- data.frame(
-          "epochs" = c(1:num_iterations),
-          "BARTMean" = predictionBART$meanValueBART, "BARTsd" = predictionBART$standardDeviationBART,
-          "MIMean" = predictionMonteCarlo$meanValueMonteCarlo, "MIsd" = predictionMonteCarlo$standardDeviationMonteCarlo,
-          "GPMean" = predictionGPBQ$meanValueGP, "GPsd" = sqrt(predictionGPBQ$varianceGP),
-          "actual" = rep(real, num_iterations),
-          "runtimeBART" = rep(bartTime, num_iterations),
-          "runtimeMI" = rep(MITime, num_iterations),
-          "runtimeGP" = rep(GPTime, num_iterations)
+    "epochs" = c(1:num_iterations),
+    "BARTMean" = predictionBART$meanValueBART, "BARTsd" = predictionBART$standardDeviationBART,
+    "MIMean" = predictionMonteCarlo$meanValueMonteCarlo, "MIsd" = predictionMonteCarlo$standardDeviationMonteCarlo,
+    "GPMean" = predictionGPBQ$meanValueGP, "GPsd" = sqrt(predictionGPBQ$varianceGP),
+    "actual" = rep(real, num_iterations),
+    "runtimeBART" = rep(bartTime, num_iterations),
+    "runtimeMI" = rep(MITime, num_iterations),
+    "runtimeGP" = rep(GPTime, num_iterations)
   )
   results_models <- list("BART"=predictionBART, "GP"=predictionGPBQ, "MC"=predictionMonteCarlo)
   if (!sequential){
     csvName <- "results/genz/%s/%sDim%sNoSequential%s_%s.csv" %--% c(
-            whichGenz, 
-            genzFunctionName,
-            dim,
-            tools::toTitleCase(measure),
-            num_cv
-            )
+      whichGenz, 
+      genzFunctionName,
+      dim,
+      tools::toTitleCase(measure),
+      num_cv
+    )
     figName <- "Figures/%s/%sDim%sNoSequential%s_%s.pdf" %--% c(
-            whichGenz,
-            genzFunctionName,
-            dim,
-            tools::toTitleCase(measure),
-            num_cv
-            )
+      whichGenz,
+      genzFunctionName,
+      dim,
+      tools::toTitleCase(measure),
+      num_cv
+    )
     save(results_models, file = "results/genz/%s/%sDim%sNoSequential%s_%s.RData" %--% c(
-            whichGenz,
-            genzFunctionName,
-            dim,
-            tools::toTitleCase(measure),
-            num_cv
+      whichGenz,
+      genzFunctionName,
+      dim,
+      tools::toTitleCase(measure),
+      num_cv
     ))
   } else {
     csvName <- "results/genz/%s/%sDim%s%s_%s.csv" %--% c(
-            whichGenz, 
-            genzFunctionName,
-            dim,
-            tools::toTitleCase(measure),
-            num_cv
-       )
+      whichGenz, 
+      genzFunctionName,
+      dim,
+      tools::toTitleCase(measure),
+      num_cv
+    )
     figName <- "Figures/%s/%sDim%s%s_%s.pdf" %--% c(
-            whichGenz,
-            genzFunctionName,
-            dim,
-            tools::toTitleCase(measure),
-            num_cv
+      whichGenz,
+      genzFunctionName,
+      dim,
+      tools::toTitleCase(measure),
+      num_cv
     )
     save(results_models, file = "results/genz/%s/%sDim%s%s_%s.RData" %--% c(
-            whichGenz,
-            genzFunctionName,
-            dim,
-            tools::toTitleCase(measure),
-            num_cv
+      whichGenz,
+      genzFunctionName,
+      dim,
+      tools::toTitleCase(measure),
+      num_cv
     ))
   }
   
   write.csv(results, file = csvName, row.names=FALSE)
 }
-
