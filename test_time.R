@@ -94,11 +94,12 @@ results <- data.frame(
   "runtimeMI" = rep(MITime, num_iterations),
   "runtimeGP" = rep(GPTime, num_iterations)
 )
-csvName <- "results/genz/%s/computational_complexity_%sDim%sNoSequential%s.csv" %--% c(
+csvName <- "results/genz/%s/computational_complexity_%sDim%sNoSequential%s_num%s.csv" %--% c(
   whichGenz, 
   genzFunctionName,
   dim,
-  tools::toTitleCase(measure)
+  tools::toTitleCase(measure),
+  n
 )
 write.csv(results, file = csvName, row.names=FALSE)
 
