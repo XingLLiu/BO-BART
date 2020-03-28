@@ -25,7 +25,7 @@ set.seed(0)
 args <- commandArgs(TRUE)
 dim <- 1
 num_iterations <- 1
-n <- 20
+n <- as.double(args[1])
 whichGenz <- 7
 whichKernel <- "matern32"
 # turn on/off sequential design
@@ -99,7 +99,7 @@ csvName <- "results/genz/%s/computational_complexity_%sDim%sNoSequential%s_num%s
   genzFunctionName,
   dim,
   tools::toTitleCase(measure),
-  n
+  n0
 )
 write.csv(results, file = csvName, row.names=FALSE)
 
