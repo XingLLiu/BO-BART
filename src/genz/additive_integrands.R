@@ -1,4 +1,4 @@
-additive_gaussian <- function(xx, a=NA){
+additive_gaussian2 <- function(xx, a=NA){
 
     if (is.matrix(xx) == FALSE) { 
         xx <- matrix(xx, ncol = 1) 

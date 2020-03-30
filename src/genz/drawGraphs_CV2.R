@@ -251,6 +251,7 @@ plot_results <- function(args)
           real <- integrals$actual[1]
           
           # 1. Open eps file
+          print(paste0("dim: ", dim))
           plotName <- paste("convergenceMean", toString(whichGenz), sequential, toString(dim), "Dimensions_", toString(num_cv),".pdf", sep = "")
           plotRootPath <- paste("Figures/", toString(whichGenz), "/", sep="")
           plotPath <- gsub(paste(plotRootPath, plotName, sep=""), pattern = "csv", replacement="jpg")
@@ -391,7 +392,7 @@ plot_results <- function(args)
               # lwd = 1.5,
               ylim = c(0, ymax_time * 2)
           )
-          points(integrals$epochs, combinedMeanBART, ty="b", col = "orangered")
+          points(integrals$epochs, combinedTimeBART, ty="b", col = "orangered")
           legend("topright", legend=c("BART-Int", "GP-BQ"),
                 col=c("orangered", "dodgerblue"), cex=1.2, lty = c(1,1,1,1))
 

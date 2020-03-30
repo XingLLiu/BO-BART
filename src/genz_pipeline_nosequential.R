@@ -121,7 +121,7 @@ genz_pipeline_nosequential <- function(args)
       t0 <- proc.time()
       predictionBART <- mainBARTBQ(dim, num_iterations, FUN = genz, trainX, trainY, sequential, measure)
       t1 <- proc.time()
-      runtimeBART[iter] <- (t1 - t0)[[1]]
+      runtimeBART[iter] <- (t1 - t0)[[3]]
       
       # Bayesian Quadrature with Monte Carlo integration method
       print("Begin Monte Carlo Integration")
@@ -130,7 +130,7 @@ genz_pipeline_nosequential <- function(args)
       t0 <- proc.time()
       predictionMonteCarlo <- monteCarloIntegrationUniform(FUN = genz, trainX, trainY, numSamples=num_iterations, dim, measure)
       t1 <- proc.time()
-      runtimeMI[iter] <- (t1 - t0)[[1]]
+      runtimeMI[iter] <- (t1 - t0)[[3]]
       
       # Bayesian Quadrature with Gaussian Process
       print("Begin Gaussian Process Integration")
@@ -156,7 +156,7 @@ genz_pipeline_nosequential <- function(args)
           measure
       )  
       t1 <- proc.time()
-      runtimeGP[iter] <- (t1 - t0)[[1]]
+      runtimeGP[iter] <- (t1 - t0)[[3]]
 
       # Store results
       BARTMean[iter] <- predictionBART$meanValueBART
@@ -248,7 +248,7 @@ genz_pipeline_nosequential <- function(args)
   # plot results
   print("Start plotting results...")
   source("src/genz/drawGraphs_CV2.R")
-  plot_args <- list(dims_list = c(dim), genz_list = c(9), sequential_list = c("NoSequential"),
+  plot_args <- list(dims_list = c(dim), genz_list = c(whichGenz), sequential_list = c("NoSequential"),
                     measure = measure, num_cv = num_cv_total)
   plot_results(plot_args)
 
