@@ -99,7 +99,7 @@ csvName <- "results/genz/%s/computational_complexity_%sDim%sNoSequential%s_num%s
   genzFunctionName,
   dim,
   tools::toTitleCase(measure),
-  n0
+  n
 )
 write.csv(results, file = csvName, row.names=FALSE)
 
