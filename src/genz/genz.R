@@ -537,7 +537,7 @@ additive_gaussian <- function(xx, a=NA)
   ##########################################################################
 
     if (is.matrix(xx) == FALSE) { 
-        xx <- matrix(xx, ncol = 1) 
+        xx <- matrix(xx, nrow = 1) 
     }
 
     dim <- ncol(xx)
@@ -552,7 +552,7 @@ additive_gaussian <- function(xx, a=NA)
 
     sum <- 0
     for (j in 1:dim){
-        sum <- sum + exp(-a[j]^2 * (xx[, j] - u)^2)
+        sum <- sum + exp(-a[j]^2 * (matrix(xx[, j], ncol = 1) - u)^2)
     }
 
     return(sum)
