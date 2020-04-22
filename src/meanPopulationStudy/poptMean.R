@@ -4,6 +4,8 @@ library(data.tree)
 library(matrixStats)
 library(caret)
 source("src/meanPopulationStudy/bartMean.R")
+source("src/meanPopulationStudy/gpMean_2.R")
+source("src/optimise_gp.R")
 
 # paths to save results and plots
 resultPath <- "results/populationStudy/"
@@ -65,6 +67,10 @@ for (num_cv in 1:5) {
     # population average income estimation by Monte Carlo
     MIresults <- computeMI(trainX.num, trainY, candidateX.num, candidateY, num_iterations=num_new_surveys)
     
+    # GPBQ
+    # lengthscale <- optimise_gp_r(as.matrix(one_hot(data.table(trainX))), trainY, kernel = "rbf", epochs = 50000)
+    # GPresults <- computeGPBQEmpirical(trainX, trainY, candidateX, candidateY, epochs=num_new_surveys, lengthscale=lengthscale)
+    
     # population average income estimation by block random sampling
     BRSresults <- computeBRS(trainX.num, trainY, candidateX.num, candidateY, group = "Race", num_iterations=num_new_surveys)
     
@@ -84,6 +90,8 @@ for (num_cv in 1:5) {
         "PoptMean" = poptMean
     )
     write.csv(results, file = paste0(resultPath, "results", num_cv, ".csv"), row.names=FALSE)
+    results_models <- list("BART"=predictionBART, "MI"=MIresults, "BRS"=BRSresults)
+    save(results_models, file = paste0(plotPath, "results", num_cv, ".RData"))
     
     real <- results$PoptMean[1]
     # Breal <- results$BpoptMean[1]
