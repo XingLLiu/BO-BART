@@ -55,7 +55,9 @@ Project Documentation: https://bart-bq.readthedocs.io/en/latest/
     doParallel
     kernlab
     msm
+    MCMCglmm
     dbarts_0.9-8
+    caret
 ```
 
 ## To run the genz integrals approximations:
@@ -63,7 +65,7 @@ Project Documentation: https://bart-bq.readthedocs.io/en/latest/
 1) Install all the necessary packages
 
 ```r
-install.packages(c("yaml", "MASS", "cubature", "lhs", "data.tree", "matrixStats", "mvtnorm", "doParallel", "kernlab", "msm"))
+install.packages(c("yaml", "MASS", "cubature", "lhs", "data.tree", "matrixStats", "mvtnorm", "doParallel", "kernlab", "msm", "MCMCglmm", "caret"))
 
 # an old version of dbarts
 packageurl <- "https://cran.r-project.org/src/contrib/Archive/dbarts/dbarts_0.9-8.tar.gz"
@@ -75,7 +77,7 @@ install.packages(packageurl, repos=NULL, type="source")
 Rscript integrationMain.R dimension num_iterations genz_function_number kernel_name sequential_flag (measure) (number_of_jumps_for_step_function)
 
 ```
-where `genz_function_number` follows the indexing in this [documentation](https://www.sfu.ca/~ssurjano/integration.html) for the Genz families. The results will be stored in `results`, where you can find the `.csv` files containing the numerical values and the automatically generated graphs.
+where `genz_function_number` follows the indexing in this [documentation](https://www.sfu.ca/~ssurjano/integration.html) for the Genz families. The results will be stored in `results`, where you can find the `.csv` and `.RData` files containing the numerical values and the automatically generated graphs.
 
 3) If you want to tune the GP integral, you can also run
 
@@ -83,20 +85,18 @@ where `genz_function_number` follows the indexing in this [documentation](https:
 Rscript GPRunTime.R dimension num_iterations genz_function_number initial_training_set_size
 ```
 
-Results will also be stored in `results`.
+Results will also be stored in `results` and `Figures`.
 
 ## To test the design with real-life data with provided
 
 1) Install the dependencies in `R`. Make sure you are using **R 3.5.0** or higher.
 
-2) In the terminal, `cd` to `src/meanPopulationStudy`
-
-3) Run
+2) Run
 
 ```
-Rscript poptMean.R num_iterations
+Rscript src/meanPopulationStudy/poptMean.R num_new_surveys
 
 ```
 
-This will generate and store the results in `meanPopulationStudy`, where you can find the `.csv` files containing the numerical values and the automatically generated graphs.
+This will generate and store the results in `results/populationStudy` and `Figures/populationStudy`, where you can find the `.csv` and `.RData` files containing the numerical values and the automatically generated graphs.
 
