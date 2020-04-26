@@ -55,6 +55,7 @@ Project Documentation: https://bart-bq.readthedocs.io/en/latest/
     doParallel
     kernlab
     msm
+    MCMCglmm
     dbarts_0.9-8
     caret
 ```
@@ -64,7 +65,7 @@ Project Documentation: https://bart-bq.readthedocs.io/en/latest/
 1) Install all the necessary packages
 
 ```r
-install.packages(c("yaml", "MASS", "cubature", "lhs", "data.tree", "matrixStats", "mvtnorm", "doParallel", "kernlab", "msm", "caret"))
+install.packages(c("yaml", "MASS", "cubature", "lhs", "data.tree", "matrixStats", "mvtnorm", "doParallel", "kernlab", "msm", "MCMCglmm", "caret"))
 
 # an old version of dbarts
 packageurl <- "https://cran.r-project.org/src/contrib/Archive/dbarts/dbarts_0.9-8.tar.gz"
