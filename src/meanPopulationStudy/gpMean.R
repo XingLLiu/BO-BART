@@ -54,7 +54,6 @@ computeGPBQEmpirical <- function(X, Y, dim, candidateSet, candidateY, epochs, ke
   else if (kernel == "matern32") {
      kernel <- maternKernelWrapper(lengthscale)
   }  
-  
   K = kernelMatrix(kernel, X)
   # compute the variance
   var.firstterm <- sum(colSums(kernelMatrix(kernel, rbind(X, candidateSet))))

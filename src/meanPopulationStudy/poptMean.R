@@ -3,6 +3,7 @@ library(dbarts)
 library(data.tree)
 library(matrixStats)
 library(caret)
+set.seed(0)
 source("src/meanPopulationStudy/bartMean.R")
 source("src/meanPopulationStudy/gpMean_2.R")
 source("src/optimise_gp.R")
@@ -60,6 +61,8 @@ candidateX <- data.frame(predict(dummyFullData, newdata = candidateX))
 # load(file = "data/survey_data.RData")
 
 for (num_cv in 1:5) {
+    # set new seed
+    set.seed(num_cv)
 
     # compute population average income estimates by BARTBQ
     BARTresults <- computeBART(trainX, trainY, candidateX, candidateY, num_iterations=num_new_surveys)

@@ -57,9 +57,6 @@ computeBART <- function(trainX, trainY, condidateX, candidateY, num_iterations)
     # predict the values
     fValues <- predict(model, candidateX)
 
-    # posterior mean and variance
-    integrals <- rowMeans(fValues)
-
     # select the best candidate, find its response
     var <- colVars(fValues)
     index <- sample(which(var==max(var)), 1)
@@ -96,7 +93,6 @@ computeBART <- function(trainX, trainY, condidateX, candidateY, num_iterations)
 
   return(list("meanValueBART"=meanValue, "standardDeviationBART"=standardDeviation, 
               "eduMeanValueBART"=eduMeanValue, "eduStandardDeviationBART"=eduStandardDeviation, "trainData"=trainData))
-
 }
 
 
