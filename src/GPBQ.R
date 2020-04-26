@@ -59,11 +59,11 @@ computeGPBQ <- function(X, Y, dim, epochs, kernel="rbf", FUN, lengthscale=1, seq
   K = kernelMatrix(kernel, X)
   # compute the variance
   if (measure == "uniform"){
-    int.points.1 <- replicate(dim, runif(5000))
-    int.points.2 <- replicate(dim, runif(5000))
+    int.points.1 <- replicate(dim, runif(10000))
+    int.points.2 <- replicate(dim, runif(10000))
   } else if (measure == "gaussian") {
-    int.points.1 <- replicate(dim, rtnorm(5000, mean = 0.5, lower=0, upper=1))
-    int.points.2 <- replicate(dim, rtnorm(5000, mean = 0.5, lower=0, upper=1))
+    int.points.1 <- replicate(dim, rtnorm(10000, mean = 0.5, lower=0, upper=1))
+    int.points.2 <- replicate(dim, rtnorm(10000, mean = 0.5, lower=0, upper=1))
   }
   cov <- kernelMatrix(kernel, int.points.1, int.points.2)
   var.firstterm <- mean(cov[upper.tri(cov)])
@@ -90,10 +90,10 @@ computeGPBQ <- function(X, Y, dim, epochs, kernel="rbf", FUN, lengthscale=1, seq
     if (sequential){
       K_star_star <- kernelMatrix(kernel, candidateSet)
       K_star <- kernelMatrix(kernel, candidateSet, X)
-      candidate_Var <- diag(K_star_star - K_star %*% chol2inv(chol(K + diag(jitter, N))) %*% t(K_star))
+      candidate_Var <- diag(K_star_star - K_star %*% chol2inv(chol(K + diag(jitter, N+p-2))) %*% t(K_star))
       index <- which(candidate_Var == max(candidate_Var))[1]
     }
-    else {
+    else {    
       index <- sample(1:candidateSetNum, 1)
     }
     
