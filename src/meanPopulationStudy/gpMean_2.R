@@ -61,7 +61,7 @@ computeGPBQEmpirical <- function(X, Y, candidateSet, candidateY, epochs, kernel=
   z <- matrix(colSums(K)/nrow(X))
   covInverse <- chol2inv(chol(K + diag(jitter, nrow(K))))
   meanValueGP[1] <- t(z) %*% covInverse %*% Y
-  # tmp <- t(z)%*% covInverse %*% z 
+  tmp <- t(z)%*% covInverse %*% z
   varianceGP[1] <- var.firstterm - tmp
   cat(var.firstterm, tmp,"\n")
 

@@ -45,11 +45,11 @@ candidateData <- candidateData[sample(nrow(candidateData)), ]
 
 # extract covariates and response
 cols <- ncol(trainData)
-trainX <- trainData[, -cols]
-trainY <- trainData[, cols]
+trainX <- trainData[1:500, -cols]
+trainY <- trainData[1:500, cols]
 
-candidateX <- candidateData[, -cols]
-candidateY <- candidateData[, cols]
+candidateX <- candidateData[1:5000, -cols]
+candidateY <- candidateData[1:5000, cols]
 
 # one-hot encoding
 trainX.num <- trainX
@@ -71,9 +71,11 @@ for (num_cv in 1:5) {
     MIresults <- computeMI(trainX.num, trainY, candidateX.num, candidateY, num_iterations=num_new_surveys)
     
     # GPBQ
-    # lengthscale <- optimise_gp_r(as.matrix(one_hot(data.table(trainX))), trainY, kernel = "rbf", epochs = 50000)
-    # GPresults <- computeGPBQEmpirical(as.matrix(trainX), trainY, as.matrix(candidateX), candidateY, epochs=num_new_surveys, lengthscale=lengthscale)
-    
+    if (num_cv == 1) {
+      lengthscale <- optimise_gp_r(as.matrix(trainX), trainY, kernel = "rbf", epochs = 500)
+    }
+    GPresults <- computeGPBQEmpirical(as.matrix(trainX), trainY, as.matrix(candidateX), candidateY, epochs=num_new_surveys, lengthscale=lengthscale)
+
     # population average income estimation by block random sampling
     BRSresults <- computeBRS(trainX.num, trainY, candidateX.num, candidateY, group = "Race", num_iterations=num_new_surveys)
     
@@ -90,10 +92,11 @@ for (num_cv in 1:5) {
         "BARTMean" = BARTresults$meanValueBART, "BARTsd" = BARTresults$standardDeviationBART,
         "MIMean" = MIresults$meanValueMI, "MIsd" = MIresults$standardDeviationMI, 
         "BRSMean" = BRSresults$meanValueBRS, "BRSsd" = BRSresults$standardDeviationBRS,
+        "GPMean" = GPresults$meanValueGP, "GPsd" = GPresults$varianceGP,
         "PoptMean" = poptMean
     )
     write.csv(results, file = paste0(resultPath, "results", num_cv, ".csv"), row.names=FALSE)
-    results_models <- list("BART"=BARTresults, "MI"=MIresults, "BRS"=BRSresults)
+    results_models <- list("BART"=BARTresults, "MI"=MIresults, "BRS"=BRSresults, "GP"=GPresults)
     save(results_models, file = paste0(plotPath, "results", num_cv, ".RData"))
     
     real <- results$PoptMean[1]
@@ -116,9 +119,10 @@ for (num_cv in 1:5) {
     
     points(results$epochs, abs(results$MIMean - real), ty="l", col = "chartreuse4")
     points(results$epochs, abs(results$BRSMean - real), ty="l", col = "dodgerblue")
+    points(results$epochs, abs(results$GPMean - real), ty="l", col = "darkgoldenrod")
 
-    legend("topright", legend=c("Block sampling", "BART-Int", "Monte Carlo sampling"),
-           col=c("dodgerblue", "orangered", "chartreuse4"), cex=0.8, lty = c(1,1,1,1))
+    legend("topright", legend=c("Block sampling", "BART-Int", "Monte Carlo sampling", "GPBQ"),
+           col=c("dodgerblue", "orangered", "chartreuse4", "darkgoldenrod"), cex=0.8, lty = c(1,1,1,1))
     
     # ymin <- min(c(results$BARTMean - 2*results$BARTsd, results$BRSMean - 2*results$BRSsd, results$MIMean[1:num_new_surveys]))
     # ymax <- max(c(results$BARTMean + 2*results$BARTsd, results$BRSMean + 2*results$BRSsd, results$MIMean[1:num_new_surveys]))
@@ -156,6 +160,16 @@ for (num_cv in 1:5) {
             ), 
             col = adjustcolor("orangered", alpha.f = 0.10), 
             border = "orangered", lty = c("dashed", "solid"))
+    
+    points(results$epochs, results$GPMean, ty="l", col = "darkgoldenrod")
+    polygon(c(results$epochs, rev(results$epochs)), 
+            c(
+              results$BARTMean + 2*results$GPsd, 
+              rev(results$BARTMean - 2*results$GPsd)
+            ), 
+            col = adjustcolor("darkgoldenrod", alpha.f = 0.10), 
+            border = "darkgoldenrod", lty = c("dashed", "solid"))
+    
     abline(h=results$PoptMean)
     dev.off()
 }
