@@ -52,18 +52,23 @@ computeGPBQEmpirical <- function(X, Y, candidateSet, candidateY, epochs, kernel=
     kernel <- rbfdot(.5/lengthscale^2)
   }
   else if (kernel == "matern32") {
-     kernel <- maternKernelWrapper(lengthscale)
+    kernel <- maternKernelWrapper(lengthscale)
   }  
   
-  K = kernelMatrix(kernel, X)
   # compute the variance
-  var.firstterm <- sum(colSums(K))/(nrow(X)^2)
-  z <- matrix(colSums(K)/nrow(X))
+  allSet <- as.matrix(rbind(X, candidateSet))
+  X <- as.matrix(X)
+  candidateSet <- as.matrix(candidateSet)
+  
+  K_all <- kernelMatrix(kernel, allSet)
+  var.firstterm <- sum(K_all)/(nrow(allSet)^2)
+  
+  K = kernelMatrix(kernel, X)
+  cov <- kernelMatrix(kernel, allSet, X)
+  z <- colMeans(cov) 
   covInverse <- chol2inv(chol(K + diag(jitter, nrow(K))))
   meanValueGP[1] <- t(z) %*% covInverse %*% Y
-  tmp <- t(z)%*% covInverse %*% z
-  varianceGP[1] <- var.firstterm - tmp
-  cat(var.firstterm, tmp,"\n")
+  varianceGP[1] <- var.firstterm - t(z) %*% covInverse %*% z
 
   # train
   if (epochs == 1){
@@ -92,10 +97,10 @@ computeGPBQEmpirical <- function(X, Y, candidateSet, candidateY, epochs, kernel=
     K <- K_prime
     
     # add in extra term obtained by integration
-    z <- matrix(colSums(K))/nrow(X)
+    cov <- kernelMatrix(kernel, allSet, X)
+    z <- colMeans(cov) 
     covInverse <- chol2inv(chol(K + diag(jitter, N+p-1)))
     meanValueGP[p] <- t(z) %*% covInverse %*% Y
-    var.firstterm <- sum(colSums(K))/(nrow(X)^2)
     varianceGP[p] <- var.firstterm - t(z) %*% covInverse %*% z
   }
 

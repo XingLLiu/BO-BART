@@ -38,6 +38,7 @@ candidateData <- candidateData[complete.cases(candidateData),]
 # compute the real population mean log income
 poptMean <- mean(c(trainData$log_Total_person_income, candidateData$log_Total_person_income))
 
+
 # reconstruct order of the data
 set.seed(2020)
 trainData <- trainData[sample(nrow(trainData)), ]
@@ -47,6 +48,12 @@ candidateData <- candidateData[sample(nrow(candidateData)), ]
 cols <- ncol(trainData)
 trainX <- trainData[1:500, -cols]
 trainY <- trainData[1:500, cols]
+
+# bartTrain <- rbind(trainData, candidateData[:10000,])
+# dim <- ncol(trainX)
+# model <- bart(trainData[,1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=3L, 
+#               nskip=200, ndpost=2000, ntree=50, k=3, usequant=FALSE)   
+# poptMeanBART <- mean(model$yhat.train.mean)
 
 candidateX <- candidateData[1:5000, -cols]
 candidateY <- candidateData[1:5000, cols]
@@ -59,6 +66,7 @@ trainX <- data.frame(predict(dummyFullData, newdata = trainX))
 candidateX <- data.frame(predict(dummyFullData, newdata = candidateX))
 # save(trainX, trainX.num, trainY, candidateX, candidateX.num, candidateY, file = "data/survey_data.RData")
 # load(file = "data/survey_data.RData")
+
 
 for (num_cv in 1:5) {
     # set new seed
