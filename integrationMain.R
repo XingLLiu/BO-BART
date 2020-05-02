@@ -91,6 +91,8 @@ if (measure == "uniform") {
 }
 
 for (num_cv in 1:5) {
+  # set new seed
+  set.seed(num_cv)
   cat("NUM_CV", num_cv, "\n")
   # Bayesian Quadrature method
   # set number of new query points using sequential design

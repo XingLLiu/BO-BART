@@ -48,42 +48,42 @@ computeBART <- function(trainX, trainY, condidateX, candidateY, num_iterations)
     print(c("BART: Epoch=", i))
     # first build BART model
     sink("/dev/null")
-    model <- bart(trainData[, 1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=3L, 
-                  nskip=500, ndpost=2000, ntree=50, k=2, usequant=FALSE)
+    # model <- bart(trainData[, 1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=3L, 
+    #               nskip=500, ndpost=2000, ntree=50, k=2, usequant=FALSE)
+    model <- bart(trainData[,1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=3L, 
+                  nskip=200, ndpost=2000, ntree=50, k=3, usequant=FALSE)              
     sink()
 
     # predict the values
     fValues <- predict(model, candidateX)
-
-    # posterior mean and variance
-    integrals <- rowMeans(fValues)
-    meanValue[i] <- mean(integrals)
-    standardDeviation[i] <- sd(integrals) 
 
     # select the best candidate, find its response
     var <- colVars(fValues)
     index <- sample(which(var==max(var)), 1)
     response <- candidateY[index]
 
-    # data segmentation by education level
-    mat <- matrix(c(1,16,17,24), nrow = 2, ncol = 2)
+    # # data segmentation by education level
+    # mat <- matrix(c(1,16,17,24), nrow = 2, ncol = 2)
 
-    for (cat in 1:2){
+    # for (cat in 1:2){
 
-      eduCandidateX <- candidateX[(candidateX$Education >= mat[1, cat] & candidateX$Education <= mat[2, cat]), ]
+    #   eduCandidateX <- candidateX[(candidateX$Education >= mat[1, cat] & candidateX$Education <= mat[2, cat]), ]
       
-      # make prediction
-      fValues <- predict(model, eduCandidateX)
+    #   # make prediction
+    #   fValues <- predict(model, eduCandidateX)
 
-      # posterior mean and variance
-      integrals <- rowMeans(fValues)
-      eduMeanValue[cat, i] <- mean(integrals)
-      eduStandardDeviation[cat, i] <- sd(integrals)
+    #   # posterior mean and variance
+    #   integrals <- rowMeans(fValues)
+    #   eduMeanValue[cat, i] <- mean(integrals)
+    #   eduStandardDeviation[cat, i] <- sd(integrals)
 
-    }
+    # }
     
     # add new data to train set
     trainData <- rbind(trainData, cbind(candidateX[index, ], response))
+    meanValue[i] <- mean(model$yhat.train.mean)
+    # standardDeviation[i] <- sd(trainData[, dim+1]) 
+    standardDeviation[i] <- sd(model$yhat.train.mean)/sqrt(length(model$yhat.train.mean)) 
 
     # remove newly added value from candidate set
     candidateX <- candidateX[-index,]
@@ -93,13 +93,12 @@ computeBART <- function(trainX, trainY, condidateX, candidateY, num_iterations)
 
   return(list("meanValueBART"=meanValue, "standardDeviationBART"=standardDeviation, 
               "eduMeanValueBART"=eduMeanValue, "eduStandardDeviationBART"=eduStandardDeviation, "trainData"=trainData))
-
 }
 
 
 stratified <- function(df, group, size, select=NULL, replace=FALSE, bothSets=FALSE) 
 #' Stratified sampling
-#' @description Method of stratificaiton from CRAN package fifer.
+#' @description Method of stratification from CRAN package fifer.
 {
   if (is.null(select)) {
     df <- df
@@ -183,8 +182,7 @@ computeMI <- function(trainX, trainY, candidateX, candidateY, num_iterations)
     
     MImean[i] <- mean(c(trainY, candidateY[1:i]))
 
-    n = length(c(trainY, candidateY[1:i]))
-    MIstandardDeviation[i] <- sqrt( var(c(trainY, candidateY[1:i]))/(n-1) )
+    MIstandardDeviation[i] <- sd(c(trainY, candidateY[1:i]))/sqrt(length(c(trainY, candidateY[1:i])))
 
   }
 
@@ -222,8 +220,7 @@ computeBRS <- function(trainX, trainY, candidateX, candidateY, group, num_iterat
       
         BRmean[i] <- mean(c(trainY, samples[1:i, dim+1]))
 
-        n = length(c(trainY, samples[1:i, dim+1]))
-        BRstandardDeviation[i] <- sqrt( var(c(trainY, samples[1:i, dim+1])) /(n-1) )
+        BRstandardDeviation[i] <- sd(c(trainY, samples[1:i, dim+1])) /sqrt(length(c(trainY, samples[1:i, dim+1])))
 
     }
     
