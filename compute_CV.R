@@ -77,9 +77,10 @@ for (i in c(7)){
       real <- analyticalIntegrals[whichGenz, whichDimension]
       # Compute abs error
       epoch <- nrow(integrals)
-      absMape <- abs(c(predictionBART$meanValueBART[epoch], 
-                             predictionMonteCarlo$meanValueMonteCarlo[epoch], 
-                             predictionGPBQ$meanValueGP[epoch]) - real / real)
+      absMape <- abs((c(predictionBART$meanValueBART[epoch], 
+                          predictionMonteCarlo$meanValueMonteCarlo[epoch], 
+                          predictionGPBQ$meanValueGP[epoch]
+                        ) - real) / real)
       meanabsMape <- meanabsMape + absMape 
       # Store all estimates in a single csv
       resultsAllEntry <- c(
