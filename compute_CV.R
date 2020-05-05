@@ -79,8 +79,14 @@ for (i in c(1,2,4,5,6,7)){
       # Compute abs error
       epoch <- nrow(integrals)
       absMape <- abs((c(predictionBART$meanValueBART[epoch], 
+<<<<<<< HEAD
                              predictionMonteCarlo$meanValueMonteCarlo[epoch], 
                              predictionGPBQ$meanValueGP[epoch]) - real) / real)
+=======
+                          predictionMonteCarlo$meanValueMonteCarlo[epoch], 
+                          predictionGPBQ$meanValueGP[epoch]
+                        ) - real) / real)
+>>>>>>> a57a9a4b58fb930274483e31f3f530e37f33f0f2
       meanabsMape <- meanabsMape + absMape 
       # Store all estimates in a single csv
       resultsAllEntry <- c(

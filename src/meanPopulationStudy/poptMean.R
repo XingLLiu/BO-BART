@@ -13,7 +13,10 @@ resultPath <- "results/populationStudy/"
 plotPath <- "Figures/populationStudy/"
 
 args <- as.double(commandArgs(TRUE))
-num_new_surveys <- args
+num_new_surveys <- args[1]
+num_cv_start <- args[2]
+num_cv_end <- args[3]
+
 
 # read in data
 trainData <- read.csv("data/train2.csv")
@@ -49,11 +52,11 @@ cols <- ncol(trainData)
 trainX <- trainData[1:500, -cols]
 trainY <- trainData[1:500, cols]
 
-# bartTrain <- rbind(trainData, candidateData[:10000,])
-# dim <- ncol(trainX)
-# model <- bart(trainData[,1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=3L, 
-#               nskip=200, ndpost=2000, ntree=50, k=3, usequant=FALSE)   
-# poptMeanBART <- mean(model$yhat.train.mean)
+bartTrain <- rbind(trainData, candidateData)
+ dim <- ncol(trainX)
+ model <- bart(trainData[,1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=3L, 
+               nskip=200, ndpost=2000, ntree=50, k=3, usequant=FALSE)   
+BARTpoptMean <- mean(model$yhat.train.mean)
 
 candidateX <- candidateData[1:5000, -cols]
 candidateY <- candidateData[1:5000, cols]
@@ -68,10 +71,10 @@ candidateX <- data.frame(predict(dummyFullData, newdata = candidateX))
 # load(file = "data/survey_data.RData")
 
 
-for (num_cv in 1:5) {
+for (num_cv in num_cv_start:num_cv_end) {
     # set new seed
     set.seed(num_cv)
-
+    print(num_cv)
     # compute population average income estimates by BARTBQ
     BARTresults <- computeBART(trainX, trainY, candidateX, candidateY, num_iterations=num_new_surveys)
     
@@ -82,19 +85,22 @@ for (num_cv in 1:5) {
     if (num_cv == 1) {
       lengthscale <- optimise_gp_r(as.matrix(trainX), trainY, kernel = "rbf", epochs = 500)
     }
+	else {
+      lengthscale=3.374
+	}
     GPresults <- computeGPBQEmpirical(as.matrix(trainX), trainY, as.matrix(candidateX), candidateY, epochs=num_new_surveys, lengthscale=lengthscale)
 
     # population average income estimation by block random sampling
     BRSresults <- computeBRS(trainX.num, trainY, candidateX.num, candidateY, group = "Race", num_iterations=num_new_surveys)
     
     # store results
-    # results <- data.frame(
-    #     "epochs" = c(1:num_new_surveys),
-    #     "BARTMean" = BARTresults$meanValueBART, "BARTsd" = BARTresults$standardDeviationBART,
-    #     "MIMean" = MIresults$meanValueMI, "MIsd" = MIresults$standardDeviationMI, 
-    #     "BRSMean" = BRSresults$meanValueBRS, "BRSsd" = BRSresults$standardDeviationBRS, 
-    #     "PoptMean" = poptMean, "BpoptMean" = BARTpoptMean
-    # )
+    results <- data.frame(
+         "epochs" = c(1:num_new_surveys),
+         "BARTMean" = BARTresults$meanValueBART, "BARTsd" = BARTresults$standardDeviationBART,
+         "MIMean" = MIresults$meanValueMI, "MIsd" = MIresults$standardDeviationMI, 
+         "BRSMean" = BRSresults$meanValueBRS, "BRSsd" = BRSresults$standardDeviationBRS, 
+         "PoptMean" = poptMean, "BpoptMean" = BARTpoptMean
+     )
     results <- data.frame(
         "epochs" = c(1:num_new_surveys),
         "BARTMean" = BARTresults$meanValueBART, "BARTsd" = BARTresults$standardDeviationBART,
@@ -103,13 +109,17 @@ for (num_cv in 1:5) {
         "GPMean" = GPresults$meanValueGP, "GPsd" = GPresults$varianceGP,
         "PoptMean" = poptMean
     )
+	#results <- data.frame("epochs"=c(1:num_new_surveys), "GPMean"=GPresults$meanValueGP, "GPsd"=GPresults$varianceGP)
     write.csv(results, file = paste0(resultPath, "results", num_cv, ".csv"), row.names=FALSE)
     results_models <- list("BART"=BARTresults, "MI"=MIresults, "BRS"=BRSresults, "GP"=GPresults)
     save(results_models, file = paste0(plotPath, "results", num_cv, ".RData"))
     
+    #results_models <- list("GP"=GPresults)
+	#save(results_models, file = paste0(plotPath, "gpresults", num_cv, ".RData"))
+
     real <- results$PoptMean[1]
     # Breal <- results$BpoptMean[1]
-
+    
     # 1. Open jpeg file
     pdf(paste0(plotPath, "results", num_cv, ".pdf"), width = 8, height = 10)
     par(mfrow = c(1,2), pty = "s")
@@ -180,4 +190,5 @@ for (num_cv in 1:5) {
     
     abline(h=results$PoptMean)
     dev.off()
+	
 }
