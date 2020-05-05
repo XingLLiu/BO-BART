@@ -29,8 +29,8 @@ RMSE <- function(x, y){
 }
 
 
-for (i in c(7)){
-  for (j in c(1)){
+for (i in c(1,2,4,5,6,7)){
+  for (j in c(1, 5, 6)){
     meanabsMape <- 0
     resultsAllEntry <- 0
     
@@ -62,8 +62,9 @@ for (i in c(7)){
     
     for (num_cv in 1:5) {
       # Set path for estimated integral values
-      fileName <- paste(toString(genzFunctionName), 'Dim', toString(dim), "", "Gaussian", "_", toString(num_cv),  '.csv', sep='')
-      filePath <- paste('mlbox/step_10_jumps/results/genz', toString(whichGenz), fileName, sep='/')
+      # fileName <- paste(toString(genzFunctionName), 'Dim', toString(dim), "", "Gaussian", "_", toString(num_cv),  '.csv', sep='')
+      fileName <- paste(toString(genzFunctionName), 'Dim', toString(dim), "Uniform", "_", toString(num_cv),  '.csv', sep='')
+      filePath <- paste('results/genz', toString(whichGenz), fileName, sep='/')
       
       # Retrieve estimated integral values
       integrals <- read.csv(filePath, header=TRUE, sep=",", stringsAsFactors = FALSE)
@@ -78,9 +79,8 @@ for (i in c(7)){
       # Compute abs error
       epoch <- nrow(integrals)
       absMape <- abs((c(predictionBART$meanValueBART[epoch], 
-                          predictionMonteCarlo$meanValueMonteCarlo[epoch], 
-                          predictionGPBQ$meanValueGP[epoch]
-                        ) - real) / real)
+                             predictionMonteCarlo$meanValueMonteCarlo[epoch], 
+                             predictionGPBQ$meanValueGP[epoch]) - real) / real)
       meanabsMape <- meanabsMape + absMape 
       # Store all estimates in a single csv
       resultsAllEntry <- c(
@@ -105,6 +105,6 @@ for (i in c(7)){
   cat(genzFunctionName, "done", '\n')
 }
 
-write.csv(bestMethod, file = "Figures_step_10_jumps/bestMethods.csv")
-write.csv(resultsAll, file = "Figures_step_10_jumps/allEstimates.csv")
-write.csv(mapeValues, file = "Figures_step_10_jumps/mapeValues.csv")
+write.csv(bestMethod, file = "figures_code/bestMethods.csv")
+write.csv(resultsAll, file = "figures_code/allEstimates.csv")
+write.csv(mapeValues, file = "figures_code/mapeValues.csv")
