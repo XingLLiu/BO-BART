@@ -24,9 +24,9 @@ set.seed(0)
 args <- commandArgs(TRUE)
 dim <- as.double(args[1])
 num_data <- as.double(args[2])
-num_iterations <- 1
+num_iterations <- 20*dim
 whichKernel <- "matern32"
-sequential <- FALSE
+sequential <- TRUE
 # prior measure over the inputs
 # uniform by default
 measure <- "uniform"
@@ -60,13 +60,13 @@ fisher_function <- function(x) {
 
 
 # prepare training dataset
-if (measure == "uniform") {
-  trainX<- replicate(dim, runif(num_data, 0, 1))
-  trainY <- fisher_function(trainX)
-} else if (measure == "gaussian") {
-  trainX <- replicate(dim, rtnorm(num_data, mean=0.5, lower=0, upper=1))
-  trainY <- fisher_function(trainX)
-}
+# if (measure == "uniform") {
+#   trainX<- replicate(dim, runif(num_data, 0, 1))
+#   trainY <- fisher_function(trainX)
+# } else if (measure == "gaussian") {
+#   trainX <- replicate(dim, rtnorm(num_data, mean=0.5, lower=0, upper=1))
+#   trainY <- fisher_function(trainX)
+# }
 
 real <- 1
 for (i in 1:dim) {
@@ -86,6 +86,14 @@ if (dim != 3) {
 for (num_cv in 1:20) {
   # set new seed
   set.seed(num_cv)
+  # prepare training dataset
+  if (measure == "uniform") {
+    trainX<- replicate(dim, runif(num_data, 0, 1))
+    trainY <- fisher_function(trainX)
+  } else if (measure == "gaussian") {
+    trainX <- replicate(dim, rtnorm(num_data, mean=0.5, lower=0, upper=1))
+    trainY <- fisher_function(trainX)
+  }
   cat("NUM_CV", num_cv, "\n")
   # Bayesian Quadrature method
   # set number of new query points using sequential design
