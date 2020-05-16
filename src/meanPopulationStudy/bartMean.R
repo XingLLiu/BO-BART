@@ -162,7 +162,7 @@ stratified <- function(df, group, size, select=NULL, replace=FALSE, bothSets=FAL
 }
 
 
-computeMI <- function(trainX, trainY, candidateX, candidateY, num_iterations)
+computeMI <- function(trainX, trainY, candidateX, candidateY, num_iterations, seed=NA)
 #' Simple random sampling (Monte Carlo)
 #' @description Compute sample mean of response by simple random sampling 
 #' @param trainX data frame. Covariates of training set.
@@ -171,20 +171,27 @@ computeMI <- function(trainX, trainY, candidateX, candidateY, num_iterations)
 #' @param candidateX data frame. Covariates of candidate set.
 #' @param candidateY data frame. Regressor of candidate set.
 #' @param num_iterations numeric. Number of new training data to be added.
+#' @param seed numeric. Seed for shuffling the data; no shuffling if not given.
 #' @return A list of mean integral value, standard deviation of integral 
 #' value (segmented and not segmented) and new training set. 
 {
 
-  MImean <- c()
-  MIstandardDeviation <- c()
-
-  for (i in 1:num_iterations) {
-    
-    MImean[i] <- mean(c(trainY, candidateY[1:i]))
-
-    MIstandardDeviation[i] <- sd(c(trainY, candidateY[1:i]))/sqrt(length(c(trainY, candidateY[1:i])))
-
+  if (!is.na(seed)){
+    set.seed(seed)
+    candidateY <- sample(candidateY)
   }
+  MImean <- rep(NA, num_iterations)
+  MIstandardDeviation <- rep(NA, num_iterations)
+  combinedY <- c(trainY, candidateY[1:num_iterations])
+  combinedN <- length(combinedY)
+  
+  MImean <- cumsum(combinedY) / (1:combinedN)
+  
+  cumvar <- (cumsum(combinedY^2) - MImean^2 * (1:combinedN)) / (0:(combinedN - 1))
+  MIstandardDeviation <- sqrt(cumvar) / sqrt(1:combinedN)
+  
+  MImean <- MImean[-(1:length(trainY))]
+  MIstandardDeviation <- MIstandardDeviation[-c(1:length(trainY))]
 
   return(list("meanValueMI"=MImean, "standardDeviationMI"=MIstandardDeviation))
 
