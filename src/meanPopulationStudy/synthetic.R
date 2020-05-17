@@ -108,6 +108,11 @@ for (num_cv in 2:20) {
   results_models <- list("BART"=BARTresults, "MI"=MIresults, "GP"=GPresults)
   save(results_models, file = paste0(plotPath, "syntheticCategorical", num_cv, ".RData"))
   
+  print(c("Real", real))
+  print(c("BART-Int", BARTresults$meanValueBART[num_new_surveys]))
+  print(c("MI", MIresults$meanValueMI[num_new_surveys]))
+  print(c("GP-BQ", GPresults$meanValueGP[num_new_surveys]))
+  
   # 1. Open jpeg file
   # pdf(paste0(plotPath, "syntheticCategorical", num_cv, ".pdf"), width = 8, height = 10)
   # par(mfrow = c(1,2), pty = "s")
