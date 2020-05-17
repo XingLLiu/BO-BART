@@ -38,7 +38,7 @@ resultPath <- "results/"
 plotPath <- "Figures/"
 
 set.seed(0)
-num_new_surveys <- 100
+num_new_surveys <- 1
 num_variables <- 10
 num_data <- 2500
 df <- data.frame(matrix(0, ncol = num_variables, nrow = num_data))
@@ -64,7 +64,7 @@ trainY <- rowSums(trainX * coeffs)#  + rnorm(dim(trainX)[1], 0,1) ;X\beta + N(0,
 candidateY <- rowSums(candidateX * coeffs) # + rnorm(dim(candidateX)[1], 0,1); X\beta + N(0, 1)
 real <- 2^p / (2^p - 1) * sum(coeffs) # 2^p / (2^p - 1) \sum_{c=1}^p \beta_p
 
-for (num_cv in 2:20) {
+for (num_cv in 1:20) {
   # set new seed
   set.seed(num_cv)
   print(num_cv)
