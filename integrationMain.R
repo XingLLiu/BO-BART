@@ -59,7 +59,6 @@ if (whichGenz == 7 & is.na(args[7])) {
 # extra parameter for additive Gaussian function
 if (whichGenz == 9){ add_gauss_a <- NA}
 
-if (num_iterations == 1 & sequential) { stop("NEED MORE THAN 1 ITERATION") }
 
 print(c(dim, num_iterations, whichGenz))
 source("src/genz/genz.R") # genz function to test
@@ -90,7 +89,7 @@ if (measure == "uniform") {
   trainY <- genz(trainX)
 }
 
-for (num_cv in 1:5) {
+for (num_cv in 1:20) {
   # set new seed
   set.seed(num_cv)
   cat("NUM_CV", num_cv, "\n")
