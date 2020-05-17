@@ -38,7 +38,7 @@ resultPath <- "results/"
 plotPath <- "Figures/"
 
 set.seed(0)
-num_new_surveys <- 1
+num_new_surveys <- 100
 num_variables <- 10
 num_data <- 2500
 df <- data.frame(matrix(0, ncol = num_variables, nrow = num_data))
@@ -64,7 +64,7 @@ trainY <- rowSums(trainX * coeffs)#  + rnorm(dim(trainX)[1], 0,1) ;X\beta + N(0,
 candidateY <- rowSums(candidateX * coeffs) # + rnorm(dim(candidateX)[1], 0,1); X\beta + N(0, 1)
 real <- 2^p / (2^p - 1) * sum(coeffs) # 2^p / (2^p - 1) \sum_{c=1}^p \beta_p
 
-for (num_cv in 1:20) {
+for (num_cv in 2:20) {
   # set new seed
   set.seed(num_cv)
   print(num_cv)
@@ -75,12 +75,12 @@ for (num_cv in 1:20) {
   MIresults <- computeMI(trainX, trainY, candidateX, candidateY, num_iterations=num_new_surveys, seed=num_cv)
   
   # GPBQ
-  if (num_cv == 1) {
-    lengthscale <- optimise_gp_r(as.matrix(trainX), trainY, kernel = "rbf", epochs = 500)
-  }
-  else {
-    lengthscale=3.374 # change it
-  }
+  # if (num_cv == 1) {
+  #   lengthscale <- optimise_gp_r(as.matrix(trainX), trainY, kernel = "rbf", epochs = 500)
+  # }
+  # else {
+    lengthscale=1 # change it
+  # }
   GPresults <- computeGPBQEmpirical(as.matrix(trainX), trainY, as.matrix(candidateX), candidateY, epochs=num_new_surveys, lengthscale=lengthscale)
   
   plot(BARTresults$meanValueBART, ty="l", ylim=c(1.5, 1.8)); abline(h=real)
@@ -167,7 +167,7 @@ for (num_cv in 1:20) {
   #         border = "orangered", lty = c("dashed", "solid"))
   # 
   # points(results$epochs, results$GPMean, ty="l", col = "darkgoldenrod")
-  # polygon(c(results$epochs, rev(results$epochs)), 
+  # polygon(c(results$epochs, rev(results$epochs)),
   #         c(
   #           results$BARTMean + 2*results$GPsd, 
   #           rev(results$BARTMean - 2*results$GPsd)
