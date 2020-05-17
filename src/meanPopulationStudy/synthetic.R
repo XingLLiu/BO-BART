@@ -75,12 +75,12 @@ for (num_cv in 2:20) {
   MIresults <- computeMI(trainX, trainY, candidateX, candidateY, num_iterations=num_new_surveys, seed=num_cv)
   
   # GPBQ
-  # if (num_cv == 1) {
-  #   lengthscale <- optimise_gp_r(as.matrix(trainX), trainY, kernel = "rbf", epochs = 500)
-  # }
-  # else {
-    lengthscale=1 # change it
-  # }
+  if (num_cv == 1) {
+    lengthscale <- optimise_gp_r(as.matrix(trainX), trainY, kernel = "rbf", epochs = 500)
+  }
+  else {
+    lengthscale=lengthscale # change it
+  }
   GPresults <- computeGPBQEmpirical(as.matrix(trainX), trainY, as.matrix(candidateX), candidateY, epochs=num_new_surveys, lengthscale=lengthscale)
   
   plot(BARTresults$meanValueBART, ty="l", ylim=c(1.5, 1.8)); abline(h=real)
