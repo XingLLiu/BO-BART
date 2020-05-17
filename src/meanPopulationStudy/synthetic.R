@@ -38,7 +38,7 @@ resultPath <- "results/"
 plotPath <- "Figures/"
 
 set.seed(0)
-num_new_surveys <- 1000
+num_new_surveys <- 1
 num_variables <- 10
 num_data <- 2500
 df <- data.frame(matrix(0, ncol = num_variables, nrow = num_data))
@@ -69,10 +69,10 @@ for (num_cv in 1:20) {
   set.seed(num_cv)
   print(num_cv)
   # compute population average income estimates by BARTBQ
-  BARTresults <- computeBART(as.matrix(trainX), trainY, as.matrix(candidateX), candidateY, num_iterations=num_new_surveys)
+  BARTresults <- computeBART(trainX, trainY, as.matrix(candidateX), candidateY, num_iterations=num_new_surveys)
   
   # population average income estimation by Monte Carlo
-  MIresults <- computeMI(trainX, trainY, candidateX, candidateY, num_iterations=num_new_surveys)
+  MIresults <- computeMI(trainX, trainY, candidateX, candidateY, num_iterations=num_new_surveys, seed=num_cv)
   
   # GPBQ
   if (num_cv == 1) {
@@ -83,105 +83,98 @@ for (num_cv in 1:20) {
   }
   GPresults <- computeGPBQEmpirical(as.matrix(trainX), trainY, as.matrix(candidateX), candidateY, epochs=num_new_surveys, lengthscale=lengthscale)
   
+  plot(BARTresults$meanValueBART, ty="l", ylim=c(1.5, 1.8)); abline(h=real)
+  plot(MIresults$meanValueMI, ty="l"); abline(h=real)
   plot(GPresults$meanValueGP, ty="l"); abline(h=real)
   # population average income estimation by block random sampling
   # BRSresults <- computeBRS(trainX.num, trainY, candidateX.num, candidateY, group = "Race", num_iterations=num_new_surveys)
   
   # store results
+  # results <- data.frame(
+  #   "epochs" = c(1:num_new_surveys),
+  #   "BARTMean" = BARTresults$meanValueBART, "BARTsd" = BARTresults$standardDeviationBART,
+  #   "MIMean" = MIresults$meanValueMI, "MIsd" = MIresults$standardDeviationMI, 
+  #   "BRSMean" = BRSresults$meanValueBRS, "BRSsd" = BRSresults$standardDeviationBRS, 
+  #   "PoptMean" = poptMean, "BpoptMean" = BARTpoptMean
+  # )
   results <- data.frame(
     "epochs" = c(1:num_new_surveys),
     "BARTMean" = BARTresults$meanValueBART, "BARTsd" = BARTresults$standardDeviationBART,
     "MIMean" = MIresults$meanValueMI, "MIsd" = MIresults$standardDeviationMI, 
-    "BRSMean" = BRSresults$meanValueBRS, "BRSsd" = BRSresults$standardDeviationBRS, 
-    "PoptMean" = poptMean, "BpoptMean" = BARTpoptMean
-  )
-  results <- data.frame(
-    "epochs" = c(1:num_new_surveys),
-    "BARTMean" = BARTresults$meanValueBART, "BARTsd" = BARTresults$standardDeviationBART,
-    "MIMean" = MIresults$meanValueMI, "MIsd" = MIresults$standardDeviationMI, 
-    "BRSMean" = BRSresults$meanValueBRS, "BRSsd" = BRSresults$standardDeviationBRS,
     "GPMean" = GPresults$meanValueGP, "GPsd" = GPresults$varianceGP,
-    "PoptMean" = poptMean
+    "real" = real
   )
-  #results <- data.frame("epochs"=c(1:num_new_surveys), "GPMean"=GPresults$meanValueGP, "GPsd"=GPresults$varianceGP)
   write.csv(results, file = paste0(resultPath, "syntheticCategorical", num_cv, ".csv"), row.names=FALSE)
-  results_models <- list("BART"=BARTresults, "MI"=MIresults, "BRS"=BRSresults, "GP"=GPresults)
+  results_models <- list("BART"=BARTresults, "MI"=MIresults, "GP"=GPresults)
   save(results_models, file = paste0(plotPath, "syntheticCategorical", num_cv, ".RData"))
   
-  #results_models <- list("GP"=GPresults)
-  #save(results_models, file = paste0(plotPath, "gpresults", num_cv, ".RData"))
-  
-  real <- results$PoptMean[1]
-  # Breal <- results$BpoptMean[1]
-  
   # 1. Open jpeg file
-  pdf(paste0(plotPath, "syntheticCategorical", num_cv, ".pdf"), width = 8, height = 10)
-  par(mfrow = c(1,2), pty = "s")
-  # ymax <- max(c(abs(results$BARTMean - real), abs(results$BRSMean - real), abs(results$MIMean - real)))
-  ymax <- max(c(abs(results$BARTMean - real), abs(results$GPMean - real)))
-  plot(results$epochs,
-       abs(results$BARTMean - results$PoptMean),
-       ty="l",
-       ylab = "Absolute Error",
-       xlab = "num_iterations",
-       col = "orangered",
-       ylim = c(0, ymax)
-  )
-  abline(h=0)
-  
-  points(results$epochs, abs(results$MIMean - real), ty="l", col = "chartreuse4")
-  points(results$epochs, abs(results$BRSMean - real), ty="l", col = "dodgerblue")
-  points(results$epochs, abs(results$GPMean - real), ty="l", col = "darkgoldenrod")
-  
-  legend("topright", legend=c("Block sampling", "BART-Int", "Monte Carlo sampling", "GPBQ"),
-         col=c("dodgerblue", "orangered", "chartreuse4", "darkgoldenrod"), cex=0.8, lty = c(1,1,1,1))
-  
-  # ymin <- min(c(results$BARTMean - 2*results$BARTsd, results$BRSMean - 2*results$BRSsd, results$MIMean[1:num_new_surveys]))
-  # ymax <- max(c(results$BARTMean + 2*results$BARTsd, results$BRSMean + 2*results$BRSsd, results$MIMean[1:num_new_surveys]))
-  ymin <- min(c(results$BARTMean - 2*results$BARTsd, results$GPMean - 2*results$GPsd))
-  ymax <- max(c(results$BARTMean + 2*results$BARTsd, results$GPMean + 2*results$GPsd))    
-  
-  plot(results$epochs, 
-       results$MIMean, 
-       ty="l", 
-       ylab = "Mean",
-       xlab = "num_iterations",
-       col = "chartreuse4",
-       ylim = c(ymin, ymax)
-  )
-  polygon(c(results$epochs, rev(results$epochs)), 
-          c(
-            results$MIMean + 2*results$MIsd, 
-            rev(results$MIMean - 2*results$MIsd)
-          ), 
-          col = adjustcolor("chartreuse4", alpha.f = 0.10), 
-          border = "chartreuse4", lty = c("dashed", "solid"))
-  points(results$epochs, results$BRSMean, ty="l", col = "dodgerblue")
-  polygon(c(results$epochs, rev(results$epochs)), 
-          c(
-            results$BRSMean + 2*results$BRSsd, 
-            rev(results$BRSMean - 2*results$BRSsd)
-          ), 
-          col = adjustcolor("dodgerblue", alpha.f = 0.10), 
-          border = "dodgerblue", lty = c("dashed", "solid"))
-  points(results$epochs, results$BARTMean, ty="l", col = "orangered")
-  polygon(c(results$epochs, rev(results$epochs)), 
-          c(
-            results$BARTMean + 2*results$BARTsd, 
-            rev(results$BARTMean - 2*results$BARTsd)
-          ), 
-          col = adjustcolor("orangered", alpha.f = 0.10), 
-          border = "orangered", lty = c("dashed", "solid"))
-  
-  points(results$epochs, results$GPMean, ty="l", col = "darkgoldenrod")
-  polygon(c(results$epochs, rev(results$epochs)), 
-          c(
-            results$BARTMean + 2*results$GPsd, 
-            rev(results$BARTMean - 2*results$GPsd)
-          ), 
-          col = adjustcolor("darkgoldenrod", alpha.f = 0.10), 
-          border = "darkgoldenrod", lty = c("dashed", "solid"))
-  
-  abline(h=results$PoptMean)
-  dev.off()
+  # pdf(paste0(plotPath, "syntheticCategorical", num_cv, ".pdf"), width = 8, height = 10)
+  # par(mfrow = c(1,2), pty = "s")
+  # # ymax <- max(c(abs(results$BARTMean - real), abs(results$BRSMean - real), abs(results$MIMean - real)))
+  # ymax <- max(c(abs(results$BARTMean - real), abs(results$GPMean - real)))
+  # plot(results$epochs,
+  #      abs(results$BARTMean - results$PoptMean),
+  #      ty="l",
+  #      ylab = "Absolute Error",
+  #      xlab = "num_iterations",
+  #      col = "orangered",
+  #      ylim = c(0, ymax)
+  # )
+  # abline(h=0)
+  # 
+  # points(results$epochs, abs(results$MIMean - real), ty="l", col = "chartreuse4")
+  # points(results$epochs, abs(results$GPMean - real), ty="l", col = "darkgoldenrod")
+  # 
+  # legend("topright", legend=c("BART-Int", "MI", "GPBQ"),
+  #        col=c("orangered", "chartreuse4", "darkgoldenrod"), cex=0.8, lty = c(1,1,1,1))
+  # 
+  # # ymin <- min(c(results$BARTMean - 2*results$BARTsd, results$BRSMean - 2*results$BRSsd, results$MIMean[1:num_new_surveys]))
+  # # ymax <- max(c(results$BARTMean + 2*results$BARTsd, results$BRSMean + 2*results$BRSsd, results$MIMean[1:num_new_surveys]))
+  # ymin <- min(c(results$BARTMean - 2*results$BARTsd, results$GPMean - 2*results$GPsd))
+  # ymax <- max(c(results$BARTMean + 2*results$BARTsd, results$GPMean + 2*results$GPsd))    
+  # 
+  # plot(results$epochs, 
+  #      results$MIMean, 
+  #      ty="l", 
+  #      ylab = "Mean",
+  #      xlab = "num_iterations",
+  #      col = "chartreuse4",
+  #      ylim = c(ymin, ymax)
+  # )
+  # polygon(c(results$epochs, rev(results$epochs)), 
+  #         c(
+  #           results$MIMean + 2*results$MIsd, 
+  #           rev(results$MIMean - 2*results$MIsd)
+  #         ), 
+  #         col = adjustcolor("chartreuse4", alpha.f = 0.10), 
+  #         border = "chartreuse4", lty = c("dashed", "solid"))
+  # points(results$epochs, results$BRSMean, ty="l", col = "dodgerblue")
+  # polygon(c(results$epochs, rev(results$epochs)), 
+  #         c(
+  #           results$BRSMean + 2*results$BRSsd, 
+  #           rev(results$BRSMean - 2*results$BRSsd)
+  #         ), 
+  #         col = adjustcolor("dodgerblue", alpha.f = 0.10), 
+  #         border = "dodgerblue", lty = c("dashed", "solid"))
+  # points(results$epochs, results$BARTMean, ty="l", col = "orangered")
+  # polygon(c(results$epochs, rev(results$epochs)), 
+  #         c(
+  #           results$BARTMean + 2*results$BARTsd, 
+  #           rev(results$BARTMean - 2*results$BARTsd)
+  #         ), 
+  #         col = adjustcolor("orangered", alpha.f = 0.10), 
+  #         border = "orangered", lty = c("dashed", "solid"))
+  # 
+  # points(results$epochs, results$GPMean, ty="l", col = "darkgoldenrod")
+  # polygon(c(results$epochs, rev(results$epochs)), 
+  #         c(
+  #           results$BARTMean + 2*results$GPsd, 
+  #           rev(results$BARTMean - 2*results$GPsd)
+  #         ), 
+  #         col = adjustcolor("darkgoldenrod", alpha.f = 0.10), 
+  #         border = "darkgoldenrod", lty = c("dashed", "solid"))
+  # 
+  # abline(h=results$PoptMean)
+  # dev.off()
 }
