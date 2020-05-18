@@ -85,7 +85,6 @@ if (measure == "uniform") {
   trainY <- genz(trainX)
 } else if (measure == "gaussian") {
   trainX <- replicate(dim, rtnorm(50*dim, mean=0.5, lower=0, upper=1))
-  genz <- gaussian_weighted
   trainY <- genz(trainX)
 }
 
@@ -160,7 +159,7 @@ for (num_cv in 1:20) {
   print(c("MI integral:", predictionMonteCarlo$meanValueMonteCarlo[num_iterations]))
   print(c("GP integral:", predictionGPBQ$meanValueGP[num_iterations]))
   
-  print("Writing full results to results/genz%s" %--% c(whichGenz))
+  print("Writing full results to results/genz/%s" %--% c(whichGenz))
   results <- data.frame(
     "epochs" = c(1:num_iterations),
     "BARTMean" = predictionBART$meanValueBART, "BARTsd" = predictionBART$standardDeviationBART,
