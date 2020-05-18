@@ -16,6 +16,7 @@ args <- as.double(commandArgs(TRUE))
 num_new_surveys <- args[1]
 num_cv_start <- args[2]
 num_cv_end <- args[3]
+num_data <- args[4]   # set to 2000 for this lengthscale
 
 
 # read in data
@@ -41,25 +42,41 @@ candidateData <- candidateData[complete.cases(candidateData),]
 # compute the real population mean log income
 poptMean <- mean(c(trainData$log_Total_person_income, candidateData$log_Total_person_income))
 
+# only keep first 100+500 data as a toy example
+trainData <- trainData[1:500, ]
+candidateData <- candidateData[1:num_data, ]
 
-# reconstruct order of the data
-set.seed(2020)
-trainData <- trainData[sample(nrow(trainData)), ]
-candidateData <- candidateData[sample(nrow(candidateData)), ]
+# linear regression toy example
+fullData <- rbind(trainData, candidateData)
+lm.fit <- lm(log_Total_person_income~., data = fullData)
+res.sd <- sd(lm.fit$residuals)
+trainData$log_Total_person_income <- lm.fit$fitted.values[1:nrow(trainData)] + rnorm(nrow(trainData), res.sd)
+candidateData$log_Total_person_income <- lm.fit$fitted.values[-(1:nrow(trainData))] + rnorm(nrow(candidateData), res.sd)
+poptMean <- mean(c(trainData$log_Total_person_income, candidateData$log_Total_person_income))
+
+# # reconstruct order of the data
+# set.seed(2020)
+# trainData <- trainData[sample(nrow(trainData)), ]
+# candidateData <- candidateData[sample(nrow(candidateData)), ]
 
 # extract covariates and response
 cols <- ncol(trainData)
-trainX <- trainData[1:500, -cols]
-trainY <- trainData[1:500, cols]
+# trainX <- trainData[1:500, -cols]
+# trainY <- trainData[1:500, cols]
 
-bartTrain <- rbind(trainData, candidateData)
- dim <- ncol(trainX)
- model <- bart(trainData[,1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=3L, 
-               nskip=200, ndpost=2000, ntree=50, k=3, usequant=FALSE)   
-BARTpoptMean <- mean(model$yhat.train.mean)
+# bartTrain <- rbind(trainData, candidateData)
+# dim <- ncol(trainX)
+# model <- bart(trainData[,1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=3L, 
+#               nskip=200, ndpost=2000, ntree=50, k=3, usequant=FALSE)   
+# BARTpoptMean <- mean(model$yhat.train.mean)
 
-candidateX <- candidateData[1:5000, -cols]
-candidateY <- candidateData[1:5000, cols]
+# candidateX <- candidateData[1:5000, -cols]
+# candidateY <- candidateData[1:5000, cols]
+
+trainX <- trainData[, -cols]
+trainY <- trainData[, cols]
+candidateX <- candidateData[, -cols]
+candidateY <- candidateData[, cols]
 
 # one-hot encoding
 trainX.num <- trainX
@@ -80,14 +97,18 @@ for (num_cv in num_cv_start:num_cv_end) {
     
     # population average income estimation by Monte Carlo
     MIresults <- computeMI(trainX.num, trainY, candidateX.num, candidateY, num_iterations=num_new_surveys)
+    MIresults <- computeMI(trainX.num, trainY, candidateX.num, candidateY, num_iterations=nrow(candidateX.num), seed = 40)
+    plot(MIresults$meanValueMI, ylim = c(10.9, 11.1), xlab = "num_iterations", ylab = "mean population")
+    legend("topright", legend=c("MC integration"))
+    abline(h = poptMean, col = "red")
     
     # GPBQ
     if (num_cv == 1) {
       lengthscale <- optimise_gp_r(as.matrix(trainX), trainY, kernel = "rbf", epochs = 500)
-    }
-	else {
-      lengthscale=3.374
-	}
+    } else {
+      lengthscale <- 3.421133
+      # lengthscale <- 3.374
+	  }
     GPresults <- computeGPBQEmpirical(as.matrix(trainX), trainY, as.matrix(candidateX), candidateY, epochs=num_new_surveys, lengthscale=lengthscale)
 
     # population average income estimation by block random sampling
@@ -109,13 +130,13 @@ for (num_cv in num_cv_start:num_cv_end) {
         "GPMean" = GPresults$meanValueGP, "GPsd" = GPresults$varianceGP,
         "PoptMean" = poptMean
     )
-	#results <- data.frame("epochs"=c(1:num_new_surveys), "GPMean"=GPresults$meanValueGP, "GPsd"=GPresults$varianceGP)
+	  #results <- data.frame("epochs"=c(1:num_new_surveys), "GPMean"=GPresults$meanValueGP, "GPsd"=GPresults$varianceGP)
     write.csv(results, file = paste0(resultPath, "results", num_cv, ".csv"), row.names=FALSE)
     results_models <- list("BART"=BARTresults, "MI"=MIresults, "BRS"=BRSresults, "GP"=GPresults)
     save(results_models, file = paste0(plotPath, "results", num_cv, ".RData"))
     
     #results_models <- list("GP"=GPresults)
-	#save(results_models, file = paste0(plotPath, "gpresults", num_cv, ".RData"))
+  	#save(results_models, file = paste0(plotPath, "gpresults", num_cv, ".RData"))
 
     real <- results$PoptMean[1]
     # Breal <- results$BpoptMean[1]
@@ -182,8 +203,8 @@ for (num_cv in num_cv_start:num_cv_end) {
     points(results$epochs, results$GPMean, ty="l", col = "darkgoldenrod")
     polygon(c(results$epochs, rev(results$epochs)), 
             c(
-              results$BARTMean + 2*results$GPsd, 
-              rev(results$BARTMean - 2*results$GPsd)
+              results$GPMean + 2*results$GPsd, 
+              rev(results$GPMean - 2*results$GPsd)
             ), 
             col = adjustcolor("darkgoldenrod", alpha.f = 0.10), 
             border = "darkgoldenrod", lty = c("dashed", "solid"))
