@@ -181,12 +181,10 @@ computeMI <- function(trainX, trainY, candidateX, candidateY, num_iterations, se
     candidateY <- sample(candidateY)
   }
   MImean <- rep(NA, num_iterations)
-  MIstandardDeviation <- rep(NA, num_iterations)
   combinedY <- c(trainY, candidateY[1:num_iterations])
   combinedN <- length(combinedY)
   
   MImean <- cumsum(combinedY) / (1:combinedN)
-  
   cumvar <- (cumsum(combinedY^2) - MImean^2 * (1:combinedN)) / (0:(combinedN - 1))
   MIstandardDeviation <- sqrt(cumvar) / sqrt(1:combinedN)
   
@@ -223,13 +221,25 @@ computeBRS <- function(trainX, trainY, candidateX, candidateY, group, num_iterat
     BRstandardDeviation <- c()
 
     # Monte Carlo in each block 
-    for (i in 1:num_iterations) {
+    # for (i in 1:num_iterations) {
       
-        BRmean[i] <- mean(c(trainY, samples[1:i, dim+1]))
+    #     BRmean[i] <- mean(c(trainY, samples[1:i, dim+1]))
 
-        BRstandardDeviation[i] <- sd(c(trainY, samples[1:i, dim+1])) /sqrt(length(c(trainY, samples[1:i, dim+1])))
+    #     BRstandardDeviation[i] <- sd(c(trainY, samples[1:i, dim+1])) /sqrt(length(c(trainY, samples[1:i, dim+1])))
 
-    }
+    # }
+
+    # Monte Carlo in each block 
+    BRmean <- rep(NA, num_iterations)
+    combinedY <- c(trainY, samples[1:num_iterations, dim + 1])
+    combinedN <- length(combinedY)
+    
+    BRmean <- cumsum(combinedY) / (1:combinedN)
+    cumvar <- (cumsum(combinedY^2) - BRmean^2 * (1:combinedN)) / (0:(combinedN - 1))
+    BRstandardDeviation <- sqrt(cumvar) / sqrt(1:combinedN)
+    
+    BRmean <- BRmean[-(1:length(trainY))]
+    BRstandardDeviation <- BRstandardDeviation[-c(1:length(trainY))]
     
     return(list("meanValueBRS"=BRmean, "standardDeviationBRS"=BRstandardDeviation))
 }
