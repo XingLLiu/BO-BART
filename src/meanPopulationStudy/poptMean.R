@@ -42,7 +42,7 @@ candidateData <- candidateData[complete.cases(candidateData),]
 # compute the real population mean log income
 poptMean <- mean(c(trainData$log_Total_person_income, candidateData$log_Total_person_income))
 
-# only keep first 100+500 data as a toy example
+# only keep first 100+2000 data as a toy example
 trainData <- trainData[1:500, ]
 candidateData <- candidateData[1:num_data, ]
 
@@ -96,11 +96,11 @@ for (num_cv in num_cv_start:num_cv_end) {
     BARTresults <- computeBART(trainX, trainY, candidateX, candidateY, num_iterations=num_new_surveys)
     
     # population average income estimation by Monte Carlo
-    MIresults <- computeMI(trainX.num, trainY, candidateX.num, candidateY, num_iterations=num_new_surveys)
+    # MIresults <- computeMI(trainX.num, trainY, candidateX.num, candidateY, num_iterations=num_new_surveys)
     MIresults <- computeMI(trainX.num, trainY, candidateX.num, candidateY, num_iterations=nrow(candidateX.num), seed = 40)
-    plot(MIresults$meanValueMI, ylim = c(10.9, 11.1), xlab = "num_iterations", ylab = "mean population")
-    legend("topright", legend=c("MC integration"))
-    abline(h = poptMean, col = "red")
+    # plot(MIresults$meanValueMI, ylim = c(10.9, 11.1), xlab = "num_iterations", ylab = "mean population")
+    # legend("topright", legend=c("MC integration"))
+    # abline(h = poptMean, col = "red")
     
     # GPBQ
     if (num_cv == 1) {
