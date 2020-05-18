@@ -97,7 +97,7 @@ for (num_cv in num_cv_start:num_cv_end) {
     
     # population average income estimation by Monte Carlo
     # MIresults <- computeMI(trainX.num, trainY, candidateX.num, candidateY, num_iterations=num_new_surveys)
-    MIresults <- computeMI(trainX.num, trainY, candidateX.num, candidateY, num_iterations=nrow(candidateX.num), seed = 40)
+    MIresults <- computeMI(trainX.num, trainY, candidateX.num, candidateY, num_iterations=nrow(candidateX.num), seed = num_cv)
     # plot(MIresults$meanValueMI, ylim = c(10.9, 11.1), xlab = "num_iterations", ylab = "mean population")
     # legend("topright", legend=c("MC integration"))
     # abline(h = poptMean, col = "red")
