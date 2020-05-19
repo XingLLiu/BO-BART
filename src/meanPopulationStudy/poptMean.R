@@ -50,7 +50,7 @@ poptMean <- mean(c(trainData$log_Total_person_income, candidateData$log_Total_pe
 dim <- ncol(trainData)
 allData <- rbind(trainData, candidateData)
 model <- bart(allData[,1:(dim-1)], allData[, dim], keeptrees=TRUE, keepevery=3L,
-              nskip=1000, ndpost=5000, ntree=50, k=3, usequant=FALSE)
+              nskip=1000, ndpost=2000, ntree=50, k=3, usequant=FALSE)
 BARTpoptMean <- mean(model$yhat.train.mean)
 # # linear regression toy example
 # fullData <- rbind(trainData, candidateData)
@@ -96,8 +96,10 @@ for (num_cv in num_cv_start:num_cv_end) {
     set.seed(num_cv)
     print(num_cv)
     # compute population average income estimates by BARTBQ
+    t0 <- proc.time()
     BARTresults <- computeBART(trainX, trainY, candidateX, candidateY, num_iterations=num_new_surveys)
-    
+    t1 <- proc.time()
+    bartTime <- (t1 - t0)[[1]]
     # population average income estimation by Monte Carlo
     # MIresults <- computeMI(trainX.num, trainY, candidateX.num, candidateY, num_iterations=num_new_surveys)
     MIresults <- computeMI(trainX.num, trainY, candidateX.num, candidateY, num_iterations=nrow(candidateX.num), seed = num_cv)
@@ -111,9 +113,11 @@ for (num_cv in num_cv_start:num_cv_end) {
     } else {
       lengthscale <- 3.310048
       # lengthscale <- 3.374
-	  }
+    }
+    t0 <- proc.time()
     GPresults <- computeGPBQEmpirical(as.matrix(trainX), trainY, as.matrix(candidateX), candidateY, epochs=num_new_surveys, lengthscale=lengthscale)
-
+    t1 <- proc.time()
+    GPTime <- (t1 - t0)[[1]]
     # population average income estimation by block random sampling
     BRSresults <- computeBRS(trainX.num, trainY, candidateX.num, candidateY, group = "Race", num_iterations=num_new_surveys)
     
@@ -124,7 +128,9 @@ for (num_cv in num_cv_start:num_cv_end) {
          "MIMean" = MIresults$meanValueMI, "MIsd" = MIresults$standardDeviationMI, 
          "BRSMean" = BRSresults$meanValueBRS, "BRSsd" = BRSresults$standardDeviationBRS, 
          "GPMean" = GPresults$meanValueGP, "GPsd" = GPresults$varianceGP,
-         "PoptMean" = poptMean, "BpoptMean" = BARTpoptMean
+         "PoptMean" = poptMean, "BpoptMean" = BARTpoptMean,
+         "runtimeBART" = rep(bartTime, num_new_surveys),
+         "runtimeGP" = rep(GPTime, num_new_surveys)
      )
     # results <- data.frame(
     #     "epochs" = c(1:num_new_surveys),
