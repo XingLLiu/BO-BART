@@ -45,6 +45,7 @@ poptMean <- mean(c(trainData$log_Total_person_income, candidateData$log_Total_pe
 # only keep first 100+2000 data as a toy example
 trainData <- trainData[1:500, ]
 candidateData <- candidateData[1:num_data, ]
+poptMean <- mean(c(trainData$log_Total_person_income, candidateData$log_Total_person_income))
 
 # # linear regression toy example
 # fullData <- rbind(trainData, candidateData)
