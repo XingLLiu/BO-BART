@@ -46,13 +46,13 @@ poptMean <- mean(c(trainData$log_Total_person_income, candidateData$log_Total_pe
 trainData <- trainData[1:500, ]
 candidateData <- candidateData[1:num_data, ]
 
-# linear regression toy example
-fullData <- rbind(trainData, candidateData)
-lm.fit <- lm(log_Total_person_income~., data = fullData)
-res.sd <- sd(lm.fit$residuals)
-trainData$log_Total_person_income <- lm.fit$fitted.values[1:nrow(trainData)] + rnorm(nrow(trainData), res.sd)
-candidateData$log_Total_person_income <- lm.fit$fitted.values[-(1:nrow(trainData))] + rnorm(nrow(candidateData), res.sd)
-poptMean <- mean(c(trainData$log_Total_person_income, candidateData$log_Total_person_income))
+# # linear regression toy example
+# fullData <- rbind(trainData, candidateData)
+# lm.fit <- lm(log_Total_person_income~., data = fullData)
+# res.sd <- sd(lm.fit$residuals)
+# trainData$log_Total_person_income <- lm.fit$fitted.values[1:nrow(trainData)] + rnorm(nrow(trainData), res.sd)
+# candidateData$log_Total_person_income <- lm.fit$fitted.values[-(1:nrow(trainData))] + rnorm(nrow(candidateData), res.sd)
+# poptMean <- mean(c(trainData$log_Total_person_income, candidateData$log_Total_person_income))
 
 # # reconstruct order of the data
 # set.seed(2020)
