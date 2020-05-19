@@ -12,7 +12,7 @@ library(matrixStats)
   do.call(sprintf, c(list(x), y))
 }
 
-computeBART <- function(trainX, trainY, condidateX, candidateY, num_iterations) 
+computeBART <- function(trainX, trainY, candidateX, candidateY, num_iterations) 
 #' BART-BQ for estimating average income
 #' @description Compute mean for BART-BQ with
 #' implementation of query sequential design 
@@ -35,6 +35,7 @@ computeBART <- function(trainX, trainY, condidateX, candidateY, num_iterations)
   eduMeanValue <- matrix(0, 2*num_iterations, nrow=2, ncol=num_iterations)
   eduStandardDeviation <- matrix(0, 2*num_iterations, nrow=2, ncol=num_iterations)
   trainData <- cbind(trainX, trainY)
+  fullData <- rbind(trainX, candidateX)
   
   colnames(trainData)[dim+1] <- "response"
 
@@ -51,7 +52,7 @@ computeBART <- function(trainX, trainY, condidateX, candidateY, num_iterations)
     # model <- bart(trainData[, 1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=3L, 
     #               nskip=500, ndpost=2000, ntree=50, k=2, usequant=FALSE)
     model <- bart(trainData[,1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=3L, 
-                  nskip=200, ndpost=2000, ntree=50, k=3, usequant=FALSE)              
+                  nskip=200, ndpost=5000, ntree=50, k=3, usequant=FALSE)              
     sink()
 
     # predict the values
@@ -81,9 +82,12 @@ computeBART <- function(trainX, trainY, condidateX, candidateY, num_iterations)
     
     # add new data to train set
     trainData <- rbind(trainData, cbind(candidateX[index, ], response))
-    meanValue[i] <- mean(model$yhat.train.mean)
+    
+    # Integral with respect to \Pi_n
+    pred <- predict(model, fullData)
+    meanValue[i] <- mean(pred)
     # standardDeviation[i] <- sd(trainData[, dim+1]) 
-    standardDeviation[i] <- sd(model$yhat.train.mean)/sqrt(length(model$yhat.train.mean)) 
+    standardDeviation[i] <- sum((rowMeans(pred) - meanValue[i])^2) / (nrow(pred) - 1)
 
     # remove newly added value from candidate set
     candidateX <- candidateX[-index,]
