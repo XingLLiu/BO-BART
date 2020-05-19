@@ -40,13 +40,18 @@ candidateData <- candidateData[!is.infinite(candidateData$log_Total_person_incom
 trainData <- trainData[complete.cases(trainData),]
 candidateData <- candidateData[complete.cases(candidateData),]
 # compute the real population mean log income
-poptMean <- mean(c(trainData$log_Total_person_income, candidateData$log_Total_person_income))
+# poptMean <- mean(c(trainData$log_Total_person_income, candidateData$log_Total_person_income))
 
 # only keep first 100+2000 data as a toy example
 trainData <- trainData[1:500, ]
 candidateData <- candidateData[1:num_data, ]
 poptMean <- mean(c(trainData$log_Total_person_income, candidateData$log_Total_person_income))
 
+dim <- ncol(trainData)
+allData <- rbind(trainData, candidateData)
+model <- bart(allData[,1:(dim-1)], allData[, dim], keeptrees=TRUE, keepevery=3L,
+              nskip=1000, ndpost=5000, ntree=50, k=3, usequant=FALSE)
+BARTpoptMean <- mean(model$yhat.train.mean)
 # # linear regression toy example
 # fullData <- rbind(trainData, candidateData)
 # lm.fit <- lm(log_Total_person_income~., data = fullData)
@@ -65,11 +70,8 @@ cols <- ncol(trainData)
 # trainX <- trainData[1:500, -cols]
 # trainY <- trainData[1:500, cols]
 
-# bartTrain <- rbind(trainData, candidateData)
-# dim <- ncol(trainX)
-# model <- bart(trainData[,1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=3L, 
-#               nskip=200, ndpost=2000, ntree=50, k=3, usequant=FALSE)   
-# BARTpoptMean <- mean(model$yhat.train.mean)
+
+
 
 # candidateX <- candidateData[1:5000, -cols]
 # candidateY <- candidateData[1:5000, cols]
@@ -107,7 +109,7 @@ for (num_cv in num_cv_start:num_cv_end) {
     if (num_cv == 1) {
       lengthscale <- optimise_gp_r(as.matrix(trainX), trainY, kernel = "rbf", epochs = 500)
     } else {
-      lengthscale <- 3.421133
+      lengthscale <- 3.310048
       # lengthscale <- 3.374
 	  }
     GPresults <- computeGPBQEmpirical(as.matrix(trainX), trainY, as.matrix(candidateX), candidateY, epochs=num_new_surveys, lengthscale=lengthscale)
@@ -121,16 +123,17 @@ for (num_cv in num_cv_start:num_cv_end) {
          "BARTMean" = BARTresults$meanValueBART, "BARTsd" = BARTresults$standardDeviationBART,
          "MIMean" = MIresults$meanValueMI, "MIsd" = MIresults$standardDeviationMI, 
          "BRSMean" = BRSresults$meanValueBRS, "BRSsd" = BRSresults$standardDeviationBRS, 
+         "GPMean" = GPresults$meanValueGP, "GPsd" = GPresults$varianceGP,
          "PoptMean" = poptMean, "BpoptMean" = BARTpoptMean
      )
-    results <- data.frame(
-        "epochs" = c(1:num_new_surveys),
-        "BARTMean" = BARTresults$meanValueBART, "BARTsd" = BARTresults$standardDeviationBART,
-        "MIMean" = MIresults$meanValueMI, "MIsd" = MIresults$standardDeviationMI, 
-        "BRSMean" = BRSresults$meanValueBRS, "BRSsd" = BRSresults$standardDeviationBRS,
-        "GPMean" = GPresults$meanValueGP, "GPsd" = GPresults$varianceGP,
-        "PoptMean" = poptMean
-    )
+    # results <- data.frame(
+    #     "epochs" = c(1:num_new_surveys),
+    #     "BARTMean" = BARTresults$meanValueBART, "BARTsd" = BARTresults$standardDeviationBART,
+    #     "MIMean" = MIresults$meanValueMI, "MIsd" = MIresults$standardDeviationMI, 
+    #     "BRSMean" = BRSresults$meanValueBRS, "BRSsd" = BRSresults$standardDeviationBRS,
+    #     "GPMean" = GPresults$meanValueGP, "GPsd" = GPresults$varianceGP,
+    #     "PoptMean" = poptMean
+    # )
 	  #results <- data.frame("epochs"=c(1:num_new_surveys), "GPMean"=GPresults$meanValueGP, "GPsd"=GPresults$varianceGP)
     write.csv(results, file = paste0(resultPath, "results", num_cv, ".csv"), row.names=FALSE)
     results_models <- list("BART"=BARTresults, "MI"=MIresults, "BRS"=BRSresults, "GP"=GPresults)
@@ -138,9 +141,16 @@ for (num_cv in num_cv_start:num_cv_end) {
     
     #results_models <- list("GP"=GPresults)
   	#save(results_models, file = paste0(plotPath, "gpresults", num_cv, ".RData"))
-
+    
     real <- results$PoptMean[1]
-    # Breal <- results$BpoptMean[1]
+    Breal <- results$BpoptMean[1]
+    
+    print(c("Real BART-Int: ", Breal))
+    print(c("Real MC: ", real))
+    print(c("BART-Int: ", results$BARTMean[num_new_surveys]))
+    print(c("GP-BQ: ", results$GPMean[num_new_surveys]))
+    print(c("MI: ", results$MIMean[num_new_surveys]))
+    print(c("BRS: ", results$BRSMean[num_new_surveys]))
     
     # 1. Open jpeg file
     pdf(paste0(plotPath, "results", num_cv, ".pdf"), width = 8, height = 10)
