@@ -52,7 +52,7 @@ computeBART <- function(trainX, trainY, candidateX, candidateY, num_iterations)
     # model <- bart(trainData[, 1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=3L, 
     #               nskip=500, ndpost=2000, ntree=50, k=2, usequant=FALSE)
     model <- bart(trainData[,1:dim], trainData[, dim+1], keeptrees=TRUE, keepevery=3L, 
-                  nskip=200, ndpost=3000, ntree=50, k=3, usequant=FALSE)              
+                  nskip=200, ndpost=2000, ntree=50, k=3, usequant=FALSE)              
     sink()
 
     # predict the values
