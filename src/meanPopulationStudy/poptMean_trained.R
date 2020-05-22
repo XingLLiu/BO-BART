@@ -17,6 +17,7 @@ num_new_surveys <- args[1]
 num_cv_start <- args[2]
 num_cv_end <- args[3]
 num_data <- args[4]   # set to 2000 for this lengthscale
+num_design <- args[5]   # set to 2000 for this lengthscale
 
 
 # read in data
@@ -25,7 +26,6 @@ candidateData <- read.csv("data/candidate2.csv")
 
 # convert num to factor, log income
 convert <- function(data) {
-  
   log_Total_person_income <- log(data[, ncol(data)])
   data <- sapply(data[, 2:(ncol(data)-1)], as.factor)
   data <- data.frame(data)
@@ -37,44 +37,20 @@ candidateData <- convert(candidateData)
 
 trainData <- trainData[!is.infinite(trainData$log_Total_person_income),]
 candidateData <- candidateData[!is.infinite(candidateData$log_Total_person_income),]
-trainData <- trainData[complete.cases(trainData),]
+trainData_full <- trainData[complete.cases(trainData),]
 candidateData <- candidateData[complete.cases(candidateData),]
 # compute the real population mean log income
 poptMean <- mean(c(trainData$log_Total_person_income, candidateData$log_Total_person_income))
-
 lengthscales <- read.csv("Figures/populationStudy/lengthscales_10000.csv")
+ground_truths <- read.csv(paste("results/populationStudy/popt_", num_design,"_", num_data, ".csv", sep=""))
 
 for (num_cv in num_cv_start:num_cv_end) {
-  
     # set new seed
     set.seed(num_cv)
     print(num_cv)
-    trainData <- trainData[sample(c(1:dim(trainData)[1]), 50),]
-    candidateData <- candidateData[1:num_data, ]
-    poptMean <- mean(c(trainData$log_Total_person_income, candidateData$log_Total_person_income))
-
-    # # linear regression toy example
-    # fullData <- rbind(trainData, candidateData)
-    # lm.fit <- lm(log_Total_person_income~., data = fullData)
-    # res.sd <- sd(lm.fit$residuals)
-    # trainData$log_Total_person_income <- lm.fit$fitted.values[1:nrow(trainData)] + rnorm(nrow(trainData), res.sd)
-    # candidateData$log_Total_person_income <- lm.fit$fitted.values[-(1:nrow(trainData))] + rnorm(nrow(candidateData), res.sd)
-    # poptMean <- mean(c(trainData$log_Total_person_income, candidateData$log_Total_person_income))
-
-    # # reconstruct order of the data
-    # set.seed(2020)
-    # trainData <- trainData[sample(nrow(trainData)), ]
-    # candidateData <- candidateData[sample(nrow(candidateData)), ]
-
+    trainData <- trainData_full[sample(c(1:dim(trainData_full)[1]), num_design),]
     # extract covariates and response
     cols <- ncol(trainData)
-    # trainX <- trainData[1:500, -cols]
-    # trainY <- trainData[1:500, cols]
-
-
-    # candidateX <- candidateData[1:5000, -cols]
-    # candidateY <- candidateData[1:5000, cols]
-
     trainX <- trainData[, -cols]
     trainY <- trainData[, cols]
     candidateX <- candidateData[, -cols]
@@ -95,13 +71,13 @@ for (num_cv in num_cv_start:num_cv_end) {
     bartTime <- (t1 - t0)[[1]]
     # population average income estimation by Monte Carlo
     # MIresults <- computeMI(trainX.num, trainY, candidateX.num, candidateY, num_iterations=num_new_surveys)
-    MIresults <- computeMI(trainX.num, trainY, candidateX.num, candidateY, num_iterations=nrow(candidateX.num), seed = num_cv)
+    MIresults <- computeMI(trainX.num, trainY, candidateX.num, candidateY, num_iterations=num_new_surveys, seed = num_cv)
     # plot(MIresults$meanValueMI, ylim = c(10.9, 11.1), xlab = "num_iterations", ylab = "mean population")
     # legend("topright", legend=c("MC integration"))
     # abline(h = poptMean, col = "red")
     
     # GPBQ
-    lengthscale <- lengthscales[num_cv]
+    lengthscale <- lengthscales$lengthscales[num_cv]
 
     t0 <- proc.time()
     GPresults <- computeGPBQEmpirical(as.matrix(trainX), trainY, as.matrix(candidateX), candidateY, epochs=num_new_surveys, lengthscale=lengthscale)
@@ -114,7 +90,7 @@ for (num_cv in num_cv_start:num_cv_end) {
          "BARTMean" = BARTresults$meanValueBART, "BARTsd" = BARTresults$standardDeviationBART,
          "MIMean" = MIresults$meanValueMI, "MIsd" = MIresults$standardDeviationMI, 
          "GPMean" = GPresults$meanValueGP, "GPsd" = GPresults$varianceGP,
-         "PoptMean" = poptMean, 
+         "PoptMean" = ground_truths$mi_ground_truths[1], "BpoptMean" = ground_truths$bart_ground_truths[1],
          "runtimeBART" = rep(bartTime, num_new_surveys),
          "runtimeGP" = rep(GPTime, num_new_surveys)
      )

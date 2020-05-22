@@ -15,8 +15,8 @@ plotPath <- "Figures/populationStudy/"
 args <- as.double(commandArgs(TRUE))
 num_cv_start <- args[1]
 num_cv_end <- args[2]
-num_data <- args3   # set to 2000 for this lengthscale
-num_design = 50
+num_data <- args[3]   # set to 2000 for this lengthscale
+num_design = args[4]
 
 # read in data
 trainData <- read.csv("data/train2.csv")
@@ -63,6 +63,6 @@ for (num_cv in num_cv_start:num_cv_end) {
 ground_truths <- data.frame(mi_ground_truths)
 ground_truths <- cbind(ground_truths, bart_ground_truths)
 
-write.csv(ground_truths, paste("results/populationStudy/popt_", num_design, "_", num_data,  sep=""))
+write.csv(ground_truths, paste("results/populationStudy/popt_", num_design, "_", num_data,  ".csv", sep=""))
 
 

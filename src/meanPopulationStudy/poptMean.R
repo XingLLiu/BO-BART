@@ -17,7 +17,7 @@ num_new_surveys <- args[1]
 num_cv_start <- args[2]
 num_cv_end <- args[3]
 num_data <- args[4]   # set to 2000 for this lengthscale
-
+num_design <- 50
 
 # read in data
 trainData <- read.csv("data/train2.csv")
@@ -49,7 +49,7 @@ for (num_cv in num_cv_start:num_cv_end) {
     # set new seed
     set.seed(num_cv)
     print(num_cv)
-    trainData <- trainData[sample(c(1:dim(trainData)[1]), 500),]
+    trainData <- trainData[sample(c(1:dim(trainData)[1]), num_design),]
     candidateData <- candidateData[1:num_data, ]
     # poptMean <- mean(c(trainData$log_Total_person_income, candidateData$log_Total_person_income))
 
