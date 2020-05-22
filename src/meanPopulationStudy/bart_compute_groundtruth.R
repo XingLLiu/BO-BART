@@ -56,13 +56,15 @@ for (num_cv in num_cv_start:num_cv_end) {
   model <- bart(allData[,1:(dim-1)], allData[, dim], keeptrees=TRUE, keepevery=3L,
                 nskip=1000, ndpost=10000, ntree=50, k=3, usequant=FALSE)
   BARTpoptMean <- mean(model$yhat.train.mean)
+  rm(model)
+  gc()
   
   mi_ground_truths[num_cv] <- poptMean
   bart_ground_truths[num_cv] <- BARTpoptMean
 }
 ground_truths <- data.frame(mi_ground_truths)
 ground_truths <- cbind(ground_truths, bart_ground_truths)
-
 write.csv(ground_truths, paste("results/populationStudy/popt_", num_design, "_", num_data,  ".csv", sep=""))
+
 
 
