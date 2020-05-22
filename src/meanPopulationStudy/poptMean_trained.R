@@ -39,6 +39,7 @@ trainData <- trainData[!is.infinite(trainData$log_Total_person_income),]
 candidateData <- candidateData[!is.infinite(candidateData$log_Total_person_income),]
 trainData_full <- trainData[complete.cases(trainData),]
 candidateData <- candidateData[complete.cases(candidateData),]
+candidateData <- candidateData[1:num_data, ]
 # compute the real population mean log income
 poptMean <- mean(c(trainData$log_Total_person_income, candidateData$log_Total_person_income))
 lengthscales <- read.csv("Figures/populationStudy/lengthscales_10000.csv")
