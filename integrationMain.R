@@ -119,7 +119,7 @@ for (num_cv in 1:20) {
   source("src/GPBQ.R")
   t0 <- proc.time()
   # need to add in function to optimise the hyperparameters
-  predictionGPBQ <- computeGPBQ(
+  predictionGPBQ <- computeGPBQ_matern(
     trainX, 
     trainY, 
     dim, 
