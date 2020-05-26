@@ -104,6 +104,7 @@ for (num_cv in num_cv_start:num_cv_end) {
     #     "PoptMean" = poptMean
     # )
 	  #results <- data.frame("epochs"=c(1:num_new_surveys), "GPMean"=GPresults$meanValueGP, "GPsd"=GPresults$varianceGP)
+    # write.csv(results, file = paste0(resultPath, "gpresults", num_cv, ".csv"), row.names=FALSE)
     write.csv(results, file = paste0(resultPath, "results", num_cv, ".csv"), row.names=FALSE)
     results_models <- list("BART"=BARTresults, "MI"=MIresults, "GP"=GPresults)
     save(results_models, file = paste0(plotPath, "results", num_cv, ".RData"))
