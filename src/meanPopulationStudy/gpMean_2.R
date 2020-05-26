@@ -78,7 +78,7 @@ computeGPBQEmpirical <- function(X, Y, candidateSet, candidateY, epochs, kernel=
   var.firstterm <- sum(K_all)/(nrow(allSet)^2)
   
   K = kernel(X)
-  cov <- kernel(allSet, X)
+  cov <- kernel(candidateSet, X)
   z <- colMeans(cov) 
   covInverse <- chol2inv(chol(K + diag(jitter, nrow(K))))
   meanValueGP[1] <- t(z) %*% covInverse %*% Y
@@ -88,22 +88,17 @@ computeGPBQEmpirical <- function(X, Y, candidateSet, candidateY, epochs, kernel=
   if (epochs == 1){
     return (list("meanValueGP" = meanValueGP, "varianceGP" = varianceGP, "X" = X, "Y" = Y, "K" = K, "cond" = condition))
   }
+  
+  K_star_star <- kernel(candidateSet)
+  K_star <- cov
   for (p in 2:epochs) {
-   
     print(paste("GPBQ: Epoch =", p))
     K_prime <- diag(N+p-1)
     K_prime[1:(N+p-2), 1:(N+p-2)] <- K
-    
-    K_star_star <- kernel(candidateSet)
-    K_star <- kernel(candidateSet, X)
-
     candidate_Var <- diag(K_star_star - K_star %*% solve(K + diag(jitter, nrow(K)), t(K_star)))
     
-    
     index <- which(candidate_Var == max(candidate_Var))[1]
-    
     kernel_new_entry <- kernel(matrix(candidateSet[index,], nrow=1), X)
-    
     K_prime[N+p-1,1:(N+p-2)] <- kernel_new_entry
     K_prime[1:(N+p-2),N+p-1] <- kernel_new_entry
     X <- rbind(X,candidateSet[index,])
@@ -111,9 +106,20 @@ computeGPBQEmpirical <- function(X, Y, candidateSet, candidateY, epochs, kernel=
     Y <- c(Y, candidateY[index])
     K <- K_prime
     
+    # update kernel matrices
+    K_star_star <- K_star_star[-index, -index]
+    K_star_new <- matrix(nrow=(nrow(K_star)-1), ncol=(ncol(K_star)+1))
+    K_star_new[1:(nrow(K_star)-1), 1:ncol(K_star)] <- K_star[-index,]
+    K_star_new[1:(nrow(K_star)-1),(ncol(K_star)+1)] <- kernel(candidateSet[-index,], matrix(candidateSet[index,], nrow=1))
+    K_star <- K_star_new
+    
+    # update candidateSet
+    candidateSet <- candidateSet[-index,]
+    candidateY <- candidateY[-index]
+    
     # add in extra term obtained by integration
-    cov <- kernel(allSet, X)
-    z <- colMeans(cov) 
+    # cov <- kernel(allSet, X)
+    z <- colMeans(K_star) 
     covInverse <- chol2inv(chol(K + diag(jitter, N+p-1)))
     meanValueGP[p] <- t(z) %*% covInverse %*% Y
     varianceGP[p] <- var.firstterm - t(z) %*% covInverse %*% z
