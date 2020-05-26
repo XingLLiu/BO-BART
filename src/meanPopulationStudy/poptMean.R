@@ -109,7 +109,7 @@ for (num_cv in num_cv_start:num_cv_end) {
          "epochs" = c(1:num_new_surveys),
          "BARTMean" = BARTresults$meanValueBART, "BARTsd" = BARTresults$standardDeviationBART,
          "MIMean" = MIresults$meanValueMI, "MIsd" = MIresults$standardDeviationMI, 
-         "GPMean" = GPresults$meanValueGP, "GPsd" = GPresults$varianceGP, "PoptMean" = poptMean,
+         "GPMean" = GPresults$meanValueGP, "GPsd" = sqrt(GPresults$varianceGP), "PoptMean" = poptMean,
          "runtimeBART" = rep(bartTime, num_new_surveys),
          "runtimeGP" = rep(GPTime, num_new_surveys)
      )

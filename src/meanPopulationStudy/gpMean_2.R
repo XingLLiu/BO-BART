@@ -85,6 +85,7 @@ computeGPBQEmpirical <- function(X, Y, candidateSet, candidateY, epochs, kernel=
 
     candidate_Var <- diag(K_star_star - K_star %*% solve(K + diag(jitter, nrow(K)), t(K_star)))
     
+    
     index <- which(candidate_Var == max(candidate_Var))[1]
     
     kernel_new_entry <- kernelMatrix(kernel, matrix(candidateSet[index,], nrow=1), X)
