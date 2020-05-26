@@ -42,11 +42,12 @@ computeGPBQEmpirical <- function(X, Y, candidateSet, candidateY, epochs, kernel=
 {
   meanValueGP <- c()
   varianceGP <- c()
+  condition <- c()
    
   N <- dim(X)[1]
 
   K <- matrix(0,nrow=N,ncol=N)
-  jitter = 1e-7
+  jitter = 1e-5
 
   if (kernel == "rbf") {
     kernel <- rbfdot(.5/lengthscale^2)
@@ -69,10 +70,10 @@ computeGPBQEmpirical <- function(X, Y, candidateSet, candidateY, epochs, kernel=
   covInverse <- chol2inv(chol(K + diag(jitter, nrow(K))))
   meanValueGP[1] <- t(z) %*% covInverse %*% Y
   varianceGP[1] <- var.firstterm - t(z) %*% covInverse %*% z
-
+  condition[1] <- rcond(cov)
   # train
   if (epochs == 1){
-    return (list("meanValueGP" = meanValueGP, "varianceGP" = varianceGP, "X" = X, "Y" = Y, "K" = K))
+    return (list("meanValueGP" = meanValueGP, "varianceGP" = varianceGP, "X" = X, "Y" = Y, "K" = K, "cond" = condition))
   }
   for (p in 2:epochs) {
    
@@ -103,7 +104,8 @@ computeGPBQEmpirical <- function(X, Y, candidateSet, candidateY, epochs, kernel=
     covInverse <- chol2inv(chol(K + diag(jitter, N+p-1)))
     meanValueGP[p] <- t(z) %*% covInverse %*% Y
     varianceGP[p] <- var.firstterm - t(z) %*% covInverse %*% z
+    condition[p] <- rcond(cov)
   }
 
-  return (list("meanValueGP" = meanValueGP, "varianceGP" = varianceGP, "X" = X, "Y" = Y, "K" = K))
+  return (list("meanValueGP" = meanValueGP, "varianceGP" = varianceGP, "X" = X, "Y" = Y, "K" = K, "cond" = condition))
 }

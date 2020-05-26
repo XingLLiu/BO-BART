@@ -81,7 +81,7 @@ for (num_cv in num_cv_start:num_cv_end) {
     lengthscale <- lengthscales$lengthscales[num_cv]
 
     t0 <- proc.time()
-    GPresults <- computeGPBQEmpirical(as.matrix(trainX), trainY, as.matrix(candidateX), candidateY, epochs=num_new_surveys, lengthscale=lengthscale)
+    GPresults <- computeGPBQEmpirical(as.matrix(trainX), trainY, as.matrix(candidateX), candidateY, epochs=num_new_surveys, kernel="matern32", lengthscale=lengthscale)
     t1 <- proc.time()
     GPTime <- (t1 - t0)[[1]]
     
