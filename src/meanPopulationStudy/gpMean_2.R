@@ -47,7 +47,7 @@ computeGPBQEmpirical <- function(X, Y, candidateSet, candidateY, epochs, kernel=
   N <- dim(X)[1]
 
   K <- matrix(0,nrow=N,ncol=N)
-  jitter = 1e-5
+  jitter = 1.324
 
   if (kernel == "rbf") {
     kernel <- rbfdot(.5/lengthscale^2)
