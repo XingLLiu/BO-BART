@@ -53,11 +53,11 @@ discIntegral <- function(dim, u=0.5)
   
 {
   if ( u < 0 || u >1 ){ stop("u must be in [0,1]") }
-  if (dim < 2){ stop("dimension must be greater than 2") }
   
   # Set value of a
-  a <- 100/dim^3
 
+  a <- 10/dim^3
+  if (dim == 1){ return((exp(a*u) - 1)/a) }
   result <- ( ( 1/a ) * ( exp( a * u ) - 1 ) )  ^ 2  *  ( (1/a) * ( exp(a) - 1 ) ) ^ ( dim - 2 ) 
   
   return(result)

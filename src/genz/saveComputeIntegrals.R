@@ -21,6 +21,7 @@ for (k in 1:length(dimensions)){
     dim <- dimensions[k]
     integrals[1, k] <- contIntegral(dim)
     integrals[2, k] <- copeakIntegral(dim)
+    integrals[3, k] <- discIntegral(dim)
     integrals[4, k] <- gaussianIntegral(dim)
     integrals[5, k] <- oscillatoryIntegral(dim)
     integrals[6, k] <- productPeakIntegral(dim)
