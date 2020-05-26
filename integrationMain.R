@@ -44,7 +44,7 @@ if (as.character(args[6]) != "gaussian" | is.na(args[6])) {
 } else{
   measure <- as.character(args[6])
 }
-cat("Prior measure:", measure, "\n")
+cat("Integral Measure:", measure, "\n")
 
 # extra parameter for step function
 # 1 by default
@@ -64,8 +64,6 @@ print(c(dim, num_iterations, whichGenz))
 source("src/genz/genz.R") # genz function to test
 
 if (whichGenz < 1 | whichGenz > 9) { stop("undefined genz function. Change 3rd argument to 1-9") }
-if (whichGenz == 3 & dim == 1) { stop("incorrect dimension. Discrete Genz function only defined for dimension >= 2") } 
-
 if (whichGenz == 1) { genz <- cont; genzFunctionName <-  deparse(substitute(cont)) }
 if (whichGenz == 2) { genz <- copeak; genzFunctionName <-  deparse(substitute(copeak)) }
 if (whichGenz == 3) { genz <- disc; genzFunctionName <-  deparse(substitute(disc)) }
@@ -150,7 +148,7 @@ for (num_cv in 1:20) {
     if (dim ==3){ real <- 0.008327796 * 3}
   } else if (whichGenz == 9) {
     real <- additiveGaussianIntegral(dim, a = add_gauss_a)
-  }
+  } 
   
   # Bayesian Quadrature methods: with BART, Monte Carlo Integration and Gaussian Process respectively
   print("Final Results:")
