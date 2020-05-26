@@ -86,10 +86,7 @@ gaussianIntegral <- function(dim, u=0.5, a=NA)
     a <- 100/dim^2  
   }
   
-  errorFunction <- function (x) pnorm( x, mean = 0, sd = sqrt(0.5) ) - 
-                                         pnorm( -x, mean = 0, sd = sqrt(0.5) )
-  
-  oneDimensionResult <- ( sqrt(pi) / (2 * a) ) * ( errorFunction( a * u ) + errorFunction( a - a* u ) )
+  oneDimensionResult <- (sqrt(pi) / a) * (pnorm(sqrt(2) * a * (1 - u)) - pnorm(-sqrt(2) * a * u))
   result <- oneDimensionResult^dim
   
   return(result)
