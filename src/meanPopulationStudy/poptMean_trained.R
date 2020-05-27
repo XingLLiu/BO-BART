@@ -42,7 +42,7 @@ candidateData <- candidateData[complete.cases(candidateData),]
 candidateData <- candidateData[1:num_data, ]
 # compute the real population mean log income
 poptMean <- mean(c(trainData$log_Total_person_income, candidateData$log_Total_person_income))
-lengthscales <- read.csv("Figures/populationStudy/lengthscales_10000.csv")
+lengthscales <- read.csv("results/populationStudy/lengthscales_500_10000.csv")
 ground_truths <- read.csv(paste("results/populationStudy/popt_", num_design,"_", num_data, ".csv", sep=""))
 
 for (num_cv in num_cv_start:num_cv_end) {
@@ -67,7 +67,7 @@ for (num_cv in num_cv_start:num_cv_end) {
     # load(file = "data/survey_data.RData")
     # compute population average income estimates by BARTBQ
     t0 <- proc.time()
-    BARTresults <- computeBART(trainX, trainY, candidateX, candidateY, num_iterations=num_new_surveys)
+    #BARTresults <- computeBART(trainX, trainY, candidateX, candidateY, num_iterations=num_new_surveys)
     t1 <- proc.time()
     bartTime <- (t1 - t0)[[1]]
     # population average income estimation by Monte Carlo
@@ -86,15 +86,15 @@ for (num_cv in num_cv_start:num_cv_end) {
     GPTime <- (t1 - t0)[[1]]
     
     # store results
-    results <- data.frame(
-         "epochs" = c(1:num_new_surveys),
-         "BARTMean" = BARTresults$meanValueBART, "BARTsd" = BARTresults$standardDeviationBART,
-         "MIMean" = MIresults$meanValueMI, "MIsd" = MIresults$standardDeviationMI, 
-         "GPMean" = GPresults$meanValueGP, "GPsd" = sqrt(GPresults$varianceGP),
-         "PoptMean" = ground_truths$mi_ground_truths[1], "BpoptMean" = ground_truths$bart_ground_truths[1],
-         "runtimeBART" = rep(bartTime, num_new_surveys),
-         "runtimeGP" = rep(GPTime, num_new_surveys)
-     )
+    #results <- data.frame(
+    #     "epochs" = c(1:num_new_surveys),
+    #     "BARTMean" = BARTresults$meanValueBART, "BARTsd" = BARTresults$standardDeviationBART,
+    #     "MIMean" = MIresults$meanValueMI, "MIsd" = MIresults$standardDeviationMI, 
+    #     "GPMean" = GPresults$meanValueGP, "GPsd" = sqrt(GPresults$varianceGP),
+    #     "PoptMean" = ground_truths$mi_ground_truths[1], "BpoptMean" = ground_truths$bart_ground_truths[1],
+    #     "runtimeBART" = rep(bartTime, num_new_surveys),
+    #     "runtimeGP" = rep(GPTime, num_new_surveys)
+    # )
     # results <- data.frame(
     #     "epochs" = c(1:num_new_surveys),
     #     "BARTMean" = BARTresults$meanValueBART, "BARTsd" = BARTresults$standardDeviationBART,
@@ -103,21 +103,21 @@ for (num_cv in num_cv_start:num_cv_end) {
     #     "GPMean" = GPresults$meanValueGP, "GPsd" = GPresults$varianceGP,
     #     "PoptMean" = poptMean
     # )
-	  #results <- data.frame("epochs"=c(1:num_new_surveys), "GPMean"=GPresults$meanValueGP, "GPsd"=GPresults$varianceGP)
-    # write.csv(results, file = paste0(resultPath, "gpresults", num_cv, ".csv"), row.names=FALSE)
-    write.csv(results, file = paste0(resultPath, "results", num_cv, ".csv"), row.names=FALSE)
-    results_models <- list("BART"=BARTresults, "MI"=MIresults, "GP"=GPresults)
-    save(results_models, file = paste0(plotPath, "results", num_cv, ".RData"))
+	results <- data.frame("epochs"=c(1:num_new_surveys), "GPMean"=GPresults$meanValueGP, "GPsd"=GPresults$varianceGP)
+    write.csv(results, file = paste0(resultPath, "gpresults", num_cv, ".csv"), row.names=FALSE)
+    #write.csv(results, file = paste0(resultPath, "results", num_cv, ".csv"), row.names=FALSE)
+    #results_models <- list("BART"=BARTresults, "MI"=MIresults, "GP"=GPresults)
+    #save(results_models, file = paste0(plotPath, "results", num_cv, ".RData"))
     
-    #results_models <- list("GP"=GPresults)
-  	#save(results_models, file = paste0(plotPath, "gpresults", num_cv, ".RData"))
+    results_models <- list("GP"=GPresults)
+  	save(results_models, file = paste0(plotPath, "gpresults", num_cv, ".RData"))
     
     real <- results$PoptMean[1]
     Breal <- results$BpoptMean[1]
     
     print(c("Real BART-Int: ", Breal))
     print(c("Real MC: ", real))
-    print(c("BART-Int: ", results$BARTMean[num_new_surveys]))
+    #print(c("BART-Int: ", results$BARTMean[num_new_surveys]))
     print(c("GP-BQ: ", results$GPMean[num_new_surveys]))
     print(c("MI: ", results$MIMean[num_new_surveys]))
 }

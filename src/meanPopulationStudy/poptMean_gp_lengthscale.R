@@ -13,10 +13,11 @@ resultPath <- "results/populationStudy/"
 plotPath <- "Figures/populationStudy/"
 
 args <- as.double(commandArgs(TRUE))
-num_cv_start <- args[1]
-num_cv_end <- args[2]
-num_data <- args[3]  # set to 2000 for this lengthscale
-num_design <- args[4]
+num_new_surveys <- as.double(args[1])
+num_cv_start <- as.double(args[2])
+num_cv_end <- as.double(args[3])
+num_data <- as.double(args[4])   # set to 2000 for this lengthscale
+
 
 # read in data
 trainData <- read.csv("data/train2.csv")
@@ -40,12 +41,12 @@ trainData <- trainData[complete.cases(trainData),]
 candidateData <- candidateData[complete.cases(candidateData),]
 # compute the real population mean log income
 # poptMean <- mean(c(trainData$log_Total_person_income, candidateData$log_Total_person_income))
-lengthscales <- c()
+lengthscales=c()
 for (num_cv in num_cv_start:num_cv_end) {
   # set new seed
   set.seed(num_cv)
   print(num_cv)
-  trainData <- trainData[sample(c(1:dim(trainData)[1]), num_design),]
+  trainData <- trainData[sample(c(1:dim(trainData)[1]), 500),]
   candidateData <- candidateData[1:num_data, ]
   # poptMean <- mean(c(trainData$log_Total_person_income, candidateData$log_Total_person_income))
 
@@ -62,10 +63,11 @@ for (num_cv in num_cv_start:num_cv_end) {
   dummyFullData <- dummyVars("~.", data = rbind(trainX, candidateX))
   trainX <- data.frame(predict(dummyFullData, newdata = trainX))
   candidateX <- data.frame(predict(dummyFullData, newdata = candidateX))
-  lengthscale <- optimise_gp_r(as.matrix(trainX), trainY, kernel = "matern32", epochs = 500)
+  lengthscale <- optimise_gp_r(as.matrix(trainX), trainY, kernel = "rbf", epochs = 500)
   lengthscales[num_cv] <- lengthscale
 }
 lengthscales <- data.frame(lengthscales)
 lengthscales$num_cv <- c(num_cv_start:num_cv_end)
 
-write.csv(lengthscales, file = paste0(plotPath, "lengthscales_", num_design, "_",  num_data, ".csv"), row.names=FALSE)
+write.csv(lengthscales, file = paste0(plotPath, "lengthscales_", num_data, "_", ".csv", row.names=FALSE))
+
