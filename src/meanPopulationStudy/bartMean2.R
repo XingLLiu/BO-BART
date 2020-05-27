@@ -87,7 +87,7 @@ computeBART <- function(trainX, trainY, candidateX, candidateY, num_iterations, 
     if (save_posterior == TRUE) {
       print("/posterior_BART_survey_" %--% c(i))
       posterior_samples <- list("posterior_samples" = rowMeans(pred))
-      save(posterior_samples, file = paste(save_posterior_dir, "/posterior_BART_survey_" %--% c(i), ".RData", sep=""))
+      save(posterior_samples, file = paste(save_posterior_dir, "/posterior_BART_survey_%s" %--% c(i), ".RData", sep=""))
     }
 
     meanValue[i] <- mean(pred)
