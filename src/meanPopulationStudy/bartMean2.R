@@ -85,7 +85,6 @@ computeBART <- function(trainX, trainY, candidateX, candidateY, num_iterations, 
     # Integral with respect to \Pi_n
     pred <- predict(model, fullData)
     if (save_posterior == TRUE) {
-      print("/posterior_BART_survey_" %--% c(i))
       posterior_samples <- list("posterior_samples" = rowMeans(pred))
       save(posterior_samples, file = paste(save_posterior_dir, "/posterior_BART_survey_%s" %--% c(i), ".RData", sep=""))
     }
