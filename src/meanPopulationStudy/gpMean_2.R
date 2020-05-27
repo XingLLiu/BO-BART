@@ -78,7 +78,7 @@ computeGPBQEmpirical <- function(X, Y, candidateSet, candidateY, epochs, kernel=
   var.firstterm <- sum(K_all)/(nrow(allSet)^2)
   
   K = kernel(X)
-  cov <- kernel(candidateSet, X)
+  cov <- kernel(allSet, X)
   z <- colMeans(cov) 
   covInverse <- chol2inv(chol(K + diag(jitter, nrow(K))))
   meanValueGP[1] <- t(z) %*% covInverse %*% Y
@@ -90,7 +90,7 @@ computeGPBQEmpirical <- function(X, Y, candidateSet, candidateY, epochs, kernel=
   }
   
   K_star_star <- kernel(candidateSet)
-  K_star <- cov
+  K_star <- kernel(candidateSet, X)
   for (p in 2:epochs) {
     print(paste("GPBQ: Epoch =", p))
     K_prime <- diag(N+p-1)
@@ -119,7 +119,12 @@ computeGPBQEmpirical <- function(X, Y, candidateSet, candidateY, epochs, kernel=
     
     # add in extra term obtained by integration
     # cov <- kernel(allSet, X)
-    z <- colMeans(K_star) 
+    cov_new <- matrix(nrow=nrow(cov), ncol=nrow(X))
+    cov_new[1:nrow(cov),1:(nrow(X)-1)] <- cov 
+    cov_new[1:nrow(cov), nrow(X)] <- kernel(allSet, matrix(X[nrow(X),], ncol=ncol(X)))
+    cov <- cov_new
+    # z <- colMeans(K_star)
+    z <- colMeans(cov)
     covInverse <- chol2inv(chol(K + diag(jitter, N+p-1)))
     meanValueGP[p] <- t(z) %*% covInverse %*% Y
     varianceGP[p] <- var.firstterm - t(z) %*% covInverse %*% z
