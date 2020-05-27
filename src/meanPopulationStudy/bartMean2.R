@@ -12,7 +12,7 @@ library(matrixStats)
   do.call(sprintf, c(list(x), y))
 }
 
-computeBART <- function(trainX, trainY, candidateX, candidateY, num_iterations) 
+computeBART <- function(trainX, trainY, candidateX, candidateY, num_iterations, save_posterior=FALSE, save_posterior_dir="results") 
 #' BART-BQ for estimating average income
 #' @description Compute mean for BART-BQ with
 #' implementation of query sequential design 
@@ -85,6 +85,11 @@ computeBART <- function(trainX, trainY, candidateX, candidateY, num_iterations)
     
     # Integral with respect to \Pi_n
     pred <- predict(model, fullData)
+    if (save_posterior == TRUE) {
+      posterior_samples <- list("posterior_samples" = rowMeans(pred))
+      save(posterior_samples, file = paste(save_posterior_dir, "/posterior_BART_survey_" %--% i, ".RData", sep=""))
+    }
+
     meanValue[i] <- mean(pred)
     # standardDeviation[i] <- sd(trainData[, dim+1]) 
     standardDeviation[i] <- sum((rowMeans(pred) - meanValue[i])^2) / (nrow(pred) - 1)

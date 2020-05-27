@@ -220,7 +220,7 @@ sampleIntegrals <- function(model, dim, measure)
   return (integrals)
 }
 
-BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, sequential, measure)
+BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, sequential, measure, save_posterior=FALSE, save_posterior_dir="results/genz", save_posterior_filename="default")
   
   #'BART-BQ with Sequential Design
   #' 
@@ -256,7 +256,10 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, sequentia
   integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
   meanValue[1] <- mean(integrals)
   standardDeviation[1] <- sqrt( sum((integrals - meanValue[1])^2) / (length(integrals) - 1) )
-
+  if (save_posterior == TRUE) {
+    posterior_samples <- list("posterior_samples" = integrals)
+    save(posterior_samples, file = paste(save_posterior_dir, "/posterior_BART_%s_1" %--% c(save_posterior_filename), ".RData", sep=""))
+  }
   if (numNewTraining == 1) {
     return (list("meanValueBART"=meanValue, "standardDeviationBART"=standardDeviation, 
                 "trainData" = trainData, "model"=model))
@@ -281,6 +284,10 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, sequentia
     integrals <- (integrals + 0.5) * (ymax - ymin) + ymin
     meanValue[i] <- mean(integrals)
     standardDeviation[i] <- sqrt( sum((integrals - meanValue[i])^2) / (length(integrals) - 1) )
+    if (save_posterior == TRUE) {
+      posterior_samples <- list("posterior_samples" = integrals)
+      save(posterior_samples, file = paste(save_posterior_dir, "/posterior_BART_Dim%s_%s_%s" %--% c(dim, save_posterior_filename, i), ".RData", sep=""))
+    }
 
     # sequential design section, where we build the new training data
     candidateSetNum <- 100
@@ -372,7 +379,7 @@ BART_posterior <- function(dim, trainX, trainY, numNewTraining, FUN, sequential,
   return (list("model"=model, "trainData"=trainData))
 }
 
-mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY, sequential=TRUE, measure="uniform") 
+mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY, sequential=TRUE, measure="uniform", save_posterior=FALSE, save_posterior_dir="results/genz", save_posterior_filename="default")
   
   #'BART-BQ with Sequential Design
   #' 
@@ -393,7 +400,7 @@ mainBARTBQ <- function(dim, num_iterations, FUN, trainX, trainY, sequential=TRUE
   # prepare training data and parameters
   genz <- FUN #select genz function
   numNewTraining <- num_iterations
-  prediction <- BARTBQSequential(dim, trainX, trainY, numNewTraining, FUN = genz, sequential, measure) 
+  prediction <- BARTBQSequential(dim, trainX, trainY, numNewTraining, FUN = genz, sequential, measure, save_posterior=save_posterior, save_posterior_dir=save_posterior_dir, save_posterior_filename=save_posterior_filename)
 
   return (prediction)
 }
