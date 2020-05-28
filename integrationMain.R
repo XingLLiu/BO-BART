@@ -93,7 +93,7 @@ if (measure == "uniform") {
   trainY <- genz(trainX)
 }
 
-for (num_cv in 1:20) {
+for (num_cv in 14:14) {
   # set new seed
   set.seed(num_cv)
   cat("NUM_CV", num_cv, "\n")
@@ -101,7 +101,7 @@ for (num_cv in 1:20) {
   # set number of new query points using sequential design
   source("src/BARTBQ.R")
   t0 <- proc.time()
-  predictionBART <- mainBARTBQ(dim, num_iterations, FUN = genz, trainX, trainY, sequential, measure, save_posterior = save_posterior, save_posterior_dir = "results/genz", save_posterior_filename = paste(genzFunctionName, num_cv, sep="_"))
+  predictionBART <- mainBARTBQ(dim, num_iterations, FUN = genz, trainX, trainY, sequential, measure, save_posterior = save_posterior, save_posterior_dir = "results/genz", save_posterior_filename = paste(genzFunctionName, num_cv, sep = "_"))
   t1 <- proc.time()
   bartTime <- (t1 - t0)[[1]]
 
@@ -117,7 +117,7 @@ for (num_cv in 1:20) {
 
   # Bayesian Quadrature with Gaussian Process
   print("Begin Gaussian Process Integration")
-  if (num_cv == 1) {
+  if (num_cv == 1 | num_cv == 14) {
     library(reticulate)
     source("src/optimise_gp.R")
     lengthscale <- optimise_gp_r(trainX, trainY, kernel = whichKernel, epochs = 500)

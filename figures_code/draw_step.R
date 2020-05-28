@@ -7,7 +7,13 @@
 #     and input the four limits when running the file
 # To see results:
 #     Plots stored in {ROOT}/report/Figures for plots
-
+# define string formatting
+`%--%` <- function(x, y) 
+  # from stack exchange:
+  # https://stackoverflow.com/questions/46085274/is-there-a-string-formatting-operator-in-r-similar-to-pythons
+{
+  do.call(sprintf, c(list(x), y))
+}
 ylims <- as.double(commandArgs(TRUE))
 mape_error <- read.csv("figures_code/mapeValues.csv")
 for (i in c(7)){
@@ -31,10 +37,10 @@ for (i in c(7)){
       if (whichGenz == 7) { genzFunctionName <-  "step" }
       if (whichGenz == 8) { genzFunctionName <-  "additive_gaussian" }
       
-      for (num_cv in c(16)) {
+      for (num_cv in c(14)) {
         # Set path for estimated integral values
         fileName <- paste(toString(genzFunctionName), 'Dim', toString(dim), "Uniform_", toString(num_cv),'.csv', sep='')
-        filePath <- paste('results/new_genz', toString(whichGenz), fileName, sep='/')
+        filePath <- paste('results/newest_genz_runs', toString(whichGenz), fileName, sep='/')
         
         # Retrieve estimated integral values
         integrals <- read.csv(filePath, header=TRUE, sep=",", stringsAsFactors = FALSE)
@@ -45,7 +51,12 @@ for (i in c(7)){
         # Retrieve analytical integral values
         whichDimension <- which(dim == dimensionsList)
         analyticalIntegrals <- read.csv("results/genz/integrals.csv", header = FALSE)
-        real <- analyticalIntegrals[whichGenz, whichDimension]
+        if (whichGenz==7) {
+          real = 0.5
+        } else {
+          real <- analyticalIntegrals[whichGenz, whichDimension]
+        }
+        
         
         # 1. Open eps file
         # plotName <- paste("convergenceMean", toString(whichGenz), toString(dim), "Dimensions", sep = "")
@@ -220,56 +231,89 @@ for (i in c(7)){
     }
     pdf(paste("Figures", "/combined_", toString(whichGenz), ".pdf", sep = ""), width = 9, height = 5)
     par(mfrow = c(1,2), pty = "s")
-    plot(integrals$epochs,
-         abs(integrals$MIMean - real),
-         ty="l",
-         ylab = "Absolute Error",
-         xlab = "num_iterations",
-         col = "chartreuse4",
-         cex.lab = 1.7,
-         cex.axis = 1.7,
-         ylim = c(0, 0.06) 
+    plot(integrals$epochs[abs(integrals$MIMean - real)!=0]+50,
+        abs(integrals$MIMean - real)[abs(integrals$MIMean - real)!=0],
+        ty="l",
+        ylab = "Absolute Error",
+        xlab = expression("n'" + n[seq]),
+        col = "chartreuse4",
+        cex.lab = 2,
+        cex.axis = 2,
+        log = "y",
+        ylim = c(0.00001, 0.1)
     )
     abline(h=0)
-    points(integrals$epochs[plot_points], abs(integrals$MIMean[plot_points] - real), col = "chartreuse4", bg='chartreuse4', pch=21, lwd=3)
-    points(integrals$epochs, abs(integrals$GPMean-real), ty="l", col = "dodgerblue")
-    points(integrals$epochs[plot_points], abs(integrals$GPMean[plot_points] - real), col = "dodgerblue", bg='dodgerblue', pch=21, lwd=3)
-    points(integrals$epochs, abs(integrals$BARTMean - real), ty="l", col = "orangered")
-    points(integrals$epochs[plot_points], abs(integrals$BARTMean[plot_points] - real), col = "orangered",bg='orangered', pch=21, lwd=3)
-    legend("topright", legend=c("BART-Int", "GP-BQ", "MI"),
-           col=c("orangered", "dodgerblue", "chartreuse4"), cex=1.7, lty = c(1,1,1,1), bty="n")
+    points(integrals$epochs[plot_points]+50, abs(integrals$MIMean[plot_points] - real), col = "chartreuse4", bg='chartreuse4', pch=21, lwd=3)
+    points(integrals$epochs+50, abs(integrals$GPMean-real), ty="l", col = "dodgerblue")
+    points(integrals$epochs[plot_points]+50, abs(integrals$GPMean[plot_points] - real), col = "dodgerblue", bg='dodgerblue', pch=21, lwd=3)
+    points(integrals$epochs+50, abs(integrals$BARTMean - real), ty="l", col = "orangered")
+    points(integrals$epochs[plot_points]+50, abs(integrals$BARTMean[plot_points] - real), col = "orangered",bg='orangered', pch=21, lwd=3)
+    legend("bottomleft", legend=c("BART-Int", "GP-BQ", "MI"),
+          col=c("orangered", "dodgerblue", "chartreuse4"), cex=1.6, lty = c(1,1,1,1), bty="n")
+    
     plot_points <- seq(0, 50, 5)
     
-    plot(integrals$epochs, 
+    plot(integrals$epochs+50, 
          integrals$MIMean, 
          ty="l", 
          ylab = "Integral",
-         xlab = "num_iterations",
+         xlab = expression("n'"+n[seq]),
          col = "chartreuse4",
          ylim = c(ymin, ymax),
          cex.lab = 1.7,
          cex.axis = 1.7
     )
-    points(integrals$epochs[plot_points], integrals$MIMean[plot_points], col = "chartreuse4", bg='chartreuse4', pch=21, lwd=3)
-    points(integrals$epochs, integrals$GPMean, ty="l", col = "dodgerblue")
-    points(integrals$epochs[plot_points], integrals$GPMean[plot_points], col = "dodgerblue", bg='dodgerblue', pch=21, lwd=3)
-    polygon(c(integrals$epochs, rev(integrals$epochs)), 
+    points(integrals$epochs[plot_points]+50, integrals$MIMean[plot_points], col = "chartreuse4", bg='chartreuse4', pch=21, lwd=3)
+    points(integrals$epochs+50, integrals$GPMean, ty="l", col = "dodgerblue")
+    points(integrals$epochs[plot_points]+50, integrals$GPMean[plot_points], col = "dodgerblue", bg='dodgerblue', pch=21, lwd=3)
+    polygon(c(integrals$epochs+50, rev(integrals$epochs+50)), 
             c(
               integrals$GPMean + 2*integrals$GPsd, 
               rev(integrals$GPMean - 2*integrals$GPsd)
             ), 
             col = adjustcolor("dodgerblue", alpha.f = 0.10), 
             border = "dodgerblue", lty = c("dashed", "solid"))
-    points(integrals$epochs, integrals$BARTMean, ty="l", col = "orangered")
-    points(integrals$epochs[plot_points], integrals$BARTMean[plot_points], col = "orangered",bg='orangered', pch=21, lwd=3)
-    polygon(c(integrals$epochs, rev(integrals$epochs)), 
+    points(integrals$epochs+50, integrals$BARTMean, ty="l", col = "orangered")
+    points(integrals$epochs[plot_points]+50, integrals$BARTMean[plot_points], col = "orangered",bg='orangered', pch=21, lwd=3)
+    polygon(c(integrals$epochs+50, rev(integrals$epochs+50)), 
             c(
               integrals$BARTMean + 2*integrals$BARTsd, 
               rev(integrals$BARTMean - 2*integrals$BARTsd)
             ), 
             col = adjustcolor("orangered", alpha.f = 0.10), 
             border = "orangered", lty = c("dashed", "solid"))
+    for (n_seq in 1:20) {
+      bart_posterior <- load("results/genz/posterior_BART_Dim1_step_14_%s.RData" %--% c(n_seq))
+      if (n_seq == 1) {
+        num_posterior_samples <- length(posterior_samples$posterior_samples)
+        points(rep(n_seq+50, num_posterior_samples), 
+             posterior_samples$posterior_samples,
+             col = "orangered",bg='orangered',
+             cex=0.1)
+      } else {
+        points(rep(n_seq+50, num_posterior_samples), posterior_samples$posterior_samples, 
+               col = "orangered", bg='orangered', cex=0.1)
+      }
+    }
     abline(h=integrals$actual)
     dev.off()
   }
 }
+pdf(paste("Figures", "/combined_", toString(whichGenz), "BART.pdf", sep = ""), width = 5, height = 5)
+par(pty="s")
+for (n_seq in 1:20) {
+  bart_posterior <- load("results/genz/posterior_BART_Dim1_step_14_%s.RData" %--% c(n_seq))
+  if (n_seq == 1) {
+    num_posterior_samples <- length(posterior_samples$posterior_samples)
+    plot(rep(n_seq, num_posterior_samples), 
+         posterior_samples$posterior_samples,
+         xlim=c(1,20), 
+         ylim=c(0.4, 0.6), col = "orangered",bg='orangered',
+         cex=0.1)
+  } else {
+    points(rep(n_seq, num_posterior_samples), posterior_samples$posterior_samples, 
+           col = "orangered", bg='orangered', cex=0.1)
+  }
+}
+abline(h=0.5)
+dev.off()

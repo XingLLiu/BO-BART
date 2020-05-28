@@ -258,7 +258,7 @@ BARTBQSequential <- function(dim, trainX, trainY, numNewTraining, FUN, sequentia
   standardDeviation[1] <- sqrt( sum((integrals - meanValue[1])^2) / (length(integrals) - 1) )
   if (save_posterior == TRUE) {
     posterior_samples <- list("posterior_samples" = integrals)
-    save(posterior_samples, file = paste(save_posterior_dir, "/posterior_BART_%s_1" %--% c(save_posterior_filename), ".RData", sep=""))
+    save(posterior_samples, file = paste(save_posterior_dir, "/posterior_BART_Dim%s_%s_1" %--% c(dim, save_posterior_filename), ".RData", sep=""))
   }
   if (numNewTraining == 1) {
     return (list("meanValueBART"=meanValue, "standardDeviationBART"=standardDeviation, 
