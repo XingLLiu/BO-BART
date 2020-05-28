@@ -1,5 +1,5 @@
 library(foreign)
-df <- read.xport("data/brfss/LLCP2017.XPT ")
+df <- read.xport("data/brfss/LLCP2017.XPT")
 df <- df[!is.na(df$SLEPTIM1), ]
 df <- df[df$SLEPTIM1<=24, ]
 

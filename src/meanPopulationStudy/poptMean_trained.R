@@ -37,11 +37,19 @@ candidateData <- convert(candidateData)
 
 trainData <- trainData[!is.infinite(trainData$log_Total_person_income),]
 candidateData <- candidateData[!is.infinite(candidateData$log_Total_person_income),]
+# encode as continuous
+trainData$Education <- as.double(as.character(trainData$Education))
+candidateData$Education <- as.double(as.character(candidateData$Education))
+# split
+trainData <- trainData[trainData$Education<15,]
 trainData_full <- trainData[complete.cases(trainData),]
 candidateData <- candidateData[complete.cases(candidateData),]
 candidateData <- candidateData[1:num_data, ]
 # compute the real population mean log income
 poptMean <- mean(c(trainData$log_Total_person_income, candidateData$log_Total_person_income))
+## these you can hardcode. The lengthscales and ground truth don't really change.
+## also you might want to look at hardcoding the jitter/noise/nugget term in gpMean_2.R
+## you should train it with the design points before running and then hardcode it
 lengthscales <- read.csv("results/populationStudy/lengthscales_500_10000.csv")
 ground_truths <- read.csv(paste("results/populationStudy/popt_", num_design,"_", num_data, ".csv", sep=""))
 
