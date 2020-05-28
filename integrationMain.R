@@ -89,7 +89,7 @@ if (measure == "uniform") {
   trainY <- genz(trainX)
 }
 
-for (num_cv in 1:5) {
+for (num_cv in 1:20) {
   # set new seed
   set.seed(num_cv)
   cat("NUM_CV", num_cv, "\n")

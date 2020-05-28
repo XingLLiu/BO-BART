@@ -5,6 +5,8 @@
 # To see results:
 #     Results stored in {ROOT}/report/genz/resultsAll.csv and bestmethods.csv
 
+num_cv_total <- 20
+
 methods <- c("BART", "MI", "GP")
 bestMethod <- matrix(NA, ncol = 6, nrow = 7)
 rownames(bestMethod) <- c("cont", "copeak", "disc", "gaussian", "oscil", "prpeak", "step")
@@ -60,9 +62,9 @@ for (i in c(1,2,4,5,6,7)){
     if (whichGenz == 7) { genzFunctionName <-  "step" }
     if (whichGenz == 8) { genzFunctionName <-  "mix" }
     
-    for (num_cv in 1:5) {
+    for (num_cv in 1:num_cv_total) {
       # Set path for estimated integral values
-      # fileName <- paste(toString(genzFunctionName), 'Dim', toString(dim), "", "Gaussian", "_", toString(num_cv),  '.csv', sep='')
+      # fileName <- paste(toString(genzFunctionName), 'Dim', toString(dim), "Gaussian", "_", toString(num_cv),  '.csv', sep='')
       fileName <- paste(toString(genzFunctionName), 'Dim', toString(dim), "Uniform", "_", toString(num_cv),  '.csv', sep='')
       filePath <- paste('results/genz', toString(whichGenz), fileName, sep='/')
       
@@ -97,10 +99,10 @@ for (i in c(1,2,4,5,6,7)){
       # )
       # mapeValues[( (3*i - 2) : (3*i) ), (j + 1)] <- signif(rmse, 3)
     }
-    meanabsMape <- meanabsMape / 5
+    meanabsMape <- meanabsMape / num_cv_total
     bestMethod[i, j] <- methods[which(meanabsMape == min(meanabsMape))[1]]
     mapeValues[( (3*i - 2) : (3*i) ), (j + 1)] <- signif(meanabsMape, 3)
-    resultsAll[( (4*i - 3) : (4*i) ), (j + 1)] <- signif(resultsAllEntry / 5, 3)
+    resultsAll[( (4*i - 3) : (4*i) ), (j + 1)] <- signif(resultsAllEntry / num_cv_total, 3)
   }
   cat(genzFunctionName, "done", '\n')
 }
