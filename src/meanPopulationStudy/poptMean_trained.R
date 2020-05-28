@@ -67,7 +67,7 @@ for (num_cv in num_cv_start:num_cv_end) {
     # load(file = "data/survey_data.RData")
     # compute population average income estimates by BARTBQ
     t0 <- proc.time()
-    #BARTresults <- computeBART(trainX, trainY, candidateX, candidateY, num_iterations=num_new_surveys)
+    BARTresults <- computeBART(trainX, trainY, candidateX, candidateY, num_iterations=num_new_surveys, save_posterior=TRUE, num_cv=num_cv)
     t1 <- proc.time()
     bartTime <- (t1 - t0)[[1]]
     # population average income estimation by Monte Carlo
