@@ -36,7 +36,7 @@ candidateData <- convert(candidateData)
 
 trainData <- trainData[!is.infinite(trainData$log_Total_person_income),]
 candidateData <- candidateData[!is.infinite(candidateData$log_Total_person_income),]
-trainData <- trainData[complete.cases(trainData),]
+trainData_full <- trainData[complete.cases(trainData),]
 candidateData <- candidateData[complete.cases(candidateData),]
 # compute the real population mean log income
 bart_ground_truths <- c()
@@ -47,7 +47,7 @@ for (num_cv in num_cv_start:num_cv_end) {
   # set new seed
   set.seed(num_cv)
   print(num_cv)
-  trainData <- trainData[sample(c(1:dim(trainData)[1]), num_design),]
+  trainData <- trainData_full[sample(c(1:dim(trainData)[1]), num_design),]
   candidateData <- candidateData[1:num_data, ]
   poptMean <- mean(c(trainData$log_Total_person_income, candidateData$log_Total_person_income))
   

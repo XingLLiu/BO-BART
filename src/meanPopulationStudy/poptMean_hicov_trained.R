@@ -35,14 +35,17 @@ candidateData <- convert(candidateData)
 
 trainData$Health_insurance <- as.double(trainData$Health_insurance==1)
 candidateData$Health_insurance <- as.double(candidateData$Health_insurance==1)
+trainData$Education <- as.double(as.character(trainData$Education))
+candidateData$Education <- as.double(as.character(candidateData$Education))
+trainData <- trainData[trainData$Education<15,]
 
 trainData_full <- trainData[complete.cases(trainData),]
 candidateData <- candidateData[complete.cases(candidateData),]
 candidateData <- candidateData[1:num_data, ]
 # compute the real population mean log income
-lengthscales <- read.csv("Figures/populationStudy/lengthscales_hicov_10000.csv")
-ground_truths <- read.csv(paste("results/populationStudy/popt_hicov", num_design,"_", num_data, ".csv", sep=""))
-
+# lengthscales <- read.csv("Figures/populationStudy/lengthscales_hicov_10000.csv")
+# ground_truths <- read.csv(paste("results/populationStudy/popt_hicov", num_design,"_", num_data, ".csv", sep=""))
+lengthscale <- 4.15970659255981
 for (num_cv in num_cv_start:num_cv_end) {
   # set new seed
   set.seed(num_cv)
@@ -64,21 +67,21 @@ for (num_cv in num_cv_start:num_cv_end) {
   # load(file = "data/survey_data.RData")
   # compute population average income estimates by BARTBQ
   t0 <- proc.time()
-  BARTresults <- computeBART(trainX, trainY, candidateX, candidateY, num_iterations=num_new_surveys)
+  BARTresults <- computeBART(trainX, trainY+1e-10, candidateX, candidateY+1e-10, 
+                             num_iterations=num_new_surveys, save_posterior=TRUE, num_cv=num_cv)
   t1 <- proc.time()
   bartTime <- (t1 - t0)[[1]]
   # population average income estimation by Monte Carlo
   # MIresults <- computeMI(trainX.num, trainY, candidateX.num, candidateY, num_iterations=num_new_surveys)
-  MIresults <- computeMI(trainX.num, trainY, candidateX.num, candidateY, num_iterations=num_new_surveys, seed = num_cv)
+  MIresults <- computeMI(trainX.num, trainY, candidateX.num, candidateY, 
+                         num_iterations=num_new_surveys, seed = num_cv)
   # plot(MIresults$meanValueMI, ylim = c(10.9, 11.1), xlab = "num_iterations", ylab = "mean population")
   # legend("topright", legend=c("MC integration"))
   # abline(h = poptMean, col = "red")
   
   # GPBQ
-  lengthscale <- lengthscales$lengthscales[num_cv]
-  
   t0 <- proc.time()
-  GPresults <- computeGPBQEmpirical(as.matrix(trainX), trainY, as.matrix(candidateX), candidateY, epochs=num_new_surveys, lengthscale=lengthscale)
+  GPresults <- computeGPBQEmpirical(as.matrix(trainX), trainY, as.matrix(candidateX), candidateY, kernel="matern32", epochs=num_new_surveys, lengthscale=lengthscale)
   t1 <- proc.time()
   GPTime <- (t1 - t0)[[1]]
   
