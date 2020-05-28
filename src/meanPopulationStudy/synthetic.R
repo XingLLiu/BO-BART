@@ -112,7 +112,7 @@ for (num_cv in 1:20) {
   print(c("BART-Int", BARTresults$meanValueBART[num_new_surveys]))
   print(c("MI", MIresults$meanValueMI[num_new_surveys]))
   print(c("GP-BQ", GPresults$meanValueGP[num_new_surveys]))
-  
+
   # 1. Open jpeg file
   # pdf(paste0(plotPath, "syntheticCategorical", num_cv, ".pdf"), width = 8, height = 10)
   # par(mfrow = c(1,2), pty = "s")

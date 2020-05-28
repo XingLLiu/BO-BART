@@ -132,4 +132,5 @@ for (num_cv in num_cv_start:num_cv_end) {
     print(c("BART-Int: ", results$BARTMean[num_new_surveys]))
     print(c("GP-BQ: ", results$GPMean[num_new_surveys]))
     print(c("MI: ", results$MIMean[num_new_surveys]))
+    
 }
