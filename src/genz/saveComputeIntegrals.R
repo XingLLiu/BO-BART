@@ -6,8 +6,8 @@
 # and choose a according to the rescaling scheme (see paper).
 # The range of integration is from 0 to 1.
 
-source("./analyticalIntegrals.R")
-source("./genz.R")
+source("src/genz/analyticalIntegrals.R")
+source("src/genz/genz.R")
 library("cubature")
 
 numGenz <- 6
@@ -21,6 +21,7 @@ for (k in 1:length(dimensions)){
     dim <- dimensions[k]
     integrals[1, k] <- contIntegral(dim)
     integrals[2, k] <- copeakIntegral(dim)
+    integrals[3, k] <- discIntegral(dim)
     integrals[4, k] <- gaussianIntegral(dim)
     integrals[5, k] <- oscillatoryIntegral(dim)
     integrals[6, k] <- productPeakIntegral(dim)
@@ -34,5 +35,5 @@ for (k in 1:length(dimensions)){
 }
 
 # Write results to file
-write.table(integrals, file = "./integrals.csv", sep=",", row.names=FALSE, col.names=FALSE)
+write.table(integrals, file = "results/genz/integrals.csv", sep=",", row.names=FALSE, col.names=FALSE)
 

@@ -15,19 +15,20 @@ for (dim in dims) {
   bart = c()
   gp = c()
   mi = c()
-  for (num_cv in 1:5) {
-    df <- read.csv("high_dimensionality/9/additive_gaussianDim%sUniform_%s.csv" %--% c(dim, num_cv))
+  for (num_cv in 1:20) {
+    df <- read.csv("results/newest_genz_runs/9/additive_gaussianDim%sUniform_%s.csv" %--% c(dim, num_cv))
     bart = c(bart, df$BARTMean)
     gp = c(gp, df$GPMean)
     mi = c(mi, df$MIMean)
   }
-  results[l, 1] = mean(abs(bart - df$actual))
-  results[l, 2] = sd(abs(bart - df$actual)) / sqrt(5)
-  results[l, 3] = mean(abs(gp - df$actual))
-  results[l, 4] = sd(abs(gp - df$actual)) / sqrt(5)
-  results[l, 5] = mean(abs(mi - df$actual))
-  results[l, 6] = sd(abs(mi - df$actual)) / sqrt(5)
+  results[l, 1] = signif(mean(abs(bart - df$actual) / df$actual), 3)
+  results[l, 2] = signif(sd(abs(bart - df$actual) / df$actual) / sqrt(20), 3)
+  results[l, 3] = signif(mean(abs(gp - df$actual) / df$actual), 3)
+  results[l, 4] = signif(sd(abs(gp - df$actual) / df$actual) / sqrt(20), 3)
+  results[l, 5] = signif(mean(abs(mi - df$actual) / df$actual), 3)
+  results[l, 6] = signif(sd(abs(mi - df$actual) / df$actual) / sqrt(20),3)
+  
   l = l+1
 }
-write.csv(results, "figures_code//high_dimensionality.csv")
+write.csv(results, "figures_code/high_dimensionality.csv")
 

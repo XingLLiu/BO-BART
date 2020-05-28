@@ -23,7 +23,7 @@ set.seed(0)
 # global parameters: dimension
 args <- commandArgs(TRUE)
 dim <- as.double(args[1])
-num_data <- as.double(args[2])
+num_data <- 20
 num_iterations <- 20*dim
 whichKernel <- "matern32"
 sequential <- TRUE
@@ -51,22 +51,16 @@ F <- c(4.607562, 4.526243, 2.221768)
 P <- c(1, 0, 1)
 
 cut_point <- 0.5
-fisher_function_full <- create_fisher_function(C, R, H, F, P, 3)
-
-fisher_function <- function(x) {
-  x_in <- cbind(x, matrix(cut_point, nrow = nrow(x), ncol = 3-dim))
-  return(fisher_function_full(x_in))
-}
-
+fisher_function <- create_fisher_function(C[1:dim], R[1:dim], H[1:dim], F[1:dim], P[1:dim], dim)
 
 # prepare training dataset
-# if (measure == "uniform") {
-#   trainX<- replicate(dim, runif(num_data, 0, 1))
-#   trainY <- fisher_function(trainX)
-# } else if (measure == "gaussian") {
-#   trainX <- replicate(dim, rtnorm(num_data, mean=0.5, lower=0, upper=1))
-#   trainY <- fisher_function(trainX)
-# }
+if (measure == "uniform") {
+  trainX<- replicate(dim, runif(num_data, 0, 1))
+  trainY <- fisher_function(trainX)
+} else if (measure == "gaussian") {
+  trainX <- replicate(dim, rtnorm(num_data, mean=0.5, lower=0, upper=1))
+  trainY <- fisher_function(trainX)
+}
 
 real <- 1
 for (i in 1:dim) {
@@ -74,26 +68,10 @@ for (i in 1:dim) {
   real <- real*estimate_real_integral(fisher_1d, 1, 1e7)
 }
 print(real)
-if (dim != 3) {
-  for (i in (dim+1):3) {
-    fisher_1d <- create_fisher_function(C[i], R[i], H[i], F[i], P[i], 1)
-    print(fisher_1d(matrix(cut_point)))
-    real <- real * fisher_1d(matrix(cut_point))
-  }
-}
-  
 
 for (num_cv in 1:20) {
   # set new seed
   set.seed(num_cv)
-  # prepare training dataset
-  if (measure == "uniform") {
-    trainX<- replicate(dim, runif(num_data, 0, 1))
-    trainY <- fisher_function(trainX)
-  } else if (measure == "gaussian") {
-    trainX <- replicate(dim, rtnorm(num_data, mean=0.5, lower=0, upper=1))
-    trainY <- fisher_function(trainX)
-  }
   cat("NUM_CV", num_cv, "\n")
   # Bayesian Quadrature method
   # set number of new query points using sequential design
@@ -157,38 +135,38 @@ for (num_cv in 1:20) {
     "runtimeGP" = rep(GPTime, num_iterations)
   )
   if (!sequential){
-    csvName <- "results/fisher_function/Dim%sNoSequential%s_%s_%s.csv" %--% c(
+    csvName <- "results/fisher_function/PaperDim%sNoSequential%s_%s_%s.csv" %--% c(
       dim,
       tools::toTitleCase(measure),
       num_data,
       num_cv
     )
-    figName <- "Figures/fisher_function/Dim%sNoSequential%s_%s_%s.pdf" %--% c(
+    figName <- "Figures/fisher_function/PaperDim%sNoSequential%s_%s_%s.pdf" %--% c(
       dim,
       tools::toTitleCase(measure),
       num_data,
       num_cv
     )
-    figName_convergence <- "Figures/fisher_function/convergence_Dim%sNoSequential%s_%s_%s.pdf" %--% c(
+    figName_convergence <- "Figures/fisher_function/Paperconvergence_Dim%sNoSequential%s_%s_%s.pdf" %--% c(
       dim,
       tools::toTitleCase(measure),
       num_data,
       num_cv
     )
   } else {
-    csvName <- "results/fisher_function/Dim%s%s_%s_%s.csv" %--% c(
+    csvName <- "results/fisher_function/PaperDim%s%s_%s_%s.csv" %--% c(
       dim,
       tools::toTitleCase(measure),
       num_data,
       num_cv
     )
-    figName <- "Figures/fisher_function/Dim%s%s_%s_%s.pdf" %--% c(
+    figName <- "Figures/fisher_function/PaperDim%s%s_%s_%s.pdf" %--% c(
       dim,
       tools::toTitleCase(measure),
       num_data,
       num_cv
     )
-    figName_convergence <- "Figures/fisher_function/convergence_Dim%s%s_%s_%s.pdf" %--% c(
+    figName_convergence <- "Figures/fisher_function/Paperconvergence_Dim%s%s_%s_%s.pdf" %--% c(
       dim,
       tools::toTitleCase(measure),
       num_data,
@@ -197,7 +175,7 @@ for (num_cv in 1:20) {
   }
   
   results_models <- list("BART"=predictionBART, "GP"=predictionGPBQ, "MC"=predictionMonteCarlo)
-  save(results_models, file = "results/fisher_function/Dim%s%s_%s_%s.RData" %--% c(
+  save(results_models, file = "results/fisher_function/PaperDim%s%s_%s_%s.RData" %--% c(
     dim,
     tools::toTitleCase(measure),
     num_data,
@@ -310,54 +288,3 @@ for (num_cv in 1:20) {
     dev.off()
   }
 }
-num_data_lists <- list()
-num_data_lists[[1]] <- c(20,50,100)
-num_data_lists[[2]] <- c(50,100,200)
-for (dim in 1:2) {
-  num_data_list <- num_data_lists[[dim]]
-  results <- data.frame(
-  "num_data" = num_data_list,
-  "BARTMape" = num_data_list,
-  "BARTSE" = num_data_list,
-  "GPMape" = num_data_list,
-  "GPSE" = num_data_list,
-  "MIMape" = num_data_list,
-  "MISE" = num_data_list
-  )
-  for (num_data in num_data_list) {
-    n <- 1
-    mape <- 0
-    sd <- 0
-    bart_estimates <-c()
-    gp_estimates <-c()
-    mi_estimates <-c()
-    for (num_cv in 1:20) {
-      csv_name <- paste(
-      "results/fisher_function/",
-      "Dim",
-      dim,
-      "NoSequentialUniform_",
-      num_data,
-      "_",
-      num_cv,
-      ".csv",
-      sep=""
-      )
-      result <- read.csv(csv_name)
-      real <- result$actual
-      mape <- mape + 1/20 * abs((c(result$BARTMean, result$GPMean, result$MIMean)-real)/real)
-      bart_estimates[num_cv] <- result$BARTMean
-      gp_estimates[num_cv] <- result$GPMean
-      mi_estimates[num_cv] <- result$MIMean
-    }
-    se[1] <- 1/sqrt(num_cv) * sd(bart_estimates)
-    se[2] <- 1/sqrt(num_cv) * sd(gp_estimates)
-    se[3] <- 1/sqrt(num_cv) * sd(mi_estimates)
-    results[n, c(2,4,6)] <- mape
-    results[n, c(3,5,7)] <- se
-    n <- n + 1
-  }
-  result_csv_name <- paste("results/fisher_function/results_fisher_function_dim_", dim, ".csv", sep="")
-  write.csv(results, result_csv_name)
-}
-

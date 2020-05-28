@@ -154,10 +154,24 @@ disc <- function(xx)
   
   # Function only defined for dimension >= 2
   dim <- ncol(xx)
-  if (dim < 2) stop("incorrect dimension. Discrete Genz function only defined for dimension >= 2") 
+  if (dim == 1) {
+    u <- rep(0.5, dim)
+    a <- rep(10/dim^3, dim)
+    
+    x1 <- xx[ ,1]
+    u1 <- u[1]
+    
+    xx[which(x1 > u1), ] <- 0
+    
+    sum <- xx * a
+    y <- exp(sum)
+    y[which (y == 1)] <- 0
+    
+    return(y)
+  }
   
   u <- rep(0.5, dim)
-  a <- rep(100/dim^3, dim)
+  a <- rep(10/dim^3, dim)
   
   x1 <- xx[ ,1]
   x2 <- xx[ ,2]
@@ -169,7 +183,6 @@ disc <- function(xx)
   sum <- xx %*% a
   y <- exp(sum)
   y[which (y == 1)] <- 0
-
   
   return(y)
   
@@ -271,7 +284,7 @@ oscil <- function(xx)
   
   dim <- ncol(xx)
   u <- rep(0.5, 1, dim)
-  a <- rep(110/dim^(5/2), dim) 
+  a <- rep(110/dim^(5/2), dim)
   
   sum <- xx %*% a
   y <- cos(2 * pi * u[1] + sum)

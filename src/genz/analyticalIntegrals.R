@@ -53,11 +53,11 @@ discIntegral <- function(dim, u=0.5)
   
 {
   if ( u < 0 || u >1 ){ stop("u must be in [0,1]") }
-  if (dim < 2){ stop("dimension must be greater than 2") }
   
   # Set value of a
-  a <- 100/dim^3
 
+  a <- 10/dim^3
+  if (dim == 1){ return((exp(a*u) - 1)/a) }
   result <- ( ( 1/a ) * ( exp( a * u ) - 1 ) )  ^ 2  *  ( (1/a) * ( exp(a) - 1 ) ) ^ ( dim - 2 ) 
   
   return(result)
@@ -123,14 +123,14 @@ oscillatoryIntegral <- function(dim, u=0.5)
     phi <- auxiliaryFunction
     
     # Set value of a
-    a <- 110/dim^(5/2)
+    a <- 110/(dim^(5/2))
 
     # Compute integral
     integral <- 0
     for (n in 0:dim){
-      integral <- choose(dim, n) * phi((2*pi*u + n * a), dim) * (-1)^(dim - n) + integral
+      integral <- choose(dim, n) * phi((2*pi*u + (dim-n) * a), dim) * (-1)^(n) + integral
     }
-    return(integral / a^dim)
+    return(integral / (a^dim))
 }
 
 
