@@ -28,7 +28,7 @@ maternKernelWrapper <- function(lengthscale = 1, sigma = 1) {
 rescale <- function(x) {x * attr(x, 'scaled:scale') + attr(x, 'scaled:center')}
 maternKernelWrapper_2 <- function(lengthscale=1, sigma=1) {
   matern <- function (X, Y=NA) {
-    if (is.na(Y)) {
+    if (any(is.na(Y))) {
       d <- pdist(X)
     } else {
       d <- cdist(X, Y)

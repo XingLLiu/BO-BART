@@ -17,6 +17,8 @@ num_cv_start <- args[1]
 num_cv_end <- args[2]
 num_data <- args[3]   # set to 2000 for this lengthscale
 num_design = args[4]
+which_response <- args[5]   # set to 1 for binary log-income response
+jitter <- 1e-6
 
 # read in data
 trainData <- read.csv("data/train2.csv")
@@ -38,6 +40,16 @@ trainData <- trainData[!is.infinite(trainData$log_Total_person_income),]
 candidateData <- candidateData[!is.infinite(candidateData$log_Total_person_income),]
 trainData_full <- trainData[complete.cases(trainData),]
 candidateData <- candidateData[complete.cases(candidateData),]
+
+# change response to binary
+if (which_response == 1){
+  binary_response <- ifelse(trainData_full$log_Total_person_income >= 10.1, 1 - jitter, jitter)
+  trainData_full$log_Total_person_income <- binary_response
+  binary_response <- ifelse(candidateData$log_Total_person_income >= 10.1, 1 - jitter, jitter)
+  candidateData$log_Total_person_income <- binary_response
+} else {
+}
+
 # compute the real population mean log income
 bart_ground_truths <- c()
 mi_ground_truths <- c()
@@ -64,7 +76,7 @@ for (num_cv in num_cv_start:num_cv_end) {
 }
 ground_truths <- data.frame(mi_ground_truths)
 ground_truths <- cbind(ground_truths, bart_ground_truths)
-write.csv(ground_truths, paste("results/populationStudy/popt_", num_design, "_", num_data,  ".csv", sep=""))
+write.csv(ground_truths, paste("results/populationStudy/popt_", num_design, "_", num_data, ".csv", sep=""))
 
 
 
